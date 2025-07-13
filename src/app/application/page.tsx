@@ -15,7 +15,6 @@ import { StudyPlanForm } from '@/components/forms/study-plan-form';
 import { FamilyForm } from '@/components/forms/family-form';
 import { DocumentsForm } from '@/components/forms/documents-form';
 import { BackgroundForm } from '@/components/forms/background-form';
-import { ApplicationProvider } from '@/context/application-context';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User, formId: 'form-profile' },
@@ -124,9 +123,7 @@ function ApplicationPageContent() {
 export default function ApplicationPage() {
   return (
     <AppLayout>
-      <ApplicationProvider>
         <ApplicationPageContent />
-      </ApplicationProvider>
     </AppLayout>
   )
 }
