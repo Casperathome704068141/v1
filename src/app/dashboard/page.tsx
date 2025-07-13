@@ -9,27 +9,51 @@ import { useUser } from '@/hooks/use-user';
 import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck, Send } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useApplication } from '@/context/application-context';
 
-const applicationSteps = [
-    { name: 'Profile Information', completed: true, href: '/application?step=profile' },
-    { name: 'Academic & Work History', completed: true, href: '/application?step=academics' },
-    { name: 'Language Proficiency', completed: false, href: '/application?step=language' },
-    { name: 'Financial Details', completed: false, href: '/application?step=finances' },
-    { name: 'Study Plan', completed: false, href: '/application?step=plan' },
-    { name: 'Upload Documents', completed: false, href: '/application?step=documents' },
-    { name: 'Application Submission', completed: false, icon: Send },
-    { name: 'Biometrics Completed', completed: false },
-    { name: 'Medical Exam Passed', completed: false },
-    { name: 'Passport Request', completed: false },
-    { name: 'Visa Approved', completed: false },
+const applicationStepsConfig = [
+    { id: 'personalInfo', name: 'Profile Information', href: '/application?step=profile' },
+    { id: 'academics', name: 'Academic & Work History', href: '/application?step=academics' },
+    { id: 'language', name: 'Language Proficiency', href: '/application?step=language' },
+    { id: 'finances', name: 'Financial Details', href: '/application?step=finances' },
+    { id: 'studyPlan', name: 'Study Plan', href: '/application?step=plan' },
+    { id: 'family', name: 'Family Information', href: '/application?step=family' },
+    { id: 'background', name: 'Background & Security', href: '/application?step=background' },
+    { id: 'documents', name: 'Upload Documents', href: '/application?step=documents' },
+    { name: 'Application Submission', icon: Send },
+    { name: 'Biometrics Completed' },
+    { name: 'Medical Exam Passed' },
+    { name: 'Passport Request' },
+    { name: 'Visa Approved' },
 ];
 
-const completedStepsCount = applicationSteps.filter(step => step.completed).length;
-const progressPercentage = (completedStepsCount / applicationSteps.length) * 100;
-const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
+const isStepCompleted = (stepId: keyof typeof applicationData, applicationData: any) => {
+    if (!stepId || !applicationData[stepId]) return false;
+    
+    // For most forms, checking if the object is not empty is enough.
+    // For more complex forms with arrays, we can add specific checks.
+    const data = applicationData[stepId];
+    if (stepId === 'academics') {
+        return (data.educationHistory && data.educationHistory.length > 0) || (data.employmentHistory && data.employmentHistory.length > 0);
+    }
+     if (stepId === 'personalInfo') {
+        return data.surname && data.givenNames; // A proxy for completion
+    }
+    return Object.keys(data).length > 0 && data.constructor === Object;
+};
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const { applicationData } = useApplication();
+
+  const applicationSteps = applicationStepsConfig.map(step => ({
+      ...step,
+      completed: step.id ? isStepCompleted(step.id as any, applicationData) : step.completed || false
+  }));
+
+  const completedStepsCount = applicationSteps.filter(step => step.completed).length;
+  const progressPercentage = (completedStepsCount / applicationSteps.length) * 100;
+  const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
 
   return (
     <AppLayout>
@@ -59,7 +83,6 @@ export default function DashboardPage() {
                             {applicationSteps.map((step, index) => {
                                 const isCompleted = step.completed;
                                 const isCurrent = index === currentStepIndex;
-                                const isFuture = index > currentStepIndex && currentStepIndex !== -1;
 
                                 return (
                                 <div key={step.name} className="flex items-start gap-4 pb-8">
@@ -99,7 +122,7 @@ export default function DashboardPage() {
                                                 {step.name}
                                             </p>
                                             {step.href && (
-                                                <Button asChild variant={isCompleted ? 'ghost' : 'secondary'} size="sm">
+                                                <Button asChild variant={isCurrent ? 'secondary' : 'ghost'} size="sm">
                                                     <Link href={step.href}>
                                                         {isCompleted ? 'Review' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
                                                     </Link>
