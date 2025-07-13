@@ -26,6 +26,7 @@ interface QuizResultsProps {
   totalScore: number;
   sectionScores: Record<string, number>;
   sectionMaxPoints: Record<string, number>;
+  answers: Record<string, string | null>;
   onReset: () => void;
 }
 
@@ -44,7 +45,7 @@ const getResultDetails = (score: number) => {
       status: 'Needs Improvement',
       description: '🔧 A few gaps to close before you apply. Review your scores below for details.',
       ctaText: 'View Action Plan',
-      ctaLink: '#',
+      ctaLink: '/action-plan', // Updated Link
       ctaVariant: 'secondary',
     };
   }
@@ -61,6 +62,7 @@ export function QuizResults({
   totalScore,
   sectionScores,
   sectionMaxPoints,
+  answers,
   onReset,
 }: QuizResultsProps) {
   const resultDetails = getResultDetails(totalScore);
@@ -77,6 +79,15 @@ export function QuizResults({
   ];
   
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
+  
+  const getCtaLink = () => {
+    if (resultDetails.ctaLink === '/action-plan') {
+      const answersQuery = encodeURIComponent(JSON.stringify(answers));
+      const scoresQuery = encodeURIComponent(JSON.stringify(sectionScores));
+      return `${resultDetails.ctaLink}?answers=${answersQuery}&scores=${scoresQuery}`;
+    }
+    return resultDetails.ctaLink;
+  }
 
   return (
     <Card className="max-w-4xl mx-auto">
@@ -129,7 +140,7 @@ export function QuizResults({
       </CardContent>
       <CardFooter className="flex-col gap-4 border-t pt-6">
         <Button asChild size="lg" variant={resultDetails.ctaVariant} className="w-full">
-          <Link href={resultDetails.ctaLink}>{resultDetails.ctaText}</Link>
+          <Link href={getCtaLink()}>{resultDetails.ctaText}</Link>
         </Button>
         <Button variant="outline" onClick={onReset} className="w-full">
           Take the Quiz Again
@@ -138,4 +149,3 @@ export function QuizResults({
     </Card>
   );
 }
-

@@ -191,7 +191,7 @@ export function EligibilityQuizFlow() {
   }, [visibleQuestions, answers]);
 
   const currentQuestion = useMemo(() => {
-     if (currentQuestionIndex === -1 && Object.keys(answers).length > 0) {
+     if (currentQuestionIndex === -1 && Object.keys(answers).length >= visibleQuestions.length) {
         setFinished(true);
         return null;
     }
@@ -207,6 +207,12 @@ export function EligibilityQuizFlow() {
       const prevQuestionId = visibleQuestions[currentQuestionIndex - 1].id;
       const newAnswers = { ...answers };
       delete newAnswers[prevQuestionId];
+      // Also remove answers from any questions that were branched from the previous one
+      for (const q of questions) {
+        if (q.condition && q.condition(newAnswers) === false) {
+          delete newAnswers[q.id];
+        }
+      }
       setAnswers(newAnswers);
     }
   };
@@ -239,7 +245,7 @@ export function EligibilityQuizFlow() {
   
   if (finished) {
     const { totalScore, sectionScores } = calculateScores();
-    return <QuizResults totalScore={totalScore} sectionScores={sectionScores} onReset={handleReset} sectionMaxPoints={sectionMaxPoints} />;
+    return <QuizResults totalScore={totalScore} sectionScores={sectionScores} onReset={handleReset} sectionMaxPoints={sectionMaxPoints} answers={answers} />;
   }
 
   if (!currentQuestion) {
@@ -301,4 +307,3 @@ export function EligibilityQuizFlow() {
     </Card>
   );
 }
-
