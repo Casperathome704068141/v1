@@ -5,9 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { BrainCircuit, MapPin } from 'lucide-react';
-import { ReasoningPanel } from './reasoning-panel';
 
 type College = {
   id: number;
@@ -17,49 +14,37 @@ type College = {
   programs: string[];
   image: string;
   aiHint: string;
+  tuition: number;
 };
 
 export function CollegeCard({ college }: { college: College }) {
   return (
     <Card className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-xl">
-      <div className="relative h-48 w-full">
+      <div className="relative h-48 w-full bg-muted">
         <Image src={college.image} alt={college.name} layout="fill" objectFit="cover" data-ai-hint={college.aiHint} />
       </div>
-      <CardHeader>
-        <CardTitle className="font-headline text-lg">{college.name}</CardTitle>
-        <CardDescription className="flex items-center gap-1">
-          <MapPin className="h-4 w-4" />
-          {college.city}, {college.province}
+      <CardHeader className="p-4">
+        <CardTitle className="text-base font-bold">{college.name}</CardTitle>
+        <CardDescription className="text-xs">
+          {college.province}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col justify-between">
-        <div className="mb-4 flex flex-wrap gap-2">
-          {college.programs.map((program) => (
-            <Badge key={program} variant="secondary">
+      <CardContent className="flex flex-1 flex-col justify-between p-4 pt-0">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {college.programs.slice(0, 1).map((program) => (
+            <Badge key={program} variant="secondary" className="font-normal">
               {program}
             </Badge>
           ))}
+           <Badge variant="secondary" className="font-normal">
+            ${college.tuition.toLocaleString()}/year
+          </Badge>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Switch id={`favorite-${college.id}`} />
-            <Label htmlFor={`favorite-${college.id}`}>Save Favorite</Label>
-          </div>
+        <div className="flex items-center space-x-2">
+          <Switch id={`favorite-${college.id}`} />
+          <Label htmlFor={`favorite-${college.id}`} className="text-xs font-normal">Save to favorites</Label>
         </div>
       </CardContent>
-      <Accordion type="single" collapsible className="w-full bg-primary/5">
-        <AccordionItem value="item-1" className="border-t">
-          <AccordionTrigger className="px-6 py-3 text-sm font-semibold text-primary hover:no-underline">
-            <div className="flex items-center gap-2">
-              <BrainCircuit className="h-4 w-4" />
-              <span>AI Reasoning</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="px-6 pb-4">
-            <ReasoningPanel dliDetails={{ name: college.name, province: college.province }} />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
     </Card>
   );
 }

@@ -25,7 +25,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutDashboard, Search, Settings, Wallet } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy } from 'lucide-react';
 
 function UserMenu() {
   return (
@@ -60,10 +60,12 @@ function UserMenu() {
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '#', icon: FileText, label: 'Eligibility Quiz' },
   { href: '/college-match', icon: Search, label: 'College Match' },
-  { href: '#', icon: GraduationCap, label: 'Applications' },
-  { href: '#', icon: Wallet, label: 'Payments' },
-  { href: '#', icon: Settings, label: 'Settings' },
+  { href: '#', icon: GraduationCap, label: 'Application' },
+  { href: '#', icon: FileText, label: 'Documents' },
+  { href: '#', icon: Calendar, label: 'Appointments' },
+  { href: '#', icon: LifeBuoy, label: 'Support' },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -74,9 +76,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen">
         <Sidebar>
           <SidebarHeader>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-8 w-8 text-primary" />
-              <h1 className="font-headline text-xl font-bold text-foreground">Maple Leafs</h1>
+            <div className="flex items-center gap-2 p-2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary">
+                <path d="M5 16L3 21L8 19L18 9L15 6L5 16Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M13.5 7.5L16.5 10.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <h1 className="font-headline text-xl font-bold text-sidebar-foreground">Visa2Go</h1>
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -94,15 +100,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://placehold.co/100x100.png" alt="User" />
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Student User</span>
-                <span className="text-xs text-muted-foreground">student@example.com</span>
+            <div className="flex items-center justify-between rounded-md p-2 bg-destructive/80 text-destructive-foreground">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-6 w-6">
+                  <AvatarFallback className="bg-destructive text-destructive-foreground">N</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-semibold">1 Issue</span>
               </div>
+              <button>&times;</button>
             </div>
           </SidebarFooter>
         </Sidebar>

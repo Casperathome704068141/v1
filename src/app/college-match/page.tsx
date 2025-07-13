@@ -3,26 +3,36 @@
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollegeCard } from './college-card';
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Slider } from '@/components/ui/slider';
+import { WandSparkles } from 'lucide-react';
 
 const mockColleges = [
-  { id: 1, name: 'University of Toronto', province: 'Ontario', city: 'Toronto', programs: ['Undergraduate', 'Postgraduate'], image: 'https://placehold.co/600x400.png', aiHint: 'university campus' },
-  { id: 2, name: 'University of British Columbia', province: 'British Columbia', city: 'Vancouver', programs: ['Undergraduate', 'Postgraduate', 'Diploma'], image: 'https://placehold.co/600x400.png', aiHint: 'modern architecture' },
-  { id: 3, name: 'McGill University', province: 'Quebec', city: 'Montreal', programs: ['Undergraduate', 'Postgraduate'], image: 'https://placehold.co/600x400.png', aiHint: 'historic building' },
-  { id: 4, name: 'Seneca College', province: 'Ontario', city: 'Toronto', programs: ['Diploma', 'Certificate'], image: 'https://placehold.co/600x400.png', aiHint: 'college campus' },
-  { id: 5, name: 'BCIT', province: 'British Columbia', city: 'Burnaby', programs: ['Diploma', 'Certificate'], image: 'https://placehold.co/600x400.png', aiHint: 'technology institute' },
-  { id: 6, name: 'Concordia University', province: 'Quebec', city: 'Montreal', programs: ['Undergraduate', 'Postgraduate'], image: 'https://placehold.co/600x400.png', aiHint: 'city campus' },
+  { id: 1, name: 'University of Toronto', province: 'ON', city: 'Toronto', programs: ['Engineering', 'Arts'], image: 'https://placehold.co/600x400.png', aiHint: 'university campus', tuition: 45000 },
+  { id: 2, name: 'University of British Columbia', province: 'BC', city: 'Vancouver', programs: ['Computer Science', 'Business'], image: 'https://placehold.co/600x400.png', aiHint: 'modern architecture', tuition: 40000 },
+  { id: 3, name: 'McGill University', province: 'QC', city: 'Montreal', programs: ['Arts', 'Science'], image: 'https://placehold.co/600x400.png', aiHint: 'historic building', tuition: 25000 },
+  { id: 4, name: 'Seneca College', province: 'ON', city: 'Toronto', programs: ['Diploma', 'Certificate'], image: 'https://placehold.co/600x400.png', aiHint: 'college campus', tuition: 18000 },
+  { id: 5, name: 'BCIT', province: 'BC', city: 'Burnaby', programs: ['Technology', 'Trades'], image: 'https://placehold.co/600x400.png', aiHint: 'technology institute', tuition: 22000 },
+  { id: 6, name: 'Concordia University', province: 'QC', city: 'Montreal', programs: ['Fine Arts', 'Communication'], image: 'https://placehold.co/600x400.png', aiHint: 'city campus', tuition: 28000 },
 ];
+
+function formatCurrency(value: number) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(value);
+}
 
 
 export default function CollegeMatchPage() {
     const [loading, setLoading] = useState(false);
+    const [tuition, setTuition] = useState([50000]);
     
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,19 +43,15 @@ export default function CollegeMatchPage() {
     <AppLayout>
       <div className="grid flex-1 grid-cols-1 gap-8 p-4 md:grid-cols-4 md:p-8">
         <aside className="md:col-span-1">
-          <Card className="sticky top-20">
-            <CardHeader>
-              <CardTitle className="font-headline">Find Your College</CardTitle>
-              <CardDescription>Use filters to find the perfect DLI for you.</CardDescription>
+          <Card className="sticky top-20 shadow-none border-none">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle className="font-bold text-lg">Filter Colleges</CardTitle>
+              <CardDescription>Refine your search.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <form className="space-y-6" onSubmit={handleSearch}>
                 <div className="space-y-2">
-                  <Label htmlFor="search">Keyword Search</Label>
-                  <Input id="search" placeholder="e.g., 'Business', 'Toronto'" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="province">Province</Label>
+                  <Label htmlFor="province" className="text-xs">Province</Label>
                   <Select>
                     <SelectTrigger id="province">
                       <SelectValue placeholder="All Provinces" />
@@ -59,56 +65,74 @@ export default function CollegeMatchPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Program Type</Label>
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="undergraduate" />
-                      <Label htmlFor="undergraduate" className="font-normal">Undergraduate</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="postgraduate" />
-                      <Label htmlFor="postgraduate" className="font-normal">Postgraduate</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="diploma" />
-                      <Label htmlFor="diploma" className="font-normal">Diploma</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="certificate" />
-                      <Label htmlFor="certificate" className="font-normal">Certificate</Label>
-                    </div>
-                  </div>
+                  <Label htmlFor="program" className="text-xs">Program Type</Label>
+                   <Select>
+                    <SelectTrigger id="program">
+                      <SelectValue placeholder="All Programs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="undergraduate">Undergraduate</SelectItem>
+                      <SelectItem value="postgraduate">Postgraduate</SelectItem>
+                       <SelectItem value="diploma">Diploma</SelectItem>
+                        <SelectItem value="certificate">Certificate</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Button type="submit" className="w-full font-semibold">Search</Button>
+                 <div className="space-y-2">
+                  <Label className="text-xs">Max Tuition: {formatCurrency(tuition[0])}</Label>
+                  <Slider
+                    defaultValue={[50000]}
+                    max={100000}
+                    step={1000}
+                    onValueChange={(value) => setTuition(value)}
+                  />
+                </div>
               </form>
             </CardContent>
           </Card>
         </aside>
 
         <main className="md:col-span-3">
+            <Card className="mb-6">
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                        <WandSparkles className="h-8 w-8 text-primary" />
+                        <div>
+                            <CardTitle className="text-lg">AI Reasoning</CardTitle>
+                            <CardDescription>
+                            Understand why some colleges don't match your profile. Your profile is set to: Ontario, Engineering, max $20k tuition.
+                            </CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Button><WandSparkles className="mr-2 h-4 w-4" /> Explain Filtering</Button>
+                </CardContent>
+            </Card>
+
             <div className="mb-4">
-                <h1 className="font-headline text-3xl font-bold">Matching Colleges</h1>
-                <p className="text-muted-foreground">
-                    {loading ? 'Searching...' : `Showing ${mockColleges.length} results`}
-                </p>
+                <h1 className="font-bold text-xl">Matching DLIs ({loading ? '...' : mockColleges.length})</h1>
             </div>
+
             {loading ? (
-                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, i) => (
-                        <Card key={i}>
-                            <Skeleton className="h-[200px] w-full" />
-                            <CardHeader>
-                                <Skeleton className="h-6 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </CardHeader>
-                            <CardContent>
-                                <Skeleton className="h-10 w-full" />
-                            </CardContent>
+                        <Card key={i} className="overflow-hidden">
+                            <Skeleton className="h-48 w-full" />
+                            <div className="p-4">
+                                <Skeleton className="h-5 w-3/4 mb-2" />
+                                <Skeleton className="h-4 w-1/4 mb-4" />
+                                <div className="flex gap-2 mb-4">
+                                    <Skeleton className="h-6 w-20" />
+                                    <Skeleton className="h-6 w-24" />
+                                </div>
+                                <Skeleton className="h-6 w-32" />
+                            </div>
                         </Card>
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {mockColleges.map((college) => (
                         <CollegeCard key={college.id} college={college} />
                     ))}
