@@ -33,14 +33,15 @@ function ApplicationPageContent() {
   const currentStepId = searchParams.get('step') || 'profile';
 
   const currentStepIndex = steps.findIndex(step => step.id === currentStepId);
+  const isLastStep = currentStepIndex === steps.length - 1;
 
   const handleNext = () => {
-    if (currentStepIndex < steps.length - 1) {
+    if (!isLastStep) {
       const nextStep = steps[currentStepIndex + 1];
       router.push(`/application?step=${nextStep.id}`);
     } else {
-      // Handle final submission
-      console.log('Application finished!');
+      // On last step, the button's onClick will handle navigation
+      router.push('/application/review');
     }
   };
 
@@ -55,8 +56,11 @@ function ApplicationPageContent() {
     router.push(`/application?step=${value}`);
   };
 
+  const handleFinishAndReview = () => {
+    router.push('/application/review');
+  }
+
   const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === steps.length - 1;
 
   return (
       <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -109,9 +113,11 @@ function ApplicationPageContent() {
 
              <CardFooter className="flex justify-between border-t pt-6">
                 <Button variant="outline" onClick={handlePrevious} disabled={isFirstStep}>Previous</Button>
-                <Button form={steps[currentStepIndex]?.formId} type="submit">
-                  {isLastStep ? 'Finish & Review' : 'Save and Continue'}
-                </Button>
+                 {isLastStep ? (
+                    <Button onClick={handleFinishAndReview}>Finish & Review</Button>
+                ) : (
+                    <Button form={steps[currentStepIndex]?.formId} type="submit">Save and Continue</Button>
+                )}
             </CardFooter>
           </Card>
         </Tabs>
