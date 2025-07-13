@@ -6,65 +6,54 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck, Send } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
 
 const applicationStepsConfig = [
-    { id: 'personalInfo', name: 'Profile Information', href: '/application?step=profile' },
-    { id: 'academics', name: 'Academic & Work History', href: '/application?step=academics' },
-    { id: 'language', name: 'Language Proficiency', href: '/application?step=language' },
-    { id: 'finances', name: 'Financial Details', href: '/application?step=finances' },
-    { id: 'studyPlan', name: 'Study Plan', href: '/application?step=plan' },
-    { id: 'family', name: 'Family Information', href: '/application?step=family' },
-    { id: 'background', name: 'Background & Security', href: '/application?step=background' },
-    { id: 'documents', name: 'Upload Documents', href: '/application?step=documents' },
-    { name: 'Application Submission', icon: Send },
-    { name: 'Biometrics Completed' },
-    { name: 'Medical Exam Passed' },
-    { name: 'Passport Request' },
-    { name: 'Visa Approved' },
+    { id: 'personalInfo', name: 'Profile Information', href: '/application?step=profile', icon: UserCheck },
+    { id: 'academics', name: 'Academic & Work History', href: '/application?step=academics', icon: FileText },
+    { id: 'language', name: 'Language Proficiency', href: '/application?step=language', icon: FileText },
+    { id: 'finances', name: 'Financial Details', href: '/application?step=finances', icon: FileText },
+    { id: 'studyPlan', name: 'Study Plan', href: '/application?step=plan', icon: FileText },
+    { id: 'family', name: 'Family Information', href: '/application?step=family', icon: FileText },
+    { id: 'background', name: 'Background & Security', href: '/application?step=background', icon: FileText },
+    { id: 'documents', name: 'Upload Documents', href: '/application?step=documents', icon: FileText },
+    { name: 'Application Submission', icon: Send, completed: false },
+    { name: 'Biometrics Completed', icon: Fingerprint, completed: false },
+    { name: 'Medical Exam Passed', icon: Stethoscope, completed: false },
+    { name: 'Passport Request', icon: Send, completed: false },
+    { name: 'Visa Approved', icon: CheckCircle, completed: false },
 ];
 
 const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applicationData'], applicationData: any) => {
     if (!stepId || !applicationData[stepId]) return false;
     
-    // For most forms, checking if the object is not empty is enough.
-    // For more complex forms with arrays, we can add specific checks.
     const data = applicationData[stepId];
 
-    // Check if data is an empty object
     if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
         return false;
     }
 
-    // Specific checks for each step to determine if it's "started" or "completed"
     switch (stepId) {
         case 'personalInfo':
-            // Require at least a few key fields to be considered complete
             return !!data.surname && !!data.givenNames && !!data.dob && !!data.passportNumber;
         case 'academics':
-            // Must have at least one entry in education or employment history
             return (data.educationHistory && data.educationHistory.length > 0) || (data.employmentHistory && data.employmentHistory.length > 0);
         case 'language':
-            // If a test was taken, scores must be provided. If not, a planned test should be selected.
             return data.testTaken !== 'none' ? !!data.overallScore : !!data.testPlanning;
         case 'finances':
-            // Requires total funds and at least one source/proof type
             return !!data.totalFunds && data.fundingSources?.length > 0 && data.proofType?.length > 0;
         case 'studyPlan':
-            // Requires answers to the core questions
             return !!data.whyInstitution && !!data.howProgramFitsCareer;
         case 'family':
-            // Requires at least parent info
             return !!data.parent1Name;
         case 'background':
-            // Requires the certification checkbox to be true
             return data.certification === true;
         case 'documents':
-             // For now, consider it incomplete until we build the upload logic
-            return false;
+            const requiredDocs = ['passport', 'loa', 'proofOfFunds', 'languageTest', 'sop', 'photo'];
+            return requiredDocs.every((docId: string) => data[docId]?.status === 'Uploaded');
         default:
             return false;
     }
@@ -76,13 +65,15 @@ function DashboardPageContent() {
 
   const applicationSteps = applicationStepsConfig.map(step => ({
       ...step,
-      completed: step.id ? isStepCompleted(step.id as any, applicationData) : step.completed || false
+      completed: step.id ? isStepCompleted(step.id as any, applicationData) : step.completed
   }));
 
   const filledApplicationSteps = applicationSteps.filter(step => step.id);
   const completedStepsCount = filledApplicationSteps.filter(step => step.completed).length;
   const progressPercentage = (completedStepsCount / filledApplicationSteps.length) * 100;
   const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
+  const currentStep = currentStepIndex !== -1 ? applicationSteps[currentStepIndex] : null;
+
 
   return (
       <main className="flex-1 space-y-8 p-4 md:p-8">
@@ -152,7 +143,7 @@ function DashboardPageContent() {
                                             {step.href && (
                                                 <Button asChild variant={isCurrent ? 'secondary' : 'ghost'} size="sm">
                                                     <Link href={step.href}>
-                                                        {isCompleted ? 'Review' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
+                                                        {isCompleted ? 'Review' : isCurrent ? 'Continue' : 'Start'} <ArrowRight className="ml-2 h-4 w-4" />
                                                     </Link>
                                                 </Button>
                                             )}
@@ -167,6 +158,25 @@ function DashboardPageContent() {
             </div>
 
             <div className="space-y-8 md:col-span-1">
+                 {currentStep && currentStep.href && (
+                    <Card className="bg-primary/5 border-primary/20 hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg text-primary">
+                                <ArrowRight className="h-5 w-5 text-primary" />
+                                Next Step: {currentStep.name}
+                            </CardTitle>
+                            <CardDescription>
+                                Continue where you left off in your application.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button asChild className="w-full">
+                                <Link href={currentStep.href}>Let's Go</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+                
                 <Card className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
