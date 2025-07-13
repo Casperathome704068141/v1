@@ -23,31 +23,33 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    // IMPORTANT: This is a temporary security check for demonstration purposes.
-    // In a production app, this check should be moved to a secure backend.
-    // The backend would verify the user's ID token and check for a custom claim like `{ admin: true }`.
-    if (email !== 'admin@test.com') {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'This email address is not authorized for admin access.',
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
       // Step 1: Sign in with Firebase Auth on the client.
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Step 2 (Production): Get the ID token from the signed-in user.
-      // const idToken = await userCredential.user.getIdToken();
+      // Step 2 (Production): Get the ID token from the signed-in user and verify it on the backend.
+      // const idTokenResult = await userCredential.user.getIdTokenResult();
+      
+      // On your secure backend, you would verify the token and check the custom claim.
+      // if (idTokenResult.claims.admin) {
+      //   // User is an admin. Create a session cookie and redirect.
+      //   ...
+      // } else {
+      //   // User is not an admin.
+      //   throw new Error("Not authorized.");
+      // }
 
-      // Step 3 (Production): Send this token to your backend API endpoint.
-      // The backend would then verify the token and check for the `admin: true` custom claim.
-      // If the claim exists, the backend would set a secure, httpOnly session cookie.
-      // For now, we will just redirect.
-
+      // TEMPORARY: For now, we'll use a simple client-side check and redirect.
+      if (userCredential.user.email !== 'admin@test.com') {
+          toast({
+            variant: 'destructive',
+            title: 'Authorization Failed',
+            description: 'You do not have permission to access this area.',
+          });
+          setLoading(false);
+          return;
+      }
+      
       toast({
         title: 'Login Successful',
         description: 'Redirecting to the admin dashboard.',
@@ -58,7 +60,7 @@ export default function AdminLoginPage() {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid credentials for admin access.',
+        description: 'Invalid credentials or you are not authorized.',
       });
       setLoading(false);
     }
