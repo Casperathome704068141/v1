@@ -60,12 +60,12 @@ function UserMenu() {
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '#', icon: FileText, label: 'Eligibility Quiz' },
+  { href: '/eligibility-quiz', icon: FileText, label: 'Eligibility Quiz' },
   { href: '/college-match', icon: Search, label: 'College Match' },
-  { href: '#', icon: GraduationCap, label: 'Application' },
-  { href: '#', icon: FileText, label: 'Documents' },
-  { href: '#', icon: Calendar, label: 'Appointments' },
-  { href: '#', icon: LifeBuoy, label: 'Support' },
+  { href: '/application', icon: GraduationCap, label: 'Application' },
+  { href: '/documents', icon: FileText, label: 'Documents' },
+  { href: '/appointments', icon: Calendar, label: 'Appointments' },
+  { href: '/support', icon: LifeBuoy, label: 'Support' },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -77,12 +77,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2 p-2">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary">
-                <path d="M5 16L3 21L8 19L18 9L15 6L5 16Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M13.5 7.5L16.5 10.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M19 8C20.6569 8 22 6.65685 22 5C22 3.34315 20.6569 2 19 2C17.3431 2 16 3.34315 16 5C16 6.65685 17.3431 8 19 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <h1 className="font-headline text-xl font-bold text-sidebar-foreground">Visa2Go</h1>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 text-primary"><path d="M12 22l-2-2 4-4 2 2-4 4z"/><path d="M18 16l-4-4 2-2 4 4-2 2z"/><path d="M12.5 7.5L10 5 2 13l2 2 2.5-2.5L10 10l-2 2 2 2 2-2 2.5 2.5L13 13l7-7-2-2-2.5 2.5L13 10l-2-2 1.5-1.5z"/><path d="M2 13l4.5 4.5"/><path d="M16.5 10.5L21 6"/></svg>
+              <h1 className="font-headline text-xl font-bold text-sidebar-foreground">Maple Leafs</h1>
             </div>
           </SidebarHeader>
           <SidebarContent>

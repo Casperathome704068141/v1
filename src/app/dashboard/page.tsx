@@ -9,7 +9,7 @@ const featureCards = [
     title: 'Eligibility Scanner',
     description: 'Take a 3-minute quiz to see your approval likelihood and get personalized tips.',
     icon: <FileCheck2 className="h-10 w-10 text-primary" />,
-    link: '#',
+    link: '/eligibility-quiz',
     cta: 'Start Quiz',
   },
   {

@@ -10,6 +10,16 @@ import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { WandSparkles } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { ReasoningPanel } from './reasoning-panel';
+
 
 const mockColleges = [
   { id: 1, name: 'University of Toronto', province: 'ON', city: 'Toronto', programs: ['Engineering', 'Arts'], image: 'https://placehold.co/600x400.png', aiHint: 'university campus', tuition: 45000 },
@@ -43,7 +53,7 @@ export default function CollegeMatchPage() {
     <AppLayout>
       <div className="grid flex-1 grid-cols-1 gap-8 p-4 md:grid-cols-4 md:p-8">
         <aside className="md:col-span-1">
-          <Card className="sticky top-20 shadow-none border-none">
+          <Card className="sticky top-20 shadow-none border-none bg-transparent">
             <CardHeader className="p-0 pb-4">
               <CardTitle className="font-bold text-lg">Filter Colleges</CardTitle>
               <CardDescription>Refine your search.</CardDescription>
@@ -78,8 +88,8 @@ export default function CollegeMatchPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                 <div className="space-y-2">
-                  <Label className="text-xs">Max Tuition: {formatCurrency(tuition[0])}</Label>
+                 <div className="space-y-4">
+                  <Label className="text-xs">Max Tuition: <span className="font-semibold">{formatCurrency(tuition[0])}</span></Label>
                   <Slider
                     defaultValue={[50000]}
                     max={100000}
@@ -93,20 +103,41 @@ export default function CollegeMatchPage() {
         </aside>
 
         <main className="md:col-span-3">
-            <Card className="mb-6">
+            <Card className="mb-6 bg-primary/5 border-primary/20">
                 <CardHeader>
                     <div className="flex items-center gap-3">
-                        <WandSparkles className="h-8 w-8 text-primary" />
+                        <div className="p-2 bg-primary/10 rounded-full">
+                            <WandSparkles className="h-6 w-6 text-primary" />
+                        </div>
                         <div>
-                            <CardTitle className="text-lg">AI Reasoning</CardTitle>
-                            <CardDescription>
-                            Understand why some colleges don't match your profile. Your profile is set to: Ontario, Engineering, max $20k tuition.
+                            <CardTitle className="text-lg font-semibold text-primary">AI Reasoning</CardTitle>
+                            <CardDescription className="text-primary/80">
+                            Understand why some colleges don&apos;t match your profile.
                             </CardDescription>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Button><WandSparkles className="mr-2 h-4 w-4" /> Explain Filtering</Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                         <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary"><WandSparkles className="mr-2 h-4 w-4" /> Explain Filtering</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>AI Reasoning for Excluded Colleges</DialogTitle>
+                          <DialogDescription>
+                            Based on your profile (Postgrad Diploma, Ontario, &lt;$20k), here&apos;s why some colleges were not shown.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="font-semibold text-sm">UBC (Vancouver, BC)</div>
+                          <ReasoningPanel dliDetails={{name: 'University of British Columbia', province: 'BC'}} />
+
+                           <div className="font-semibold text-sm mt-4">McGill (Montreal, QC)</div>
+                           <ReasoningPanel dliDetails={{name: 'McGill University', province: 'QC'}} />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                 </CardContent>
             </Card>
 
