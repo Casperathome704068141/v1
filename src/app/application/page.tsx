@@ -9,6 +9,7 @@ import { AcademicsForm } from '@/components/forms/academics-form';
 import { LanguageForm } from '@/components/forms/language-form';
 import { FinancesForm } from '@/components/forms/finances-form';
 import { StudyPlanForm } from '@/components/forms/study-plan-form';
+import { FamilyForm } from '@/components/forms/family-form';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -67,13 +68,7 @@ export default function ApplicationPage({
             </TabsContent>
 
             <TabsContent value="family">
-              <CardHeader>
-                <CardTitle>Family Information</CardTitle>
-                <CardDescription>Provide details about your immediate family members for IRCC forms.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Family information form will go here.</p>
-              </CardContent>
+              <FamilyForm />
             </TabsContent>
             
             <TabsContent value="background">
