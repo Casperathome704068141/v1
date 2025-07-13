@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, Sparkles, BookOpenCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 type College = {
   dliNumber: string;
@@ -20,6 +21,7 @@ type College = {
   tuitionHigh: number;
   image: string;
   aiHint: string;
+  programs: string[];
 };
 
 function formatCurrency(value: number) {
@@ -50,7 +52,7 @@ export function CollegeCard({ college }: { college: College }) {
                 {formatCurrency(college.tuitionLow)} - {formatCurrency(college.tuitionHigh)}
                 <span className="text-xs font-normal text-muted-foreground"> / year</span>
             </div>
-            <div className="flex flex-wrap gap-2 text-xs">
+            <div className="flex flex-wrap gap-2 text-xs mb-4">
                 <Badge variant={college.pgwpEligible ? "default" : "destructive"} className={cn("border-transparent", college.pgwpEligible ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")}>
                     {college.pgwpEligible ? <CheckCircle2 className="h-3 w-3 mr-1.5" /> : <XCircle className="h-3 w-3 mr-1.5" />}
                     PGWP
@@ -60,9 +62,24 @@ export function CollegeCard({ college }: { college: College }) {
                     SDS
                 </Badge>
             </div>
+            
+            <Separator className="my-3" />
+
+            <div>
+                <h4 className="text-xs font-semibold mb-2 flex items-center">
+                    <BookOpenCheck className="h-3 w-3 mr-1.5" />
+                    Popular Programs
+                </h4>
+                <ul className="space-y-1">
+                    {college.programs.slice(0, 3).map(program => (
+                        <li key={program} className="text-xs text-muted-foreground">{program}</li>
+                    ))}
+                    {college.programs.length > 3 && <li className="text-xs text-muted-foreground">and more...</li>}
+                </ul>
+            </div>
         </div>
 
-        <div className="flex items-center space-x-2 mt-4">
+        <div className="flex items-center space-x-2 mt-4 pt-4 border-t">
           <Switch id={`favorite-${college.dliNumber}`} />
           <Label htmlFor={`favorite-${college.dliNumber}`} className="text-xs font-normal">Save to favorites</Label>
         </div>
@@ -70,3 +87,5 @@ export function CollegeCard({ college }: { college: College }) {
     </Card>
   );
 }
+
+    
