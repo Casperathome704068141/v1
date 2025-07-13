@@ -1,7 +1,7 @@
 
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, School, BookOpen, Banknote, Briefcase, FileText, Users, ShieldCheck } from 'lucide-react';
 import { PersonalInfoForm } from '@/components/forms/personal-info-form';
