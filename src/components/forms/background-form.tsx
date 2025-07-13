@@ -11,19 +11,20 @@ import { CardHeader, CardTitle, CardDescription, CardContent } from "@/component
 import { toast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useApplication } from "@/context/application-context";
 
 const backgroundSchema = z.object({
-  visaRefusal: z.enum(["yes", "no"], { required_error: "This field is required." }),
+  visaRefusal: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
   visaRefusalDetails: z.string().optional(),
-  criminalRecord: z.enum(["yes", "no"], { required_error: "This field is required." }),
+  criminalRecord: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
   criminalRecordDetails: z.string().optional(),
-  medicalConditions: z.enum(["yes", "no"], { required_error: "This field is required." }),
+  medicalConditions: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
   medicalConditionsDetails: z.string().optional(),
-  refugeeClaim: z.enum(["yes", "no"], { required_error: "This field is required." }),
+  refugeeClaim: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
   refugeeClaimDetails: z.string().optional(),
-  deportation: z.enum(["yes", "no"], { required_error: "This field is required." }),
+  deportation: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
   deportationDetails: z.string().optional(),
-  overstay: z.enum(["yes", "no"], { required_error: "This field is required." }),
+  overstay: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
   overstayDetails: z.string().optional(),
   certification: z.boolean().refine(val => val === true, {
     message: "You must certify that the information provided is true and complete.",
@@ -48,7 +49,7 @@ const backgroundSchema = z.object({
     path: ["overstayDetails"],
 });
 
-type BackgroundFormValues = z.infer<typeof backgroundSchema>;
+export type BackgroundFormValues = z.infer<typeof backgroundSchema>;
 
 const backgroundQuestions = [
     { name: 'visaRefusal', details: 'visaRefusalDetails', label: 'Have you ever been refused a visa or permit for Canada or any other country, or denied entry to any country?' },
@@ -59,28 +60,32 @@ const backgroundQuestions = [
     { name: 'overstay', details: 'overstayDetails', label: 'Have you ever overstayed a visa or remained in a country beyond your authorized stay?' },
 ] as const;
 
+interface BackgroundFormProps {
+  onSave: () => void;
+}
 
-export function BackgroundForm() {
+export function BackgroundForm({ onSave }: BackgroundFormProps) {
+  const { applicationData, updateStepData } = useApplication();
+  
   const form = useForm<BackgroundFormValues>({
     resolver: zodResolver(backgroundSchema),
-    defaultValues: {
-      certification: false,
-    },
+    defaultValues: applicationData.background,
   });
 
   const watchFields = form.watch();
 
   function onSubmit(data: BackgroundFormValues) {
-    console.log(data);
+    updateStepData('background', data);
     toast({
       title: "Background Info Saved!",
       description: "Your background and security information has been saved.",
     });
+    onSave();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form id="form-background" onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Background & Security</CardTitle>
           <CardDescription>Answer these questions honestly. Any "Yes" requires an explanation.</CardDescription>

@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useApplication } from "@/context/application-context";
 
 const childSchema = z.object({
   name: z.string().min(1, "Child's name is required."),
@@ -26,12 +27,12 @@ const childSchema = z.object({
 });
 
 const familySchema = z.object({
-  parent1Name: z.string().min(1, "Parent's name is required."),
-  parent1Dob: z.date({ required_error: "Date of birth is required." }),
-  parent2Name: z.string().min(1, "Parent's name is required."),
-  parent2Dob: z.date({ required_error: "Date of birth is required." }),
-  parentAddresses: z.string().min(1, "Parent addresses are required."),
-  maritalStatus: z.string({ required_error: "Marital status is required." }),
+  parent1Name: z.string().min(1, "Parent's name is required.").optional(),
+  parent1Dob: z.date({ required_error: "Date of birth is required." }).optional(),
+  parent2Name: z.string().min(1, "Parent's name is required.").optional(),
+  parent2Dob: z.date({ required_error: "Date of birth is required." }).optional(),
+  parentAddresses: z.string().min(1, "Parent addresses are required.").optional(),
+  maritalStatus: z.string({ required_error: "Marital status is required." }).optional(),
   spouseName: z.string().optional(),
   spouseDob: z.date().optional(),
   spouseAccompanying: z.enum(["yes", "no"]).optional(),
@@ -48,13 +49,20 @@ const familySchema = z.object({
     path: ["spouseName"],
 });
 
-type FamilyFormValues = z.infer<typeof familySchema>;
+export type FamilyFormValues = z.infer<typeof familySchema>;
 
-export function FamilyForm() {
+interface FamilyFormProps {
+  onSave: () => void;
+}
+
+export function FamilyForm({ onSave }: FamilyFormProps) {
+  const { applicationData, updateStepData } = useApplication();
+
   const form = useForm<FamilyFormValues>({
     resolver: zodResolver(familySchema),
     defaultValues: {
-      children: [],
+      ...applicationData.family,
+      maritalStatus: applicationData.personalInfo?.maritalStatus, // Pre-fill from personal info
     },
   });
 
@@ -67,16 +75,17 @@ export function FamilyForm() {
   const isSpouseRequired = watchMaritalStatus === "married" || watchMaritalStatus === "common-law";
 
   function onSubmit(data: FamilyFormValues) {
-    console.log(data);
+    updateStepData('family', data);
     toast({
       title: "Family Info Saved!",
       description: "Your family information has been successfully saved.",
     });
+    onSave();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form id="form-family" onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Family Information</CardTitle>
           <CardDescription>We need your immediate family details for IRCC’s Family Information form.</CardDescription>

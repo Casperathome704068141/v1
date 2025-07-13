@@ -3,18 +3,38 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { PersonalInfoFormValues } from '@/components/forms/personal-info-form';
+import type { AcademicsFormValues } from '@/components/forms/academics-form';
+import type { LanguageFormValues } from '@/components/forms/language-form';
+import type { FinancesFormValues } from '@/components/forms/finances-form';
+import type { StudyPlanFormValues } from '@/components/forms/study-plan-form';
+import type { FamilyFormValues } from '@/components/forms/family-form';
+import type { BackgroundFormValues } from '@/components/forms/background-form';
 
-// Define types for all form sections. We'll add them as we create the forms.
+// Documents state is simpler for now
+interface DocumentsData {
+  [key: string]: {
+    status: 'Uploaded' | 'Pending' | 'Action Required' | 'Not Applicable';
+    url?: string;
+    message?: string;
+  };
+}
+
+// Define types for all form sections.
 interface ApplicationData {
   personalInfo?: PersonalInfoFormValues;
-  // academics?: AcademicsFormValues;
-  // language?: LanguageFormValues;
-  // ... and so on for all 8 forms
+  academics?: AcademicsFormValues;
+  language?: LanguageFormValues;
+  finances?: FinancesFormValues;
+  studyPlan?: StudyPlanFormValues;
+  family?: FamilyFormValues;
+  background?: BackgroundFormValues;
+  documents?: DocumentsData;
 }
 
 interface ApplicationContextType {
   applicationData: ApplicationData;
   setApplicationData: (data: ApplicationData) => void;
+  updateStepData: (step: keyof ApplicationData, data: any) => void;
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
@@ -22,13 +42,27 @@ const ApplicationContext = createContext<ApplicationContextType | undefined>(und
 // Define initial empty state for the application data
 const initialApplicationData: ApplicationData = {
    personalInfo: undefined,
+   academics: { educationHistory: [], employmentHistory: [] },
+   language: { testTaken: 'none' },
+   finances: { fundingSources: [], proofType: [] },
+   studyPlan: {},
+   family: { children: [] },
+   background: { certification: false },
+   documents: {},
 };
 
 export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
   const [applicationData, setApplicationData] = useState<ApplicationData>(initialApplicationData);
+  
+  const updateStepData = (step: keyof ApplicationData, data: any) => {
+    setApplicationData(prev => ({
+        ...prev,
+        [step]: data,
+    }));
+  };
 
   return (
-    <ApplicationContext.Provider value={{ applicationData, setApplicationData }}>
+    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData }}>
       {children}
     </ApplicationContext.Provider>
   );

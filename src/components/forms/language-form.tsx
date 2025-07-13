@@ -15,6 +15,7 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useApplication } from "@/context/application-context";
 
 const twoYearsAgo = new Date();
 twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
@@ -39,7 +40,7 @@ const languageSchema = z.object({
 });
 
 
-type LanguageFormValues = z.infer<typeof languageSchema>;
+export type LanguageFormValues = z.infer<typeof languageSchema>;
 
 const languageTestOptions = [
     { value: 'ielts', label: 'IELTS' },
@@ -50,27 +51,32 @@ const languageTestOptions = [
     { value: 'none', label: 'None' },
 ];
 
-export function LanguageForm() {
+interface LanguageFormProps {
+  onSave: () => void;
+}
+
+export function LanguageForm({ onSave }: LanguageFormProps) {
+  const { applicationData, updateStepData } = useApplication();
+
   const form = useForm<LanguageFormValues>({
     resolver: zodResolver(languageSchema),
-    defaultValues: {
-      testTaken: 'none'
-    },
+    defaultValues: applicationData.language,
   });
 
   const watchTestTaken = form.watch("testTaken");
 
   function onSubmit(data: LanguageFormValues) {
-    console.log(data);
+    updateStepData('language', data);
     toast({
       title: "Language Info Saved!",
       description: "Your language proficiency information has been successfully saved.",
     });
+    onSave();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form id="form-language" onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Language Proficiency</CardTitle>
           <CardDescription>Confirm your official language ability.</CardDescription>

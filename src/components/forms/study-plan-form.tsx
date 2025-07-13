@@ -12,36 +12,45 @@ import { CardHeader, CardTitle, CardDescription, CardContent } from "@/component
 import { toast } from "@/hooks/use-toast";
 import { WandSparkles } from "lucide-react";
 import { Separator } from "../ui/separator";
+import { useApplication } from "@/context/application-context";
 
 const studyPlanSchema = z.object({
-  programChoice: z.string().min(1, "Program choice is required."),
-  whyInstitution: z.string().min(150, { message: "Please provide a detailed answer of at least 150 words." }),
-  howProgramFitsCareer: z.string().min(150, { message: "Please provide a detailed answer of at least 150 words." }),
+  programChoice: z.string().min(1, "Program choice is required.").optional(),
+  whyInstitution: z.string().min(150, { message: "Please provide a detailed answer of at least 150 words." }).optional(),
+  howProgramFitsCareer: z.string().min(150, { message: "Please provide a detailed answer of at least 150 words." }).optional(),
   longTermGoals: z.string().optional(),
   studyPlanDraft: z.string().optional(),
 });
 
-type StudyPlanFormValues = z.infer<typeof studyPlanSchema>;
+export type StudyPlanFormValues = z.infer<typeof studyPlanSchema>;
 
-export function StudyPlanForm() {
+interface StudyPlanFormProps {
+  onSave: () => void;
+}
+
+export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
+  const { applicationData, updateStepData } = useApplication();
+
   const form = useForm<StudyPlanFormValues>({
     resolver: zodResolver(studyPlanSchema),
     defaultValues: {
+      ...applicationData.studyPlan,
       programChoice: "Diploma in Business Management - Seneca College", // This would be dynamic
     },
   });
 
   function onSubmit(data: StudyPlanFormValues) {
-    console.log(data);
+    updateStepData('studyPlan', data);
     toast({
       title: "Study Plan Saved!",
       description: "Your study plan information has been successfully saved.",
     });
+    onSave();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form id="form-plan" onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Study Plan</CardTitle>
           <CardDescription>Explain why you chose this program and how it fits your goals. This is a critical part of your application.</CardDescription>

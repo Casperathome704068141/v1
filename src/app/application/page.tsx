@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -18,23 +18,21 @@ import { BackgroundForm } from '@/components/forms/background-form';
 import { ApplicationProvider } from '@/context/application-context';
 
 const steps = [
-  { id: 'profile', name: 'Personal Info', icon: User },
-  { id: 'academics', name: 'Academics', icon: School },
-  { id: 'language', name: 'Language', icon: BookOpen },
-  { id: 'finances', name: 'Finances', icon: Banknote },
-  { id: 'plan', name: 'Study Plan', icon: Briefcase },
-  { id: 'family', name: 'Family', icon: Users },
-  { id: 'background', name: 'Background', icon: ShieldCheck },
-  { id: 'documents', name: 'Documents', icon: FileText },
+  { id: 'profile', name: 'Personal Info', icon: User, formId: 'form-profile' },
+  { id: 'academics', name: 'Academics', icon: School, formId: 'form-academics' },
+  { id: 'language', name: 'Language', icon: BookOpen, formId: 'form-language' },
+  { id: 'finances', name: 'Finances', icon: Banknote, formId: 'form-finances' },
+  { id: 'plan', name: 'Study Plan', icon: Briefcase, formId: 'form-plan' },
+  { id: 'family', name: 'Family', icon: Users, formId: 'form-family' },
+  { id: 'background', name: 'Background', icon: ShieldCheck, formId: 'form-background' },
+  { id: 'documents', name: 'Documents', icon: FileText, formId: 'form-documents' },
 ];
 
-function ApplicationPageContent({
-  searchParams,
-}: {
-  searchParams: { step: string };
-}) {
+function ApplicationPageContent() {
   const router = useRouter();
-  const currentStepId = searchParams.step || 'profile';
+  const searchParams = useSearchParams();
+  const currentStepId = searchParams.get('step') || 'profile';
+
   const currentStepIndex = steps.findIndex(step => step.id === currentStepId);
 
   const handleNext = () => {
@@ -61,15 +59,6 @@ function ApplicationPageContent({
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
 
-  const getFormSubmitHandler = (formId: string) => {
-    // This is a placeholder. In a real app, you'd find the correct form's submit handler.
-    // For now, we'll just handle the navigation part.
-    // The actual data saving will be handled within each form component via the context.
-    return () => {
-       handleNext();
-    }
-  }
-
   return (
       <main className="flex-1 space-y-6 p-4 md:p-8">
         <div className="flex items-center justify-between">
@@ -88,31 +77,31 @@ function ApplicationPageContent({
 
           <Card className="mt-6">
             <TabsContent value="profile" forceMount={true} hidden={currentStepId !== 'profile'}>
-                <PersonalInfoForm />
+                <PersonalInfoForm onSave={handleNext} />
             </TabsContent>
 
             <TabsContent value="academics" forceMount={true} hidden={currentStepId !== 'academics'}>
-              <AcademicsForm />
+              <AcademicsForm onSave={handleNext} />
             </TabsContent>
 
             <TabsContent value="language" forceMount={true} hidden={currentStepId !== 'language'}>
-              <LanguageForm />
+              <LanguageForm onSave={handleNext} />
             </TabsContent>
 
             <TabsContent value="finances" forceMount={true} hidden={currentStepId !== 'finances'}>
-              <FinancesForm />
+              <FinancesForm onSave={handleNext} />
             </TabsContent>
 
             <TabsContent value="plan" forceMount={true} hidden={currentStepId !== 'plan'}>
-              <StudyPlanForm />
+              <StudyPlanForm onSave={handleNext} />
             </TabsContent>
 
             <TabsContent value="family" forceMount={true} hidden={currentStepId !== 'family'}>
-              <FamilyForm />
+              <FamilyForm onSave={handleNext} />
             </TabsContent>
             
             <TabsContent value="background" forceMount={true} hidden={currentStepId !== 'background'}>
-              <BackgroundForm />
+              <BackgroundForm onSave={handleNext} />
             </TabsContent>
 
             <TabsContent value="documents" forceMount={true} hidden={currentStepId !== 'documents'}>
@@ -121,7 +110,7 @@ function ApplicationPageContent({
 
              <CardFooter className="flex justify-between border-t pt-6">
                 <Button variant="outline" onClick={handlePrevious} disabled={isFirstStep}>Previous</Button>
-                <Button form={`form-${currentStepId}`} type="submit">
+                <Button form={steps[currentStepIndex]?.formId} type="submit">
                   {isLastStep ? 'Finish & Review' : 'Save and Continue'}
                 </Button>
             </CardFooter>
@@ -132,15 +121,11 @@ function ApplicationPageContent({
 }
 
 
-export default function ApplicationPage({
-  searchParams,
-}: {
-  searchParams: { step: string };
-}) {
+export default function ApplicationPage() {
   return (
     <AppLayout>
       <ApplicationProvider>
-        <ApplicationPageContent searchParams={searchParams} />
+        <ApplicationPageContent />
       </ApplicationProvider>
     </AppLayout>
   )

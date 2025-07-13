@@ -17,7 +17,6 @@ import { CardHeader, CardTitle, CardDescription, CardContent } from "@/component
 import { toast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { useApplication } from "@/context/application-context";
-import { useRouter } from "next/navigation";
 
 const personalInfoSchema = z.object({
   surname: z.string().min(1, "Surname is required."),
@@ -39,9 +38,12 @@ const personalInfoSchema = z.object({
 
 export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 
-export function PersonalInfoForm() {
-  const { applicationData, setApplicationData } = useApplication();
-  const router = useRouter();
+interface PersonalInfoFormProps {
+  onSave: () => void;
+}
+
+export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
+  const { applicationData, updateStepData } = useApplication();
 
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
@@ -49,16 +51,12 @@ export function PersonalInfoForm() {
   });
 
   function onSubmit(data: PersonalInfoFormValues) {
-    setApplicationData({ ...applicationData, personalInfo: data });
+    updateStepData('personalInfo', data);
     toast({
       title: "Profile Saved!",
       description: "Your personal information has been successfully saved.",
     });
-    // This part will be handled by the parent component's button now
-    // For standalone submission, you might trigger navigation here.
-    // e.g. router.push('/application?step=academics'); 
-    const nextStep = 'academics';
-    router.push(`/application?step=${nextStep}`);
+    onSave();
   }
 
   return (

@@ -11,6 +11,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent } from "@/component
 import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useApplication } from "@/context/application-context";
 
 const fundingSources = [
   { id: "self", label: "Self" },
@@ -31,7 +32,7 @@ const proofTypes = [
 
 
 const financesSchema = z.object({
-  totalFunds: z.coerce.number().min(20000, "Minimum funds of CAD $20,000 required."),
+  totalFunds: z.coerce.number().min(20000, "Minimum funds of CAD $20,000 required.").optional(),
   fundingSources: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "You have to select at least one funding source.",
   }),
@@ -40,9 +41,10 @@ const financesSchema = z.object({
   proofType: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "You have to select at least one proof type.",
   }),
-  tuitionPrepaid: z.enum(["yes", "no"], { required_error: "Please select an option." }),
-  gicPurchased: z.enum(["yes", "no"], { required_error: "Please select an option." }),
+  tuitionPrepaid: z.enum(["yes", "no"], { required_error: "Please select an option." }).optional(),
+  gicPurchased: z.enum(["yes", "no"], { required_error: "Please select an option." }).optional(),
 }).refine((data) => {
+    if(!data.fundingSources) return true;
     const sponsorSelected = data.fundingSources.includes("family") || data.fundingSources.includes("sponsor");
     if (sponsorSelected && (!data.primarySponsorName || !data.sponsorRelationship)) {
         return false;
@@ -53,31 +55,35 @@ const financesSchema = z.object({
     path: ["primarySponsorName"],
 });
 
-type FinancesFormValues = z.infer<typeof financesSchema>;
+export type FinancesFormValues = z.infer<typeof financesSchema>;
 
-export function FinancesForm() {
+interface FinancesFormProps {
+  onSave: () => void;
+}
+
+export function FinancesForm({ onSave }: FinancesFormProps) {
+  const { applicationData, updateStepData } = useApplication();
+  
   const form = useForm<FinancesFormValues>({
     resolver: zodResolver(financesSchema),
-    defaultValues: {
-      fundingSources: [],
-      proofType: [],
-    },
+    defaultValues: applicationData.finances,
   });
   
   const watchFundingSources = form.watch("fundingSources");
   const isSponsorSelected = watchFundingSources?.includes("family") || watchFundingSources?.includes("sponsor");
 
   function onSubmit(data: FinancesFormValues) {
-    console.log(data);
+    updateStepData('finances', data);
     toast({
       title: "Financial Info Saved!",
       description: "Your financial information has been successfully saved.",
     });
+    onSave();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form id="form-finances" onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Financial Details</CardTitle>
           <CardDescription>Demonstrate you can afford your studies and stay in Canada.</CardDescription>

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { Separator } from "../ui/separator";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useApplication } from "@/context/application-context";
 
 const educationHistorySchema = z.object({
   institutionName: z.string().min(1, "Institution name is required."),
@@ -39,15 +40,18 @@ const academicsSchema = z.object({
   employmentHistory: z.array(employmentHistorySchema),
 });
 
-type AcademicsFormValues = z.infer<typeof academicsSchema>;
+export type AcademicsFormValues = z.infer<typeof academicsSchema>;
 
-export function AcademicsForm() {
+interface AcademicsFormProps {
+  onSave: () => void;
+}
+
+export function AcademicsForm({ onSave }: AcademicsFormProps) {
+  const { applicationData, updateStepData } = useApplication();
+  
   const form = useForm<AcademicsFormValues>({
     resolver: zodResolver(academicsSchema),
-    defaultValues: {
-      educationHistory: [],
-      employmentHistory: [],
-    },
+    defaultValues: applicationData.academics,
   });
 
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
@@ -61,16 +65,17 @@ export function AcademicsForm() {
   });
 
   function onSubmit(data: AcademicsFormValues) {
-    console.log(data);
+    updateStepData('academics', data);
     toast({
       title: "Academics Saved!",
       description: "Your academic and work history has been successfully saved.",
     });
+    onSave();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form id="form-academics" onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Academic &amp; Work History</CardTitle>
           <CardDescription>Provide your education and employment history for the last 10 years.</CardDescription>
