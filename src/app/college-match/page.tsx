@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollegeCard } from './college-card';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { WandSparkles } from 'lucide-react';
@@ -72,8 +72,20 @@ function CollegeMatchPageContent() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        // This is a mock search, so we just show a loading state
+        // In a real app, you would fetch data here
         setTimeout(() => setLoading(false), 1500);
     }
+    
+    const filteredColleges = useMemo(() => {
+        return mockColleges.filter(college => {
+            const provinceMatch = province === 'all' || college.province === province;
+            const tuitionMatch = college.tuitionHigh <= maxTuition;
+            // Program type filter not implemented yet
+            return provinceMatch && tuitionMatch;
+        });
+    }, [province, maxTuition]);
+
 
     const filteringLogic = `Filtered for ${programType !== 'all' ? programType : 'any program'} in ${province !== 'all' ? province : 'any province'} with tuition under ${formatCurrency(maxTuition)}.`;
 
@@ -182,7 +194,7 @@ function CollegeMatchPageContent() {
             </Card>
 
             <div className="mb-4">
-                <h1 className="font-bold text-xl">Matching DLIs ({loading ? '...' : mockColleges.length})</h1>
+                <h1 className="font-bold text-xl">Matching DLIs ({loading ? '...' : filteredColleges.length})</h1>
             </div>
 
             {loading ? (
@@ -204,7 +216,7 @@ function CollegeMatchPageContent() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {mockColleges.map((college) => (
+                    {filteredColleges.map((college) => (
                         <CollegeCard key={college.dliNumber} college={college} />
                     ))}
                 </div>
@@ -222,5 +234,3 @@ export default function CollegeMatchPage() {
     </AppLayout>
   )
 }
-
-    
