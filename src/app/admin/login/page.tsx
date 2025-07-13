@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
     // IMPORTANT: This is a temporary security check.
     // In a production app, you should use Firebase Custom Claims to verify admin status.
     // This check only allows a specific email to attempt a sign-in here.
-    if (email !== 'admin@yourapp.com') {
+    if (email !== 'admin@test.com') {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
               <Input 
                 id="email" 
                 type="email" 
-                placeholder="admin@yourapp.com" 
+                placeholder="admin@test.com" 
                 required 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
