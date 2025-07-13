@@ -6,9 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Sparkles, BookOpenCheck } from 'lucide-react';
+import { CheckCircle2, XCircle, Sparkles, BookOpenCheck, WandSparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ReasoningPanel } from './reasoning-panel';
+import type { useApplication } from '@/context/application-context';
 
 type College = {
   dliNumber: string;
@@ -33,7 +37,13 @@ function formatCurrency(value: number) {
     }).format(value);
 }
 
-export function CollegeCard({ college }: { college: College }) {
+interface CollegeCardProps {
+    college: College;
+    studentProfile: ReturnType<typeof useApplication>['applicationData'];
+    filteringLogic: string;
+}
+
+export function CollegeCard({ college, studentProfile, filteringLogic }: CollegeCardProps) {
   return (
     <Card className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-xl">
       <div className="relative h-40 w-full bg-muted">
@@ -79,13 +89,35 @@ export function CollegeCard({ college }: { college: College }) {
             </div>
         </div>
 
-        <div className="flex items-center space-x-2 mt-4 pt-4 border-t">
-          <Switch id={`favorite-${college.dliNumber}`} />
-          <Label htmlFor={`favorite-${college.dliNumber}`} className="text-xs font-normal">Save to favorites</Label>
+        <div className="flex items-center justify-between space-x-2 mt-4 pt-4 border-t">
+            <div className="flex items-center space-x-2">
+                <Switch id={`favorite-${college.dliNumber}`} />
+                <Label htmlFor={`favorite-${college.dliNumber}`} className="text-xs font-normal">Favorite</Label>
+            </div>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary">
+                        <WandSparkles className="h-3 w-3 mr-1.5" /> Why not a match?
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>AI Reasoning for {college.name}</DialogTitle>
+                        <DialogDescription>
+                            Based on your profile and filters, here's why this college might not be an ideal match.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <ReasoningPanel 
+                            dliDetails={{ name: college.name, province: college.province }} 
+                            filteringLogic={filteringLogic} 
+                            studentProfile={studentProfile} 
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-    
