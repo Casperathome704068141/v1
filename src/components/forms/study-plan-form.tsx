@@ -13,6 +13,8 @@ import { toast } from "@/hooks/use-toast";
 import { WandSparkles } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { useApplication } from "@/context/application-context";
+import { generateSopDraft, GenerateSopDraftInput } from "@/ai/flows/generate-sop-draft";
+import { useState } from "react";
 
 const studyPlanSchema = z.object({
   programChoice: z.string().min(1, "Program choice is required.").optional(),
@@ -30,6 +32,7 @@ interface StudyPlanFormProps {
 
 export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
   const { applicationData, updateStepData } = useApplication();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<StudyPlanFormValues>({
     resolver: zodResolver(studyPlanSchema),
@@ -38,6 +41,46 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
       programChoice: "Diploma in Business Management - Seneca College", // This would be dynamic
     },
   });
+
+  async function handleGenerateSop() {
+    setIsGenerating(true);
+    form.setValue('studyPlanDraft', ''); // Clear previous draft
+
+    const input: GenerateSopDraftInput = {
+      personalInfo: JSON.stringify(applicationData.personalInfo || {}),
+      academics: JSON.stringify(applicationData.academics || {}),
+      studyPlan: JSON.stringify(form.getValues()),
+      finances: JSON.stringify(applicationData.finances || {}),
+      longTermGoals: form.getValues().longTermGoals,
+    };
+
+    try {
+      const response = await generateSopDraft(input);
+      const reader = response.getReader();
+      const decoder = new TextDecoder();
+      
+      let done = false;
+      while (!done) {
+        const { value, done: streamDone } = await reader.read();
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          form.setValue('studyPlanDraft', form.getValues().studyPlanDraft + chunk);
+        }
+        done = streamDone;
+      }
+
+    } catch (error) {
+      console.error("Error generating SOP:", error);
+      toast({
+        variant: "destructive",
+        title: "AI Assist Failed",
+        description: "Could not generate the SOP draft. Please try again.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
 
   function onSubmit(data: StudyPlanFormValues) {
     updateStepData('studyPlan', data);
@@ -127,8 +170,9 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
                     <CardDescription>
                         We'll use your answers to generate a draft. You can edit it below or use our AI assistant.
                     </CardDescription>
-                    <Button type="button" variant="outline" size="sm">
-                        <WandSparkles className="mr-2 h-4 w-4" /> AI Assist
+                    <Button type="button" variant="outline" size="sm" onClick={handleGenerateSop} disabled={isGenerating}>
+                        <WandSparkles className="mr-2 h-4 w-4" /> 
+                        {isGenerating ? 'Generating...' : 'AI Assist'}
                     </Button>
                 </div>
                 <FormField
@@ -138,7 +182,7 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
                     <FormItem>
                     <FormControl>
                         <Textarea
-                        placeholder="Your auto-generated Statement of Purpose will appear here..."
+                        placeholder="Click 'AI Assist' to generate your Statement of Purpose draft here..."
                         className="min-h-[300px]"
                         {...field}
                         />
