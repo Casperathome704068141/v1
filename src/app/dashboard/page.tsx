@@ -27,7 +27,7 @@ const applicationStepsConfig = [
     { name: 'Visa Approved' },
 ];
 
-const isStepCompleted = (stepId: keyof typeof applicationData, applicationData: any) => {
+const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applicationData'], applicationData: any) => {
     if (!stepId || !applicationData[stepId]) return false;
     
     // For most forms, checking if the object is not empty is enough.
@@ -42,7 +42,7 @@ const isStepCompleted = (stepId: keyof typeof applicationData, applicationData: 
     return Object.keys(data).length > 0 && data.constructor === Object;
 };
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const { user } = useUser();
   const { applicationData } = useApplication();
 
@@ -56,7 +56,6 @@ export default function DashboardPage() {
   const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
 
   return (
-    <AppLayout>
       <main className="flex-1 space-y-8 p-4 md:p-8">
         <div className="space-y-2">
             <h1 className="text-3xl font-bold text-foreground">
@@ -192,6 +191,13 @@ export default function DashboardPage() {
             </div>
         </div>
       </main>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <AppLayout>
+      <DashboardPageContent />
     </AppLayout>
   );
 }
