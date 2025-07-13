@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
   return (
-    <div className="flex justify-between text-sm py-2">
+    <div className="flex justify-between py-2 text-sm">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="text-right font-medium text-foreground">{value}</dd>
     </div>
@@ -32,7 +32,17 @@ function ApplicationReviewContent() {
     });
   };
 
-  const allDocsUploaded = Object.values(documents || {}).every(doc => doc.status === 'Uploaded');
+  const requiredDocIds = ['passport', 'loa', 'proofOfFunds', 'languageTest', 'sop', 'photo'];
+  const allDocsUploaded = requiredDocIds.every(docId => documents?.[docId]?.status === 'Uploaded');
+  const documentList = [
+    { id: 'passport', name: 'Passport' },
+    { id: 'loa', name: 'Letter of Acceptance' },
+    { id: 'proofOfFunds', name: 'Proof of Funds' },
+    { id: 'languageTest', name: 'Language Test' },
+    { id: 'sop', name: 'Statement of Purpose' },
+    { id: 'photo', name: 'Digital Photo' },
+  ]
+
 
   return (
     <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -41,15 +51,15 @@ function ApplicationReviewContent() {
         <p className="text-muted-foreground">Please carefully review all the information below before final submission.</p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="space-y-8 lg:col-span-2">
           {personalInfo && (
             <Card>
               <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
               <CardContent>
                 <dl className="divide-y">
                   <DataRow label="Full Name" value={`${personalInfo.givenNames} ${personalInfo.surname}`} />
-                  <DataRow label="Date of Birth" value={personalInfo.dob ? format(personalInfo.dob, 'PPP') : ''} />
+                  <DataRow label="Date of Birth" value={personalInfo.dob ? format(new Date(personalInfo.dob), 'PPP') : ''} />
                   <DataRow label="Gender" value={personalInfo.gender} />
                   <DataRow label="Marital Status" value={personalInfo.maritalStatus} />
                   <DataRow label="Country of Birth" value={personalInfo.countryOfBirth} />
@@ -64,14 +74,14 @@ function ApplicationReviewContent() {
             <Card>
               <CardHeader><CardTitle>Academic & Work History</CardTitle></CardHeader>
               <CardContent>
-                <h4 className="font-semibold text-sm mb-2">Education</h4>
+                <h4 className="mb-2 text-sm font-semibold">Education</h4>
                 {academics.educationHistory?.map((item, index) => (
-                    <div key={index} className="text-sm text-muted-foreground mb-2">{item.program} at {item.institutionName}</div>
+                    <div key={index} className="mb-2 text-sm text-muted-foreground">{item.program} at {item.institutionName}</div>
                 ))}
                 <Separator className="my-4" />
-                <h4 className="font-semibold text-sm mb-2">Work</h4>
+                <h4 className="mb-2 text-sm font-semibold">Work</h4>
                  {academics.employmentHistory?.map((item, index) => (
-                    <div key={index} className="text-sm text-muted-foreground mb-2">{item.position} at {item.employer}</div>
+                    <div key={index} className="mb-2 text-sm text-muted-foreground">{item.position} at {item.employer}</div>
                 ))}
               </CardContent>
             </Card>
@@ -92,8 +102,8 @@ function ApplicationReviewContent() {
 
         </div>
 
-        <div className="lg:col-span-1 space-y-8">
-            <Card className={allDocsUploaded ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}>
+        <div className="space-y-8 lg:col-span-1">
+            <Card className={allDocsUploaded ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     {allDocsUploaded ? <CheckCircle className="text-green-600" /> : <AlertTriangle className="text-red-600" />}
@@ -107,12 +117,12 @@ function ApplicationReviewContent() {
                         : 'You are missing one or more required documents. Please complete the uploads before submitting.'}
                 </p>
                 <ul className="mt-4 space-y-2 text-sm">
-                    {Object.entries(documents || {}).map(([key, doc]) => (
-                        <li key={key} className="flex items-center gap-2">
-                           {doc.status === 'Uploaded' 
+                    {documentList.map(doc => (
+                        <li key={doc.id} className="flex items-center gap-2">
+                           {documents?.[doc.id]?.status === 'Uploaded' 
                            ? <CheckCircle className="h-4 w-4 text-green-500" />
                            : <FileText className="h-4 w-4 text-muted-foreground" />}
-                           <span>{doc.fileName || key}</span>
+                           <span>{doc.name}</span>
                         </li>
                     ))}
                 </ul>
@@ -128,7 +138,7 @@ function ApplicationReviewContent() {
                 </CardHeader>
                 <CardFooter>
                     <Button className="w-full" size="lg" onClick={handleSubmit} disabled={!allDocsUploaded}>
-                        <Send className="mr-2" />
+                        <Send className="mr-2 h-4 w-4" />
                         Confirm & Submit Application
                     </Button>
                 </CardFooter>
