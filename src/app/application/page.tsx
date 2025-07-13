@@ -3,7 +3,8 @@ import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, School, BookOpen, Banknote, Briefcase, FileText } from 'lucide-react';
+import { User, School, BookOpen, Banknote, Briefcase, FileText, Users, ShieldCheck } from 'lucide-react';
+import { PersonalInfoForm } from '@/components/forms/personal-info-form';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -11,6 +12,8 @@ const steps = [
   { id: 'language', name: 'Language', icon: BookOpen },
   { id: 'finances', name: 'Finances', icon: Banknote },
   { id: 'plan', name: 'Study Plan', icon: Briefcase },
+  { id: 'family', name: 'Family', icon: Users },
+  { id: 'background', name: 'Background', icon: ShieldCheck },
   { id: 'documents', name: 'Documents', icon: FileText },
 ];
 
@@ -29,7 +32,7 @@ export default function ApplicationPage({
         </div>
         
         <Tabs defaultValue={currentStep} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
             {steps.map(step => (
                 <TabsTrigger key={step.id} value={step.id}>
                     <step.icon className="mr-2 h-4 w-4" />
@@ -40,13 +43,7 @@ export default function ApplicationPage({
 
           <Card className="mt-6">
             <TabsContent value="profile">
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Please provide your personal details exactly as they appear on your passport.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Personal info form will go here.</p>
-              </CardContent>
+                <PersonalInfoForm />
             </TabsContent>
 
             <TabsContent value="academics">
@@ -89,6 +86,26 @@ export default function ApplicationPage({
               </CardContent>
             </TabsContent>
 
+            <TabsContent value="family">
+              <CardHeader>
+                <CardTitle>Family Information</CardTitle>
+                <CardDescription>Provide details about your immediate family members for IRCC forms.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>Family information form will go here.</p>
+              </CardContent>
+            </TabsContent>
+            
+            <TabsContent value="background">
+              <CardHeader>
+                <CardTitle>Background & Security</CardTitle>
+                <CardDescription>Answer standard IRCC background questions.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>Background and security form will go here.</p>
+              </CardContent>
+            </TabsContent>
+
             <TabsContent value="documents">
               <CardHeader>
                 <CardTitle>Upload Documents</CardTitle>
@@ -99,9 +116,9 @@ export default function ApplicationPage({
               </CardContent>
             </TabsContent>
 
-             <CardFooter className="flex justify-between">
+             <CardFooter className="flex justify-between border-t pt-6">
                 <Button variant="outline">Previous</Button>
-                <Button>Next</Button>
+                <Button>Save and Continue</Button>
             </CardFooter>
           </Card>
         </Tabs>
