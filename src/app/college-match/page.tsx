@@ -24,18 +24,23 @@ import { useApplication } from '@/context/application-context';
 
 
 const mockColleges = [
-  { id: 1, name: 'University of Toronto', province: 'ON', city: 'Toronto', programs: ['Engineering', 'Arts'], image: 'https://placehold.co/600x400.png', aiHint: 'university campus', tuition: 45000 },
-  { id: 2, name: 'University of British Columbia', province: 'BC', city: 'Vancouver', programs: ['Computer Science', 'Business'], image: 'https://placehold.co/600x400.png', aiHint: 'modern architecture', tuition: 40000 },
-  { id: 3, name: 'McGill University', province: 'QC', city: 'Montreal', programs: ['Arts', 'Science'], image: 'https://placehold.co/600x400.png', aiHint: 'historic building', tuition: 25000 },
-  { id: 4, name: 'Seneca College', province: 'ON', city: 'Toronto', programs: ['Diploma', 'Certificate'], image: 'https://placehold.co/600x400.png', aiHint: 'college campus', tuition: 18000 },
-  { id: 5, name: 'BCIT', province: 'BC', city: 'Burnaby', programs: ['Technology', 'Trades'], image: 'https://placehold.co/600x400.png', aiHint: 'technology institute', tuition: 22000 },
-  { id: 6, name: 'Concordia University', province: 'QC', city: 'Montreal', programs: ['Fine Arts', 'Communication'], image: 'https://placehold.co/600x400.png', aiHint: 'city campus', tuition: 28000 },
+    { dliNumber: 'O19332746152', name: 'University of Toronto', province: 'ON', city: 'Toronto', pgwpEligible: true, sdsEligible: true, tuitionLow: 57000, tuitionHigh: 69000, image: 'https://placehold.co/600x400.png', aiHint: 'university campus' },
+    { dliNumber: 'O19425660302', name: 'University of British Columbia', province: 'BC', city: 'Vancouver', pgwpEligible: true, sdsEligible: true, tuitionLow: 49000, tuitionHigh: 64000, image: 'https://placehold.co/600x400.png', aiHint: 'modern architecture' },
+    { dliNumber: 'O19391528447', name: 'McGill University', province: 'QC', city: 'Montreal', pgwpEligible: true, sdsEligible: true, tuitionLow: 29000, tuitionHigh: 53000, image: 'https://placehold.co/600x400.png', aiHint: 'historic building' },
+    { dliNumber: 'O119441046457', name: 'University of Alberta', province: 'AB', city: 'Edmonton', pgwpEligible: true, sdsEligible: true, tuitionLow: 31000, tuitionHigh: 45000, image: 'https://placehold.co/600x400.png', aiHint: 'university building' },
+    { dliNumber: 'O19359011021', name: 'Dalhousie University', province: 'NS', city: 'Halifax', pgwpEligible: true, sdsEligible: true, tuitionLow: 25000, tuitionHigh: 40000, image: 'https://placehold.co/600x400.png', aiHint: 'campus green' },
+    { dliNumber: 'O19359201512', name: 'University of Manitoba', province: 'MB', city: 'Winnipeg', pgwpEligible: true, sdsEligible: true, tuitionLow: 18000, tuitionHigh: 28000, image: 'https://placehold.co/600x400.png', aiHint: 'university library' },
+    { dliNumber: 'O19332543352', name: 'Algonquin College', province: 'ON', city: 'Ottawa', pgwpEligible: true, sdsEligible: true, tuitionLow: 16000, tuitionHigh: 19000, image: 'https://placehold.co/600x400.png', aiHint: 'college campus' },
+    { dliNumber: 'O19305391192', name: 'George Brown College', province: 'ON', city: 'Toronto', pgwpEligible: true, sdsEligible: true, tuitionLow: 15000, tuitionHigh: 23000, image: 'https://placehold.co/600x400.png', aiHint: 'city college' },
+    { dliNumber: 'O214383061827', name: 'Humber College', province: 'ON', city: 'Toronto', pgwpEligible: false, sdsEligible: true, tuitionLow: 17000, tuitionHigh: 22000, image: 'https://placehold.co/600x400.png', aiHint: 'modern college' },
+    { dliNumber: 'O19395299688', name: 'Saskatchewan Polytechnic', province: 'SK', city: 'Saskatoon', pgwpEligible: true, sdsEligible: true, tuitionLow: 15000, tuitionHigh: 21000, image: 'https://placehold.co/600x400.png', aiHint: 'polytechnic institute' },
 ];
+
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'CAD',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(value);
@@ -48,7 +53,7 @@ function CollegeMatchPageContent() {
     // State for filters
     const [province, setProvince] = useState('all');
     const [programType, setProgramType] = useState('all');
-    const [maxTuition, setMaxTuition] = useState(50000);
+    const [maxTuition, setMaxTuition] = useState(70000);
     
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,6 +92,9 @@ function CollegeMatchPageContent() {
                       <SelectItem value="BC">British Columbia</SelectItem>
                       <SelectItem value="QC">Quebec</SelectItem>
                       <SelectItem value="AB">Alberta</SelectItem>
+                      <SelectItem value="NS">Nova Scotia</SelectItem>
+                      <SelectItem value="MB">Manitoba</SelectItem>
+                      <SelectItem value="SK">Saskatchewan</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -108,7 +116,7 @@ function CollegeMatchPageContent() {
                  <div className="space-y-4">
                   <Label className="text-xs">Max Tuition: <span className="font-semibold">{formatCurrency(maxTuition)}</span></Label>
                   <Slider
-                    defaultValue={[50000]}
+                    defaultValue={[70000]}
                     max={100000}
                     step={1000}
                     onValueChange={(value) => setMaxTuition(value[0])}
@@ -182,7 +190,7 @@ function CollegeMatchPageContent() {
             ) : (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {mockColleges.map((college) => (
-                        <CollegeCard key={college.id} college={college} />
+                        <CollegeCard key={college.dliNumber} college={college} />
                     ))}
                 </div>
             )}
