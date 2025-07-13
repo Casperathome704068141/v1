@@ -33,13 +33,41 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
     // For most forms, checking if the object is not empty is enough.
     // For more complex forms with arrays, we can add specific checks.
     const data = applicationData[stepId];
-    if (stepId === 'academics') {
-        return (data.educationHistory && data.educationHistory.length > 0) || (data.employmentHistory && data.employmentHistory.length > 0);
+
+    // Check if data is an empty object
+    if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
+        return false;
     }
-     if (stepId === 'personalInfo') {
-        return data.surname && data.givenNames; // A proxy for completion
+
+    // Specific checks for each step to determine if it's "started" or "completed"
+    switch (stepId) {
+        case 'personalInfo':
+            // Require at least a few key fields to be considered complete
+            return !!data.surname && !!data.givenNames && !!data.dob && !!data.passportNumber;
+        case 'academics':
+            // Must have at least one entry in education or employment history
+            return (data.educationHistory && data.educationHistory.length > 0) || (data.employmentHistory && data.employmentHistory.length > 0);
+        case 'language':
+            // If a test was taken, scores must be provided. If not, a planned test should be selected.
+            return data.testTaken !== 'none' ? !!data.overallScore : !!data.testPlanning;
+        case 'finances':
+            // Requires total funds and at least one source/proof type
+            return !!data.totalFunds && data.fundingSources?.length > 0 && data.proofType?.length > 0;
+        case 'studyPlan':
+            // Requires answers to the core questions
+            return !!data.whyInstitution && !!data.howProgramFitsCareer;
+        case 'family':
+            // Requires at least parent info
+            return !!data.parent1Name;
+        case 'background':
+            // Requires the certification checkbox to be true
+            return data.certification === true;
+        case 'documents':
+             // For now, consider it incomplete until we build the upload logic
+            return false;
+        default:
+            return false;
     }
-    return Object.keys(data).length > 0 && data.constructor === Object;
 };
 
 function DashboardPageContent() {
@@ -51,8 +79,9 @@ function DashboardPageContent() {
       completed: step.id ? isStepCompleted(step.id as any, applicationData) : step.completed || false
   }));
 
-  const completedStepsCount = applicationSteps.filter(step => step.completed).length;
-  const progressPercentage = (completedStepsCount / applicationSteps.length) * 100;
+  const filledApplicationSteps = applicationSteps.filter(step => step.id);
+  const completedStepsCount = filledApplicationSteps.filter(step => step.completed).length;
+  const progressPercentage = (completedStepsCount / filledApplicationSteps.length) * 100;
   const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
 
   return (
@@ -71,7 +100,7 @@ function DashboardPageContent() {
                 <Card className="h-full hover:shadow-lg transition-shadow">
                     <CardHeader>
                         <CardTitle>Your Journey Overview</CardTitle>
-                        <CardDescription>You've completed {completedStepsCount} of {applicationSteps.length} steps. Let's keep going!</CardDescription>
+                        <CardDescription>You've completed {completedStepsCount} of {filledApplicationSteps.length} application steps. Let's keep going!</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="flex items-center gap-4">
