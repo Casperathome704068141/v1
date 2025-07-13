@@ -64,6 +64,8 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
     name: "employmentHistory",
   });
 
+  const watchEducationHistory = form.watch("educationHistory");
+
   function onSubmit(data: AcademicsFormValues) {
     updateStepData('academics', data);
     toast({
@@ -136,10 +138,22 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         </FormControl>
                         <FormMessage /></FormItem>
                     )} />
+                    {watchEducationHistory[index]?.graduated === 'yes' && (
+                        <FormField control={form.control} name={`educationHistory.${index}.ecaCompleted`} render={({ field }) => (
+                            <FormItem><FormLabel>Have you completed an ECA for this credential?</FormLabel>
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
+                                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage /></FormItem>
+                        )} />
+                    )}
                 </div>
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => appendEducation({ institutionName: '', cityCountry: '', program: '', credential: '', startDate: '', endDate: '', graduated: 'yes' })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => appendEducation({ institutionName: '', cityCountry: '', program: '', credential: '', startDate: '', endDate: '', graduated: 'no' })}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Education
             </Button>
           </div>
