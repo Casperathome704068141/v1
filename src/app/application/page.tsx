@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, School, BookOpen, Banknote, Briefcase, FileText, Users, ShieldCheck } from 'lucide-react';
 import { PersonalInfoForm } from '@/components/forms/personal-info-form';
 import { AcademicsForm } from '@/components/forms/academics-form';
+import { LanguageForm } from '@/components/forms/language-form';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -52,13 +53,7 @@ export default function ApplicationPage({
             </TabsContent>
 
             <TabsContent value="language">
-              <CardHeader>
-                <CardTitle>Language Proficiency</CardTitle>
-                <CardDescription>Enter your language test scores.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Language proficiency form will go here.</p>
-              </CardContent>
+              <LanguageForm />
             </TabsContent>
 
             <TabsContent value="finances">
