@@ -25,24 +25,27 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 function UserMenu() {
+  const { user, signOut } = useAuth();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src="https://placehold.co/100x100.png" alt="User" data-ai-hint="user avatar" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src={user?.photoURL || "https://placehold.co/100x100.png"} alt="User" data-ai-hint="user avatar" />
+            <AvatarFallback>{user?.displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Student User</p>
-            <p className="text-xs leading-none text-muted-foreground">student@example.com</p>
+            <p className="text-sm font-medium leading-none">{user?.displayName || 'Student User'}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user?.email || 'student@example.com'}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -50,8 +53,9 @@ function UserMenu() {
         <DropdownMenuItem>Billing</DropdownMenuItem>
         <DropdownMenuItem>Settings</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <Link href="/">Log out</Link>
+        <DropdownMenuItem onClick={signOut}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -86,7 +90,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <Link href={item.href} legacyBehavior passHref>
-                    <SidebarMenuButton isActive={pathname === item.href}>
+                    <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
                       <item.icon />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
