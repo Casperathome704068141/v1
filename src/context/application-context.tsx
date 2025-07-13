@@ -11,12 +11,16 @@ import type { FamilyFormValues } from '@/components/forms/family-form';
 import type { BackgroundFormValues } from '@/components/forms/background-form';
 
 // Documents state is simpler for now
-interface DocumentsData {
-  [key: string]: {
+interface DocumentStatus {
     status: 'Uploaded' | 'Pending' | 'Action Required' | 'Not Applicable';
     url?: string;
+    fileName?: string;
     message?: string;
-  };
+    date?: string; // ISO date string
+}
+
+interface DocumentsData {
+  [key: string]: DocumentStatus;
 }
 
 // Define types for all form sections.

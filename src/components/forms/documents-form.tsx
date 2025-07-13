@@ -4,7 +4,7 @@
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, AlertCircle, UploadCloud, FileText, ArrowRight, WandSparkles } from "lucide-react";
+import { CheckCircle2, AlertCircle, UploadCloud, FileText, WandSparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -27,11 +27,11 @@ const documentList = [
 const getStatusInfo = (status?: string) => {
     switch (status) {
         case 'Uploaded':
-            return { icon: CheckCircle2, color: 'text-green-500', badgeVariant: 'secondary' };
+            return { icon: CheckCircle2, color: 'text-green-500', badgeVariant: 'secondary' as const };
         case 'Action Required':
-            return { icon: AlertCircle, color: 'text-red-500', badgeVariant: 'destructive' };
+            return { icon: AlertCircle, color: 'text-red-500', badgeVariant: 'destructive' as const };
         default:
-            return { icon: FileText, color: 'text-muted-foreground', badgeVariant: 'outline' };
+            return { icon: FileText, color: 'text-muted-foreground', badgeVariant: 'outline' as const };
     }
 }
 
@@ -40,13 +40,17 @@ export function DocumentsForm() {
     const { applicationData, updateStepData } = useApplication();
     const router = useRouter();
 
-    // We'll use local state to manage the "upload" status for this mock-up
     const [docStatus, setDocStatus] = useState(applicationData.documents || {});
 
     const handleUpload = (docId: string, fileName: string) => {
         const newStatus = {
             ...docStatus,
-            [docId]: { status: 'Uploaded', url: `/documents/${fileName}`, fileName: fileName }
+            [docId]: { 
+                status: 'Uploaded', 
+                url: `/documents/${fileName}`, // This is a mock URL
+                fileName: fileName,
+                date: new Date().toISOString() // Add a timestamp
+            }
         };
         setDocStatus(newStatus);
         updateStepData('documents', newStatus);
@@ -117,13 +121,14 @@ export function DocumentsForm() {
 
 function FileUploadDropzone({ onUpload }: { onUpload: (docId: string, fileName: string) => void }) {
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        // This is a mock upload. We'll simulate matching file names to doc IDs.
-        // In a real app, you'd likely have a modal to select which doc type you're uploading.
         acceptedFiles.forEach((file) => {
-            const docIdGuess = file.name.split('.')[0].toLowerCase();
+            const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
             const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
             if (matchingDoc) {
                 onUpload(matchingDoc.id, file.name);
+            } else {
+                // Fallback for unmatched files - maybe open a dialog in a real app
+                console.warn(`Could not match file: ${file.name}`);
             }
         });
     }, [onUpload]);
