@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BrainCircuit, CheckCircle, FileText, UserCheck } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const applicationSteps = [
     { name: 'Profile Information', completed: true, href: '/application?step=profile' },
@@ -18,8 +19,9 @@ const applicationSteps = [
     { name: 'Upload Documents', completed: false, href: '/application?step=documents' },
 ];
 
-const completedSteps = applicationSteps.filter(step => step.completed).length;
-const progressPercentage = (completedSteps / applicationSteps.length) * 100;
+const completedStepsCount = applicationSteps.filter(step => step.completed).length;
+const progressPercentage = (completedStepsCount / applicationSteps.length) * 100;
+const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -41,27 +43,65 @@ export default function DashboardPage() {
                 <Card className="h-full hover:shadow-lg transition-shadow">
                     <CardHeader>
                         <CardTitle>Application Progress</CardTitle>
-                        <CardDescription>You are {Math.round(progressPercentage)}% done with your application.</CardDescription>
+                        <CardDescription>You've completed {completedStepsCount} of {applicationSteps.length} steps. Let's keep going!</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <Progress value={progressPercentage} className="h-2" />
-                        <ul className="space-y-4">
-                            {applicationSteps.map((step) => (
-                                <li key={step.name} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`flex h-8 w-8 items-center justify-center rounded-full ${step.completed ? 'bg-primary' : 'bg-muted'}`}>
-                                            <CheckCircle className={`h-5 w-5 ${step.completed ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                                        </div>
-                                        <span className={`font-medium ${step.completed ? 'text-foreground' : 'text-muted-foreground'}`}>{step.name}</span>
+                        <div className="flex items-center gap-4">
+                            <Progress value={progressPercentage} className="h-2" />
+                            <span className="text-sm font-semibold text-muted-foreground">{Math.round(progressPercentage)}%</span>
+                        </div>
+                        <div className="relative">
+                            {applicationSteps.map((step, index) => {
+                                const isCompleted = step.completed;
+                                const isCurrent = index === currentStepIndex;
+                                const isFuture = index > currentStepIndex && currentStepIndex !== -1;
+
+                                return (
+                                <div key={step.name} className="flex items-start gap-4 pb-8">
+                                    {/* Vertical line */}
+                                    {index < applicationSteps.length - 1 && (
+                                        <div className={cn(
+                                            "absolute left-4 top-5 -ml-px h-full w-0.5",
+                                            isCompleted ? "bg-primary" : "bg-border"
+                                        )}></div>
+                                    )}
+
+                                    {/* Icon */}
+                                    <div className={cn(
+                                        "relative z-10 flex h-8 w-8 items-center justify-center rounded-full",
+                                        isCompleted ? 'bg-primary' : isCurrent ? 'bg-primary/20 border-2 border-primary' : 'bg-muted',
+                                        isCurrent && "animate-pulse"
+                                    )}>
+                                        {isCompleted ? (
+                                            <Check className="h-5 w-5 text-primary-foreground" />
+                                        ) : (
+                                            <Circle className={cn(
+                                                "h-3 w-3",
+                                                isCurrent ? "text-primary fill-primary" : "text-muted-foreground fill-muted-foreground"
+                                            )} />
+                                        )}
                                     </div>
-                                    <Button asChild variant={step.completed ? 'ghost' : 'secondary'} size="sm">
-                                        <Link href={step.href}>
-                                            {step.completed ? 'Review' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
-                                        </Link>
-                                    </Button>
-                                </li>
-                            ))}
-                        </ul>
+                                    
+                                    {/* Step content */}
+                                    <div className="flex-1 -mt-1.5">
+                                         <div className="flex items-center justify-between">
+                                            <p className={cn(
+                                                "font-medium",
+                                                isCompleted ? "text-foreground" : isCurrent ? "text-primary font-semibold" : "text-muted-foreground"
+                                            )}>
+                                                {step.name}
+                                            </p>
+                                            <Button asChild variant={isCompleted ? 'ghost' : 'secondary'} size="sm">
+                                                <Link href={step.href}>
+                                                    {isCompleted ? 'Review' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                         </div>
+                                        {isCurrent && <p className="text-sm text-muted-foreground mt-1">This is your next step.</p>}
+                                    </div>
+                                </div>
+                            )})}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
