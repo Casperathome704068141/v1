@@ -15,6 +15,7 @@ import { StudyPlanForm } from '@/components/forms/study-plan-form';
 import { FamilyForm } from '@/components/forms/family-form';
 import { DocumentsForm } from '@/components/forms/documents-form';
 import { BackgroundForm } from '@/components/forms/background-form';
+import { ApplicationProvider } from '@/context/application-context';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -27,7 +28,7 @@ const steps = [
   { id: 'documents', name: 'Documents', icon: FileText },
 ];
 
-export default function ApplicationPage({
+function ApplicationPageContent({
   searchParams,
 }: {
   searchParams: { step: string };
@@ -60,8 +61,16 @@ export default function ApplicationPage({
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
 
+  const getFormSubmitHandler = (formId: string) => {
+    // This is a placeholder. In a real app, you'd find the correct form's submit handler.
+    // For now, we'll just handle the navigation part.
+    // The actual data saving will be handled within each form component via the context.
+    return () => {
+       handleNext();
+    }
+  }
+
   return (
-    <AppLayout>
       <main className="flex-1 space-y-6 p-4 md:p-8">
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-3xl font-bold">Your Application</h1>
@@ -112,13 +121,27 @@ export default function ApplicationPage({
 
              <CardFooter className="flex justify-between border-t pt-6">
                 <Button variant="outline" onClick={handlePrevious} disabled={isFirstStep}>Previous</Button>
-                <Button onClick={handleNext}>
+                <Button form={`form-${currentStepId}`} type="submit">
                   {isLastStep ? 'Finish & Review' : 'Save and Continue'}
                 </Button>
             </CardFooter>
           </Card>
         </Tabs>
       </main>
-    </AppLayout>
   );
+}
+
+
+export default function ApplicationPage({
+  searchParams,
+}: {
+  searchParams: { step: string };
+}) {
+  return (
+    <AppLayout>
+      <ApplicationProvider>
+        <ApplicationPageContent searchParams={searchParams} />
+      </ApplicationProvider>
+    </AppLayout>
+  )
 }
