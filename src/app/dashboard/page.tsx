@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck, Send } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +17,11 @@ const applicationSteps = [
     { name: 'Financial Details', completed: false, href: '/application?step=finances' },
     { name: 'Study Plan', completed: false, href: '/application?step=plan' },
     { name: 'Upload Documents', completed: false, href: '/application?step=documents' },
+    { name: 'Application Submission', completed: false, icon: Send },
+    { name: 'Biometrics Completed', completed: false },
+    { name: 'Medical Exam Passed', completed: false },
+    { name: 'Passport Request', completed: false },
+    { name: 'Visa Approved', completed: false },
 ];
 
 const completedStepsCount = applicationSteps.filter(step => step.completed).length;
@@ -42,7 +47,7 @@ export default function DashboardPage() {
             <div className="md:col-span-2">
                 <Card className="h-full hover:shadow-lg transition-shadow">
                     <CardHeader>
-                        <CardTitle>Application Progress</CardTitle>
+                        <CardTitle>Your Journey Overview</CardTitle>
                         <CardDescription>You've completed {completedStepsCount} of {applicationSteps.length} steps. Let's keep going!</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -74,6 +79,8 @@ export default function DashboardPage() {
                                     )}>
                                         {isCompleted ? (
                                             <Check className="h-5 w-5 text-primary-foreground" />
+                                        ) : step.icon ? (
+                                            <step.icon className={cn("h-4 w-4", isCurrent ? "text-primary" : "text-muted-foreground")} />
                                         ) : (
                                             <Circle className={cn(
                                                 "h-3 w-3",
@@ -91,11 +98,13 @@ export default function DashboardPage() {
                                             )}>
                                                 {step.name}
                                             </p>
-                                            <Button asChild variant={isCompleted ? 'ghost' : 'secondary'} size="sm">
-                                                <Link href={step.href}>
-                                                    {isCompleted ? 'Review' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
-                                                </Link>
-                                            </Button>
+                                            {step.href && (
+                                                <Button asChild variant={isCompleted ? 'ghost' : 'secondary'} size="sm">
+                                                    <Link href={step.href}>
+                                                        {isCompleted ? 'Review' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                            )}
                                          </div>
                                         {isCurrent && <p className="text-sm text-muted-foreground mt-1">This is your next step.</p>}
                                     </div>
