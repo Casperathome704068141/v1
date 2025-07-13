@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 const personalInfoSchema = z.object({
   surname: z.string().min(1, "Surname is required."),
@@ -23,10 +24,13 @@ const personalInfoSchema = z.object({
   dob: z.date({ required_error: "Date of birth is required." }),
   countryOfBirth: z.string().min(1, "Country of birth is required."),
   countryOfCitizenship: z.string().min(1, "Country of citizenship is required."),
+  countryOfResidence: z.string().min(1, "Country of residence is required."),
   maritalStatus: z.string({ required_error: "Please select a marital status." }),
   passportNumber: z.string().min(1, "Passport number is required."),
   passportIssueDate: z.date({ required_error: "Passport issue date is required." }),
   passportExpiryDate: z.date({ required_error: "Passport expiry date is required." }),
+  passportIssuingCountry: z.string().min(1, "Passport issuing country is required."),
+  homeAddress: z.string().min(1, "Home address is required."),
   email: z.string().email("Invalid email address."),
   phoneNumber: z.string().min(1, "Phone number is required."),
 });
@@ -74,7 +78,7 @@ export function PersonalInfoForm() {
               name="givenNames"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Given Names (First Name)</FormLabel>
+                  <FormLabel>Given Names (First & Middle)</FormLabel>
                   <FormControl>
                     <Input placeholder="JOHN" {...field} />
                   </FormControl>
@@ -173,7 +177,7 @@ export function PersonalInfoForm() {
               )}
             />
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
              <FormField
               control={form.control}
               name="countryOfBirth"
@@ -193,6 +197,19 @@ export function PersonalInfoForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Country of Citizenship</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Canada" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="countryOfResidence"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country of Residence</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Canada" {...field} />
                   </FormControl>
@@ -299,12 +316,41 @@ export function PersonalInfoForm() {
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="passportIssuingCountry"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Passport Issuing Country</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Canada" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
            <div className="space-y-2">
             <h3 className="text-lg font-medium">Contact Information</h3>
             <hr/>
           </div>
+           <FormField
+              control={form.control}
+              name="homeAddress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Home Address (in home country)</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="123 Maple Street, Toronto, ON M5V 2L1, Canada" {...field} />
+                  </FormControl>
+                   <FormDescription>
+                    Street, city, postal code, province/state.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
              <FormField
               control={form.control}
