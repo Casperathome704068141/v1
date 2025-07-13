@@ -1,10 +1,11 @@
 
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, School, BookOpen, Banknote, Briefcase, FileText, Users, ShieldCheck } from 'lucide-react';
 import { PersonalInfoForm } from '@/components/forms/personal-info-form';
+import { AcademicsForm } from '@/components/forms/academics-form';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -47,13 +48,7 @@ export default function ApplicationPage({
             </TabsContent>
 
             <TabsContent value="academics">
-              <CardHeader>
-                <CardTitle>Academic & Work History</CardTitle>
-                <CardDescription>Provide your education and employment history for the last 10 years.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Academic & work history form will go here.</p>
-              </CardContent>
+              <AcademicsForm />
             </TabsContent>
 
             <TabsContent value="language">
