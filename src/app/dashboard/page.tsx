@@ -10,12 +10,12 @@ import { ArrowRight, BrainCircuit, CheckCircle, FileText, UserCheck } from 'luci
 import Link from 'next/link';
 
 const applicationSteps = [
-    { name: 'Profile Information', completed: true, href: '#' },
-    { name: 'Academic & Work History', completed: true, href: '#' },
-    { name: 'Language Proficiency', completed: false, href: '#' },
-    { name: 'Financial Details', completed: false, href: '#' },
-    { name: 'Study Plan', completed: false, href: '#' },
-    { name: 'Upload Documents', completed: false, href: '#' },
+    { name: 'Profile Information', completed: true, href: '/application?step=profile' },
+    { name: 'Academic & Work History', completed: true, href: '/application?step=academics' },
+    { name: 'Language Proficiency', completed: false, href: '/application?step=language' },
+    { name: 'Financial Details', completed: false, href: '/application?step=finances' },
+    { name: 'Study Plan', completed: false, href: '/application?step=plan' },
+    { name: 'Upload Documents', completed: false, href: '/application?step=documents' },
 ];
 
 const completedSteps = applicationSteps.filter(step => step.completed).length;
