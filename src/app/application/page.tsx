@@ -8,6 +8,7 @@ import { PersonalInfoForm } from '@/components/forms/personal-info-form';
 import { AcademicsForm } from '@/components/forms/academics-form';
 import { LanguageForm } from '@/components/forms/language-form';
 import { FinancesForm } from '@/components/forms/finances-form';
+import { StudyPlanForm } from '@/components/forms/study-plan-form';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -62,13 +63,7 @@ export default function ApplicationPage({
             </TabsContent>
 
             <TabsContent value="plan">
-              <CardHeader>
-                <CardTitle>Study Plan</CardTitle>
-                <CardDescription>Tell us about your study and career goals.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Study plan form will go here.</p>
-              </CardContent>
+              <StudyPlanForm />
             </TabsContent>
 
             <TabsContent value="family">
