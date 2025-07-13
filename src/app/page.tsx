@@ -12,6 +12,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { Briefcase } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props}>
@@ -49,7 +50,12 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-2xl">
+      <Card className="relative w-full max-w-md shadow-2xl">
+        <Link href="/admin/login" className="absolute bottom-2 right-2">
+            <Button variant="ghost" size="icon" aria-label="Admin Login">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+            </Button>
+        </Link>
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-3xl font-black text-foreground">
             Maple Leafs Education

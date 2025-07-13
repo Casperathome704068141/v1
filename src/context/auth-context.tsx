@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -16,7 +17,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const publicRoutes = ['/', '/signup', '/forgot-password'];
+const publicRoutes = ['/', '/signup', '/forgot-password', '/admin/login'];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -26,16 +27,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // If we're on an admin path, we don't want the student auth to interfere
+    if (pathname.startsWith('/admin')) {
+      setLoading(false);
+      return;
+    }
+    
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !pathname.startsWith('/admin')) {
       const isPublicRoute = publicRoutes.includes(pathname);
       if (!user && !isPublicRoute) {
         router.push('/');
@@ -74,6 +81,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Allow admin pages to render without being redirected by student auth logic
+  if (pathname.startsWith('/admin')) {
+    return <>{children}</>;
   }
 
   const isPublicRoute = publicRoutes.includes(pathname);
