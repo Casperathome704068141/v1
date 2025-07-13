@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,9 +10,11 @@ type ReasoningPanelProps = {
     name: string;
     province: string;
   };
+  studentProfile: object;
+  filteringLogic: string;
 };
 
-export function ReasoningPanel({ dliDetails }: ReasoningPanelProps) {
+export function ReasoningPanel({ dliDetails, studentProfile, filteringLogic }: ReasoningPanelProps) {
   const [reasoning, setReasoning] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,20 +23,11 @@ export function ReasoningPanel({ dliDetails }: ReasoningPanelProps) {
     async function getReasoning() {
       setLoading(true);
       setError(null);
-
-      // Mocked data for demonstration purposes
-      const mockStudentProfile = {
-        academicScore: '85%',
-        financialSituation: 'Has proof of funds for 1 year',
-        programOfInterest: 'Postgraduate Diploma in Business Management',
-      };
       
-      const mockFilteringLogic = 'Filtered for postgraduate diplomas in Ontario with tuition under $20,000/year.';
-
       const input: CollegeMatchReasoningInput = {
-        profileDetails: JSON.stringify(mockStudentProfile, null, 2),
+        profileDetails: JSON.stringify(studentProfile, null, 2),
         dliDetails: JSON.stringify(dliDetails, null, 2),
-        filteringLogic: mockFilteringLogic,
+        filteringLogic: filteringLogic,
       };
 
       try {
@@ -52,7 +46,8 @@ export function ReasoningPanel({ dliDetails }: ReasoningPanelProps) {
     }
 
     getReasoning();
-  }, [dliDetails]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dliDetails, filteringLogic]);
 
   if (loading) {
     return (

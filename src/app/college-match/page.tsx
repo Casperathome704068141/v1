@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppLayout } from '@/components/app-layout';
@@ -19,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ReasoningPanel } from './reasoning-panel';
+import { useApplication } from '@/context/application-context';
 
 
 const mockColleges = [
@@ -41,14 +43,29 @@ function formatCurrency(value: number) {
 
 
 export default function CollegeMatchPage() {
+    const { applicationData } = useApplication();
     const [loading, setLoading] = useState(false);
-    const [tuition, setTuition] = useState([50000]);
+    
+    // State for filters
+    const [province, setProvince] = useState('all');
+    const [programType, setProgramType] = useState('all');
+    const [maxTuition, setMaxTuition] = useState(50000);
     
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setTimeout(() => setLoading(false), 1500);
     }
+
+    const filteringLogic = `Filtered for ${programType !== 'all' ? programType : 'any program'} in ${province !== 'all' ? province : 'any province'} with tuition under ${formatCurrency(maxTuition)}.`;
+
+    const studentProfile = {
+      ...applicationData.personalInfo,
+      ...applicationData.academics,
+      ...applicationData.language,
+      ...applicationData.finances,
+    }
+
   return (
     <AppLayout>
       <div className="grid flex-1 grid-cols-1 gap-8 p-4 md:grid-cols-4 md:p-8">
@@ -62,11 +79,12 @@ export default function CollegeMatchPage() {
               <form className="space-y-6" onSubmit={handleSearch}>
                 <div className="space-y-2">
                   <Label htmlFor="province" className="text-xs">Province</Label>
-                  <Select>
+                  <Select value={province} onValueChange={setProvince}>
                     <SelectTrigger id="province">
                       <SelectValue placeholder="All Provinces" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">All Provinces</SelectItem>
                       <SelectItem value="ON">Ontario</SelectItem>
                       <SelectItem value="BC">British Columbia</SelectItem>
                       <SelectItem value="QC">Quebec</SelectItem>
@@ -76,11 +94,12 @@ export default function CollegeMatchPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="program" className="text-xs">Program Type</Label>
-                   <Select>
+                   <Select value={programType} onValueChange={setProgramType}>
                     <SelectTrigger id="program">
                       <SelectValue placeholder="All Programs" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">All Programs</SelectItem>
                       <SelectItem value="undergraduate">Undergraduate</SelectItem>
                       <SelectItem value="postgraduate">Postgraduate</SelectItem>
                        <SelectItem value="diploma">Diploma</SelectItem>
@@ -89,12 +108,12 @@ export default function CollegeMatchPage() {
                   </Select>
                 </div>
                  <div className="space-y-4">
-                  <Label className="text-xs">Max Tuition: <span className="font-semibold">{formatCurrency(tuition[0])}</span></Label>
+                  <Label className="text-xs">Max Tuition: <span className="font-semibold">{formatCurrency(maxTuition)}</span></Label>
                   <Slider
                     defaultValue={[50000]}
                     max={100000}
                     step={1000}
-                    onValueChange={(value) => setTuition(value)}
+                    onValueChange={(value) => setMaxTuition(value[0])}
                   />
                 </div>
               </form>
@@ -126,15 +145,15 @@ export default function CollegeMatchPage() {
                         <DialogHeader>
                           <DialogTitle>AI Reasoning for Excluded Colleges</DialogTitle>
                           <DialogDescription>
-                            Based on your profile (Postgrad Diploma, Ontario, &lt;$20k), here&apos;s why some colleges were not shown.
+                            {`Based on your profile and filters (${programType}, ${province}, <${formatCurrency(maxTuition)}), here's why some colleges were not shown.`}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                           <div className="font-semibold text-sm">UBC (Vancouver, BC)</div>
-                          <ReasoningPanel dliDetails={{name: 'University of British Columbia', province: 'BC'}} />
+                          <ReasoningPanel dliDetails={{name: 'University of British Columbia', province: 'BC'}} filteringLogic={filteringLogic} studentProfile={studentProfile} />
 
                            <div className="font-semibold text-sm mt-4">McGill (Montreal, QC)</div>
-                           <ReasoningPanel dliDetails={{name: 'McGill University', province: 'QC'}} />
+                           <ReasoningPanel dliDetails={{name: 'McGill University', province: 'QC'}} filteringLogic={filteringLogic} studentProfile={studentProfile} />
                         </div>
                       </DialogContent>
                     </Dialog>
