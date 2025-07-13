@@ -11,6 +11,7 @@ import { FinancesForm } from '@/components/forms/finances-form';
 import { StudyPlanForm } from '@/components/forms/study-plan-form';
 import { FamilyForm } from '@/components/forms/family-form';
 import { DocumentsForm } from '@/components/forms/documents-form';
+import { BackgroundForm } from '@/components/forms/background-form';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -73,13 +74,7 @@ export default function ApplicationPage({
             </TabsContent>
             
             <TabsContent value="background">
-              <CardHeader>
-                <CardTitle>Background & Security</CardTitle>
-                <CardDescription>Answer standard IRCC background questions.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Background and security form will go here.</p>
-              </CardContent>
+              <BackgroundForm />
             </TabsContent>
 
             <TabsContent value="documents">
