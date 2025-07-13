@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -25,7 +26,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy, LogOut } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy, LogOut, DollarSign } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 
 function UserMenu() {
@@ -69,6 +70,7 @@ const navItems = [
   { href: '/application', icon: GraduationCap, label: 'Application' },
   { href: '/documents', icon: FileText, label: 'Documents' },
   { href: '/appointments', icon: Calendar, label: 'Appointments' },
+  { href: '/pricing', icon: DollarSign, label: 'Pricing' },
   { href: '/support', icon: LifeBuoy, label: 'Support' },
 ];
 
