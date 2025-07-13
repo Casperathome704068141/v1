@@ -1,7 +1,10 @@
 
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, School, BookOpen, Banknote, Briefcase, FileText, Users, ShieldCheck } from 'lucide-react';
 import { PersonalInfoForm } from '@/components/forms/personal-info-form';
@@ -29,7 +32,33 @@ export default function ApplicationPage({
 }: {
   searchParams: { step: string };
 }) {
-  const currentStep = searchParams.step || 'profile';
+  const router = useRouter();
+  const currentStepId = searchParams.step || 'profile';
+  const currentStepIndex = steps.findIndex(step => step.id === currentStepId);
+
+  const handleNext = () => {
+    if (currentStepIndex < steps.length - 1) {
+      const nextStep = steps[currentStepIndex + 1];
+      router.push(`/application?step=${nextStep.id}`);
+    } else {
+      // Handle final submission
+      console.log('Application finished!');
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStepIndex > 0) {
+      const prevStep = steps[currentStepIndex - 1];
+      router.push(`/application?step=${prevStep.id}`);
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    router.push(`/application?step=${value}`);
+  };
+
+  const isFirstStep = currentStepIndex === 0;
+  const isLastStep = currentStepIndex === steps.length - 1;
 
   return (
     <AppLayout>
@@ -38,7 +67,7 @@ export default function ApplicationPage({
           <h1 className="font-headline text-3xl font-bold">Your Application</h1>
         </div>
         
-        <Tabs defaultValue={currentStep} className="w-full">
+        <Tabs value={currentStepId} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
             {steps.map(step => (
                 <TabsTrigger key={step.id} value={step.id}>
@@ -49,41 +78,43 @@ export default function ApplicationPage({
           </TabsList>
 
           <Card className="mt-6">
-            <TabsContent value="profile">
+            <TabsContent value="profile" forceMount={true} hidden={currentStepId !== 'profile'}>
                 <PersonalInfoForm />
             </TabsContent>
 
-            <TabsContent value="academics">
+            <TabsContent value="academics" forceMount={true} hidden={currentStepId !== 'academics'}>
               <AcademicsForm />
             </TabsContent>
 
-            <TabsContent value="language">
+            <TabsContent value="language" forceMount={true} hidden={currentStepId !== 'language'}>
               <LanguageForm />
             </TabsContent>
 
-            <TabsContent value="finances">
+            <TabsContent value="finances" forceMount={true} hidden={currentStepId !== 'finances'}>
               <FinancesForm />
             </TabsContent>
 
-            <TabsContent value="plan">
+            <TabsContent value="plan" forceMount={true} hidden={currentStepId !== 'plan'}>
               <StudyPlanForm />
             </TabsContent>
 
-            <TabsContent value="family">
+            <TabsContent value="family" forceMount={true} hidden={currentStepId !== 'family'}>
               <FamilyForm />
             </TabsContent>
             
-            <TabsContent value="background">
+            <TabsContent value="background" forceMount={true} hidden={currentStepId !== 'background'}>
               <BackgroundForm />
             </TabsContent>
 
-            <TabsContent value="documents">
+            <TabsContent value="documents" forceMount={true} hidden={currentStepId !== 'documents'}>
               <DocumentsForm />
             </TabsContent>
 
              <CardFooter className="flex justify-between border-t pt-6">
-                <Button variant="outline">Previous</Button>
-                <Button>Save and Continue</Button>
+                <Button variant="outline" onClick={handlePrevious} disabled={isFirstStep}>Previous</Button>
+                <Button onClick={handleNext}>
+                  {isLastStep ? 'Finish & Review' : 'Save and Continue'}
+                </Button>
             </CardFooter>
           </Card>
         </Tabs>
