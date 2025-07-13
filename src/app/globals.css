@@ -8,25 +8,25 @@ body {
 
 @layer base {
   :root {
-    --background: 210 20% 98%; /* Light Gray #F8F9FA */
-    --foreground: 215 28% 17%;
+    --background: 220 13% 97%; /* Lighter Gray */
+    --foreground: 212 100% 14%; /* Navy */
     --card: 0 0% 100%;
     --card-foreground: 215 28% 17%;
     --popover: 0 0% 100%;
     --popover-foreground: 215 28% 17%;
     --primary: 212 100% 14%; /* Navy #002147 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 17% 88%;
+    --secondary: 215 28% 90%; /* Light gray for icons */
     --secondary-foreground: 212 100% 14%;
     --muted: 210 17% 88%;
     --muted-foreground: 215 20% 45%;
-    --accent: 180 100% 25%; /* Teal #008080 */
+    --accent: 212 100% 20%; /* Sidebar active item */
     --accent-foreground: 0 0% 100%;
     --destructive: 356 78% 56%; /* Red #E63946 */
     --destructive-foreground: 0 0% 100%;
     --border: 215 20% 90%;
     --input: 215 20% 90%;
-    --ring: 180 100% 25%;
+    --ring: 212 100% 14%; /* Ring color to match primary */
     --radius: 0.5rem;
     
     --sidebar-background: 212 100% 14%; /* Navy #002147 */
@@ -44,19 +44,19 @@ body {
     --card-foreground: 210 17% 95%;
     --popover: 215 28% 11%;
     --popover-foreground: 210 17% 95%;
-    --primary: 180 100% 35%;
+    --primary: 212 100% 14%;
     --primary-foreground: 0 0% 100%;
     --secondary: 215 28% 20%;
     --secondary-foreground: 210 17% 95%;
     --muted: 215 28% 20%;
     --muted-foreground: 215 20% 65%;
-    --accent: 180 100% 35%;
+    --accent: 212 100% 20%;
     --accent-foreground: 0 0% 100%;
     --destructive: 356 78% 66%;
     --destructive-foreground: 0 0% 100%;
     --border: 215 28% 25%;
     --input: 215 28% 25%;
-    --ring: 180 100% 35%;
+    --ring: 212 100% 14%;
 
     --sidebar-background: 212 100% 10%;
     --sidebar-foreground: 210 17% 95%;
