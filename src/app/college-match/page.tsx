@@ -41,8 +41,7 @@ function formatCurrency(value: number) {
     }).format(value);
 }
 
-
-export default function CollegeMatchPage() {
+function CollegeMatchPageContent() {
     const { applicationData } = useApplication();
     const [loading, setLoading] = useState(false);
     
@@ -67,7 +66,6 @@ export default function CollegeMatchPage() {
     }
 
   return (
-    <AppLayout>
       <div className="grid flex-1 grid-cols-1 gap-8 p-4 md:grid-cols-4 md:p-8">
         <aside className="md:col-span-1">
           <Card className="sticky top-20 shadow-none border-none bg-transparent">
@@ -190,6 +188,14 @@ export default function CollegeMatchPage() {
             )}
         </main>
       </div>
-    </AppLayout>
   );
+}
+
+
+export default function CollegeMatchPage() {
+  return (
+    <AppLayout>
+      <CollegeMatchPageContent />
+    </AppLayout>
+  )
 }
