@@ -70,7 +70,7 @@ export default function AdminApplicationsPage() {
                                 <TableCell className="font-mono">{app.id}</TableCell>
                                 <TableCell>{app.student}</TableCell>
                                 <TableCell>
-                                    <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
+                                    <Badge variant={getStatusBadgeVariant(app.status) as any}>{app.status}</Badge>
                                 </TableCell>
                                 <TableCell>{app.submitted}</TableCell>
                                 <TableCell>{app.country}</TableCell>
