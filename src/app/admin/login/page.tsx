@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Shield } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -17,19 +19,35 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // This is a mock login. In a real app, you'd verify admin credentials.
-    if (email.endsWith('@mapleleafs.edu') && password === 'password') {
+    // IMPORTANT: This is a temporary security check.
+    // In a production app, you should use Firebase Custom Claims to verify admin status.
+    // This check only allows a specific email to attempt a sign-in here.
+    if (email !== 'admin@yourapp.com') {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'This email address is not authorized for admin access.',
+      });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Attempt to sign in with Firebase Auth
+      await signInWithEmailAndPassword(auth, email, password);
+      
       toast({
         title: 'Login Successful',
         description: 'Redirecting to the admin dashboard.',
       });
-      // In a real app, you would set an admin session/token here
+      // In a real app with custom claims, you'd set a session cookie here.
       router.push('/admin/dashboard');
-    } else {
+
+    } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
@@ -58,7 +76,7 @@ export default function AdminLoginPage() {
               <Input 
                 id="email" 
                 type="email" 
-                placeholder="admin@mapleleafs.edu" 
+                placeholder="admin@yourapp.com" 
                 required 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
