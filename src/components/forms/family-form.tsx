@@ -62,7 +62,7 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
     resolver: zodResolver(familySchema),
     defaultValues: {
       ...applicationData.family,
-      maritalStatus: applicationData.personalInfo?.maritalStatus, // Pre-fill from personal info
+      maritalStatus: applicationData.personalInfo?.maritalStatus || applicationData.family?.maritalStatus, // Pre-fill from personal info
     },
   });
 
@@ -203,3 +203,5 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
     </Form>
   );
 }
+
+    
