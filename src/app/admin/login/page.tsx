@@ -23,9 +23,9 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    // IMPORTANT: This is a temporary security check.
-    // In a production app, you should use Firebase Custom Claims to verify admin status.
-    // This check only allows a specific email to attempt a sign-in here.
+    // IMPORTANT: This is a temporary security check for demonstration purposes.
+    // In a production app, this check should be moved to a secure backend.
+    // The backend would verify the user's ID token and check for a custom claim like `{ admin: true }`.
     if (email !== 'admin@test.com') {
       toast({
         variant: 'destructive',
@@ -37,14 +37,21 @@ export default function AdminLoginPage() {
     }
 
     try {
-      // Attempt to sign in with Firebase Auth
-      await signInWithEmailAndPassword(auth, email, password);
+      // Step 1: Sign in with Firebase Auth on the client.
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
+      // Step 2 (Production): Get the ID token from the signed-in user.
+      // const idToken = await userCredential.user.getIdToken();
+
+      // Step 3 (Production): Send this token to your backend API endpoint.
+      // The backend would then verify the token and check for the `admin: true` custom claim.
+      // If the claim exists, the backend would set a secure, httpOnly session cookie.
+      // For now, we will just redirect.
+
       toast({
         title: 'Login Successful',
         description: 'Redirecting to the admin dashboard.',
       });
-      // In a real app with custom claims, you'd set a session cookie here.
       router.push('/admin/dashboard');
 
     } catch (error) {
