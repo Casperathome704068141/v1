@@ -1,4 +1,3 @@
-
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,14 +5,31 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MoreHorizontal } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { format } from 'date-fns';
 
-const mockUsers = [
-    { id: 'USR-001', name: 'John Doe', email: 'john.d@test.com', signedUp: '2023-10-01', plan: 'Premium' },
-    { id: 'USR-002', name: 'Jane Smith', email: 'jane.s@test.com', signedUp: '2023-09-15', plan: 'Free' },
-    { id: 'USR-003', name: 'Sam Wilson', email: 'sam.w@test.com', signedUp: '2023-08-20', plan: 'Standard' },
-];
+async function getUsers() {
+    const usersCollection = collection(db, 'users');
+    const q = query(usersCollection, orderBy('signedUp', 'desc'));
+    const userSnapshot = await getDocs(q);
+    
+    const usersList = userSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            name: data.name,
+            email: data.email,
+            signedUp: data.signedUp?.toDate() ? format(data.signedUp.toDate(), 'yyyy-MM-dd') : 'N/A',
+            plan: data.plan || 'Free',
+        };
+    });
+    return usersList;
+}
 
-export default function AdminUsersPage() {
+export default async function AdminUsersPage() {
+  const users = await getUsers();
+
   return (
     <AdminLayout>
       <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -41,13 +57,13 @@ export default function AdminUsersPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {mockUsers.map(user => (
+                        {users.map(user => (
                             <TableRow key={user.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar>
                                             <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="user avatar" />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            <AvatarFallback>{user.name ? user.name.charAt(0) : 'U'}</AvatarFallback>
                                         </Avatar>
                                         <div>
                                             <div className="font-medium">{user.name}</div>
