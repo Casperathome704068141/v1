@@ -10,6 +10,7 @@ import { LanguageForm } from '@/components/forms/language-form';
 import { FinancesForm } from '@/components/forms/finances-form';
 import { StudyPlanForm } from '@/components/forms/study-plan-form';
 import { FamilyForm } from '@/components/forms/family-form';
+import { DocumentsForm } from '@/components/forms/documents-form';
 
 const steps = [
   { id: 'profile', name: 'Personal Info', icon: User },
@@ -82,13 +83,7 @@ export default function ApplicationPage({
             </TabsContent>
 
             <TabsContent value="documents">
-              <CardHeader>
-                <CardTitle>Upload Documents</CardTitle>
-                <CardDescription>Upload the required documents for your application.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>Document uploader will go here.</p>
-              </CardContent>
+              <DocumentsForm />
             </TabsContent>
 
              <CardFooter className="flex justify-between border-t pt-6">
