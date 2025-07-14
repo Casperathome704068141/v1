@@ -1,3 +1,6 @@
+
+'use client';
+
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,28 +11,51 @@ import { MoreHorizontal } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
-import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
 
-async function getUsers() {
-    const usersCollection = collection(db, 'users');
-    const q = query(usersCollection, orderBy('signedUp', 'desc'));
-    const userSnapshot = await getDocs(q);
-    
-    const usersList = userSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            name: data.name,
-            email: data.email,
-            signedUp: data.signedUp?.toDate() ? format(data.signedUp.toDate(), 'yyyy-MM-dd') : 'N/A',
-            plan: data.plan || 'Free',
-        };
-    });
-    return usersList;
+type User = {
+    id: string;
+    name: string;
+    email: string;
+    signedUp: string;
+    plan: string;
+};
+
+function getPlanBadgeVariant(plan: string) {
+    switch (plan.toLowerCase()) {
+        case 'elite': return 'default';
+        case 'advantage': return 'secondary';
+        default: return 'outline';
+    }
 }
 
-export default async function AdminUsersPage() {
-  const users = await getUsers();
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function getUsers() {
+        setLoading(true);
+        const usersCollection = collection(db, 'users');
+        const q = query(usersCollection, orderBy('signedUp', 'desc'));
+        const userSnapshot = await getDocs(q);
+        
+        const usersList = userSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                name: data.name,
+                email: data.email,
+                signedUp: data.signedUp?.toDate() ? format(data.signedUp.toDate(), 'yyyy-MM-dd') : 'N/A',
+                plan: data.plan || 'Free',
+            };
+        });
+        setUsers(usersList);
+        setLoading(false);
+    }
+    getUsers();
+  }, []);
 
   return (
     <AdminLayout>
@@ -72,7 +98,9 @@ export default async function AdminUsersPage() {
                                         </div>
                                     </div>
                                 </TableCell>
-                                <TableCell>{user.plan}</TableCell>
+                                <TableCell>
+                                    <Badge variant={getPlanBadgeVariant(user.plan)}>{user.plan}</Badge>
+                                </TableCell>
                                 <TableCell>{user.signedUp}</TableCell>
                                 <TableCell>
                                     <Button variant="ghost" size="icon">

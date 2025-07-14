@@ -2,14 +2,24 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { getAuth, onAuthStateChanged, User, signOut as firebaseSignOut, signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
+import { User, signOut as firebaseSignOut, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+
+export interface UserProfile {
+    uid: string;
+    email: string | null;
+    name: string | null;
+    plan: string;
+    signedUp?: any;
+}
 
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
   loading: boolean;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -19,26 +29,60 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const publicRoutes = ['/', '/signup', '/forgot-password', '/admin/login'];
 
+async function createUserDocument(user: User) {
+  const userRef = doc(db, 'users', user.uid);
+  const docSnap = await getDoc(userRef);
+
+  if (!docSnap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      name: user.displayName,
+      email: user.email,
+      signedUp: serverTimestamp(),
+      plan: 'Free', // Default plan
+    });
+  }
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
 
   useEffect(() => {
-    // If we're on an admin path, we don't want the student auth to interfere
     if (pathname.startsWith('/admin')) {
       setLoading(false);
       return;
     }
     
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setUser(user);
-      setLoading(false);
+      if (user) {
+        // Create user document if it doesn't exist (for new sign-ups)
+        await createUserDocument(user);
+        
+        // Listen for changes to the user's profile document
+        const userRef = doc(db, 'users', user.uid);
+        const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setProfile(docSnap.data() as UserProfile);
+          } else {
+            setProfile(null);
+          }
+          setLoading(false);
+        });
+
+        return () => unsubscribeProfile();
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, [pathname]);
 
   useEffect(() => {
@@ -69,7 +113,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = async () => {
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      // The onAuthStateChanged listener will handle the rest
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
@@ -78,12 +123,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: 'Google Sign-In Failed',
         description: error.message,
       });
-    } finally {
       setLoading(false);
     }
   }
 
-  // Allow admin pages to render without being redirected by student auth logic
   if (pathname.startsWith('/admin')) {
     return <>{children}</>;
   }
@@ -103,9 +146,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
      );
   }
 
-
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, signInWithGoogle }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );
