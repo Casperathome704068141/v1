@@ -163,4 +163,5 @@ export const useApplication = () => {
   if (context === undefined) {
     throw new Error('useApplication must be used within an ApplicationProvider');
   }
-  return
+  return context;
+};

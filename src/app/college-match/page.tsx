@@ -189,3 +189,7 @@ function CollegeMatchPageContent() {
 export default function CollegeMatchPage() {
   return (
     <AppLayout>
+        <CollegeMatchPageContent />
+    </AppLayout>
+  );
+}
