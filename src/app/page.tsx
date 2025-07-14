@@ -50,58 +50,74 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <Card className="relative w-full max-w-md shadow-2xl">
-        <Link href="/admin/login" className="absolute bottom-2 right-2">
-            <Button variant="ghost" size="icon" aria-label="Admin Login">
-                <Briefcase className="h-4 w-4 text-muted-foreground" />
-            </Button>
-        </Link>
-        <CardHeader className="text-center items-center">
-          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary"/>
-          <CardTitle className="font-headline text-3xl font-black text-foreground">
-            Maple Leafs Education
-          </CardTitle>
-          <CardDescription>Welcome back! Please enter your details.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+    <main className="flex min-h-screen w-full">
+      <div className="hidden lg:flex lg:w-1/2 bg-muted items-center justify-center relative">
+         <Image 
+            src="https://placehold.co/800x1000.png"
+            alt="Students studying in Canada"
+            layout="fill"
+            objectFit="cover"
+            data-ai-hint="university students"
+         />
+         <div className="absolute inset-0 bg-primary/60" />
+          <div className="relative z-10 text-center p-8 text-primary-foreground">
+                <h1 className="text-5xl font-black font-headline tracking-tighter">Your Journey to Canadian Education Starts Here.</h1>
+                <p className="mt-4 text-lg max-w-lg mx-auto">Access our AI-powered platform to find the perfect college and streamline your application.</p>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-sm text-primary/90 hover:text-primary hover:underline">
-                  Forgot password?
-                </Link>
+      </div>
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-4">
+        <Card className="relative w-full max-w-md border-0 shadow-none lg:border lg:shadow-2xl">
+          <Link href="/admin/login" className="absolute bottom-2 right-2">
+              <Button variant="ghost" size="icon" aria-label="Admin Login">
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+              </Button>
+          </Link>
+          <CardHeader className="text-center items-center">
+            <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={72} height={72} className="text-primary"/>
+            <CardTitle className="font-headline text-3xl font-black text-foreground">
+              Maple Leafs Education
+            </CardTitle>
+            <CardDescription>Welcome back! Please enter your details.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link href="/forgot-password" className="text-sm text-primary/90 hover:text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
+                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
+              <Button type="submit" className="w-full font-bold" disabled={loading}>
+                {loading ? 'Logging in...' : 'Log In'}
+              </Button>
+            </form>
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              </div>
             </div>
-            <Button type="submit" className="w-full font-bold" disabled={loading}>
-              {loading ? 'Logging in...' : 'Log In'}
-            </Button>
-          </form>
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+            <div className="grid grid-cols-1 gap-4">
+              <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon className="mr-2 h-4 w-4" /> Google</Button>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+            <div className="mt-6 text-center text-sm">
+              Don't have an account?{' '}
+              <Link href="/signup" className="font-semibold text-primary/90 hover:text-primary hover:underline">
+                Sign up
+              </Link>
             </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4">
-            <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon className="mr-2 h-4 w-4" /> Google</Button>
-          </div>
-          <div className="mt-6 text-center text-sm">
-            Don't have an account?{' '}
-            <Link href="/signup" className="font-semibold text-primary/90 hover:text-primary hover:underline">
-              Sign up
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }
