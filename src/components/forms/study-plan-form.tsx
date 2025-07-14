@@ -32,7 +32,7 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
     resolver: zodResolver(studyPlanSchema),
     defaultValues: {
       ...applicationData.studyPlan,
-      programChoice: applicationData.studyPlan?.programChoice 
+      programChoice: applicationData.studyPlan?.programChoice
         ? `${applicationData.studyPlan.programChoice} - ${applicationData.selectedCollege?.name}`
         : 'Please select a college first'
     },
@@ -53,7 +53,7 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
     const existingStudyPlan = applicationData.studyPlan || {};
 
     updateStepData('studyPlan', { ...existingStudyPlan, ...formDataToSave });
-    
+
     toast({
       title: "Study Plan Saved!",
       description: "Your study plan information has been successfully saved.",
@@ -134,3 +134,7 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
               )}
             />
         </CardContent>
+      </form>
+    </Form>
+  );
+}
