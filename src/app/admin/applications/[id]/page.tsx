@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
+import { AdminApplicationProgress } from '@/components/admin/admin-application-progress';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '') return null;
@@ -173,6 +174,12 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     <div className="lg:col-span-2 space-y-8">
+                         <Card>
+                            <CardHeader><CardTitle>Application Progress</CardTitle></CardHeader>
+                            <CardContent>
+                               <AdminApplicationProgress applicationData={application} />
+                            </CardContent>
+                        </Card>
                         {personalInfo && (
                             <Card>
                                 <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>

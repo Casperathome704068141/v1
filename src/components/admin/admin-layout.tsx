@@ -25,7 +25,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, Settings, LogOut, BarChart3, Newspaper } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Settings, LogOut, BarChart3, Newspaper, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -68,6 +68,7 @@ const navItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/applications', icon: FileText, label: 'Applications' },
   { href: '/admin/users', icon: Users, label: 'Users' },
+  { href: '/admin/payments', icon: CreditCard, label: 'Payments' },
   { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/admin/cms', icon: Newspaper, label: 'News CMS' },
   { href: '/admin/settings', icon: Settings, label: 'Settings' },

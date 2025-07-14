@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type User = {
     id: string;
@@ -33,6 +33,7 @@ function getPlanBadgeVariant(plan: string) {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function getUsers() {
@@ -62,13 +63,12 @@ export default function AdminUsersPage() {
       <main className="flex-1 space-y-6 p-4 md:p-8">
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-3xl font-bold">User Management</h1>
-          <Button>Add New User</Button>
         </div>
         
         <Card>
             <CardHeader>
                 <CardTitle>Registered Users</CardTitle>
-                <CardDescription>View and manage all user accounts.</CardDescription>
+                <CardDescription>View and manage all user accounts. Click a row to see details.</CardDescription>
                 <div className="mt-4">
                     <Input placeholder="Search by name or email..." className="max-w-xs" />
                 </div>
@@ -80,12 +80,11 @@ export default function AdminUsersPage() {
                             <TableHead>User</TableHead>
                             <TableHead>Plan</TableHead>
                             <TableHead>Sign-up Date</TableHead>
-                            <TableHead><span className="sr-only">Actions</span></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {users.map(user => (
-                            <TableRow key={user.id}>
+                            <TableRow key={user.id} onClick={() => router.push(`/admin/users/${user.id}`)} className="cursor-pointer">
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar>
@@ -102,11 +101,6 @@ export default function AdminUsersPage() {
                                     <Badge variant={getPlanBadgeVariant(user.plan)}>{user.plan}</Badge>
                                 </TableCell>
                                 <TableCell>{user.signedUp}</TableCell>
-                                <TableCell>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
