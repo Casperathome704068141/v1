@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import type { PersonalInfoFormValues } from '@/components/forms/personal-info-form';
 import type { AcademicsFormValues } from '@/components/forms/academics-form';
 import type { LanguageFormValues } from '@/components/forms/language-form';
@@ -39,6 +39,7 @@ interface ApplicationContextType {
   applicationData: ApplicationData;
   setApplicationData: (data: ApplicationData) => void;
   updateStepData: (step: keyof ApplicationData, data: any) => void;
+  resetApplicationData: () => void;
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
@@ -65,8 +66,12 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const resetApplicationData = useCallback(() => {
+    setApplicationData(initialApplicationData);
+  }, []);
+
   return (
-    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData }}>
+    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData, resetApplicationData }}>
       {children}
     </ApplicationContext.Provider>
   );

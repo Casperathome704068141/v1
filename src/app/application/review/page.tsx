@@ -9,6 +9,10 @@ import { useApplication } from '@/context/application-context';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, FileText, AlertTriangle, Send } from 'lucide-react';
 import { format } from 'date-fns';
+import { db, auth } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
@@ -21,15 +25,52 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function ApplicationReviewContent() {
-  const { applicationData } = useApplication();
+  const { applicationData, resetApplicationData } = useApplication();
   const { toast } = useToast();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { personalInfo, academics, language, finances, studyPlan, family, background, documents } = applicationData;
 
-  const handleSubmit = () => {
-    toast({
-        title: 'Application Submitted!',
-        description: 'Your application has been sent for processing. (This is a simulation)',
-    });
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    const user = auth.currentUser;
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Authentication Error',
+            description: 'You must be logged in to submit an application.',
+        });
+        setIsSubmitting(false);
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, 'applications'), {
+            ...applicationData,
+            userId: user.uid,
+            studentName: `${personalInfo?.givenNames} ${personalInfo?.surname}`,
+            studentEmail: user.email,
+            status: 'Pending Review',
+            submittedAt: serverTimestamp(),
+        });
+
+        toast({
+            title: 'Application Submitted!',
+            description: 'Your application has been sent for processing. We will be in touch.',
+        });
+        
+        resetApplicationData();
+        router.push('/dashboard');
+
+    } catch (error) {
+        console.error("Error submitting application: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Submission Failed',
+            description: 'There was an error submitting your application. Please try again.',
+        });
+        setIsSubmitting(false);
+    }
   };
 
   const requiredDocIds = ['passport', 'loa', 'proofOfFunds', 'languageTest', 'sop', 'photo'];
@@ -137,9 +178,9 @@ function ApplicationReviewContent() {
                     </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                    <Button className="w-full" size="lg" onClick={handleSubmit} disabled={!allDocsUploaded}>
+                    <Button className="w-full" size="lg" onClick={handleSubmit} disabled={!allDocsUploaded || isSubmitting}>
                         <Send className="mr-2 h-4 w-4" />
-                        Confirm & Submit Application
+                        {isSubmitting ? 'Submitting...' : 'Confirm & Submit Application'}
                     </Button>
                 </CardFooter>
             </Card>

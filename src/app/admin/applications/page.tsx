@@ -7,13 +7,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { format } from 'date-fns';
 
-const mockApplications = [
-    { id: 'APP-001', student: 'John Doe', status: 'Pending Review', submitted: '2023-10-26', country: 'India' },
-    { id: 'APP-002', student: 'Jane Smith', status: 'Approved', submitted: '2023-10-25', country: 'Nigeria' },
-    { id: 'APP-003', student: 'Sam Wilson', status: 'Action Required', submitted: '2023-10-24', country: 'Brazil' },
-    { id: 'APP-004', student: 'Li Wei', status: 'Pending Review', submitted: '2023-10-26', country: 'China' },
-];
+async function getApplications() {
+    const applicationsCollection = collection(db, 'applications');
+    const q = query(applicationsCollection, orderBy('submittedAt', 'desc'));
+    const appSnapshot = await getDocs(q);
+    
+    const applicationsList = appSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            studentName: data.studentName,
+            status: data.status,
+            submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'yyyy-MM-dd') : 'N/A',
+            country: data.personalInfo?.countryOfCitizenship || 'N/A',
+        };
+    });
+    return applicationsList;
+}
 
 function getStatusBadgeVariant(status: string) {
     switch (status) {
@@ -24,7 +38,9 @@ function getStatusBadgeVariant(status: string) {
     }
 }
 
-export default function AdminApplicationsPage() {
+export default async function AdminApplicationsPage() {
+  const applications = await getApplications();
+
   return (
     <AdminLayout>
       <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -65,14 +81,14 @@ export default function AdminApplicationsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {mockApplications.map(app => (
+                        {applications.map(app => (
                             <TableRow key={app.id}>
-                                <TableCell className="font-mono">{app.id}</TableCell>
-                                <TableCell>{app.student}</TableCell>
+                                <TableCell className="font-mono">{app.id.substring(0, 7).toUpperCase()}</TableCell>
+                                <TableCell>{app.studentName}</TableCell>
                                 <TableCell>
                                     <Badge variant={getStatusBadgeVariant(app.status) as any}>{app.status}</Badge>
                                 </TableCell>
-                                <TableCell>{app.submitted}</TableCell>
+                                <TableCell>{app.submittedAt}</TableCell>
                                 <TableCell>{app.country}</TableCell>
                                 <TableCell>
                                     <Button variant="ghost" size="icon">
