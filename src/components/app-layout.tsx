@@ -86,8 +86,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Sidebar>
             <SidebarHeader>
               <div className="flex items-center gap-3 p-4">
-                <Image src="/logo.svg" alt="MLE Logo" width={24} height={24} className="text-sidebar-foreground"/>
-                <h1 className="text-lg font-semibold text-sidebar-foreground">Maple Leafs</h1>
+                <Image src="/logo.svg" alt="MLE Logo" width={32} height={32} className="text-sidebar-foreground"/>
+                <h1 className="text-lg font-semibold text-sidebar-foreground">MLE</h1>
               </div>
             </SidebarHeader>
             <SidebarContent>

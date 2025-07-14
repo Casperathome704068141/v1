@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
     <main className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center items-center">
-            <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} className="text-primary"/>
+            <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary"/>
           <CardTitle className="font-headline text-3xl font-black text-foreground">
             Maple Leafs Education
           </CardTitle>

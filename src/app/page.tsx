@@ -58,7 +58,7 @@ export default function LoginPage() {
             </Button>
         </Link>
         <CardHeader className="text-center items-center">
-          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} className="text-primary"/>
+          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary"/>
           <CardTitle className="font-headline text-3xl font-black text-foreground">
             Maple Leafs Education
           </CardTitle>
