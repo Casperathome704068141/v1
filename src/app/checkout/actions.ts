@@ -1,6 +1,6 @@
+
 'use server';
 
-import { headers } from 'next/headers';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -15,26 +15,26 @@ export async function getStripePublishableKey() {
     return process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 }
 
-export async function createCheckoutSession(items: CartItem[]) {
-    const origin = headers().get('origin') || 'http://localhost:9002';
+export async function createPaymentIntent(items: CartItem[]) {
+    const origin = 'http://localhost:9002'; // In production, this should be dynamic from headers()
 
-    const line_items = items.map(item => ({
-        price_data: {
-            currency: 'cad',
-            product_data: {
-                name: item.name,
-            },
-            unit_amount: item.price * 100, // Price in cents
-        },
-        quantity: item.quantity,
-    }));
+    const calculateOrderAmount = (items: CartItem[]) => {
+        return items.reduce((total, item) => total + item.price * item.quantity, 0) * 100; // Total in cents
+    };
     
-    const session = await stripe.checkout.sessions.create({
-        line_items: line_items,
-        mode: 'payment',
-        success_url: `${origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`, // Redirect to dashboard on success
-        cancel_url: `${origin}/pricing`, // Return to pricing on cancellation
+    const amount = calculateOrderAmount(items);
+    
+    if (amount <= 0) {
+        throw new Error("Invalid order amount.");
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'cad',
+        automatic_payment_methods: {
+            enabled: true,
+        },
     });
 
-    return { sessionId: session.id, url: session.url };
+    return { clientSecret: paymentIntent.client_secret, totalAmount: amount };
 }

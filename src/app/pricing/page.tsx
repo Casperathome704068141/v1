@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,9 +10,9 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { createCheckoutSession } from '@/app/checkout/actions';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 const tiers = [
   {
@@ -76,6 +76,7 @@ export default function PricingPage() {
     const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>({});
     const [isProcessing, setIsProcessing] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
 
     const handleSelectPlan = (plan: typeof tiers[0]) => {
         setSelectedPlan(plan.id === selectedPlan?.id ? null : plan);
@@ -100,23 +101,23 @@ export default function PricingPage() {
 
     const total = calculateTotal();
 
-    const handleCheckout = async () => {
+    const handleCheckout = () => {
         setIsProcessing(true);
 
-        const items = [];
+        const cartItems = [];
         if (selectedPlan) {
-            items.push({ name: selectedPlan.name, price: selectedPlan.price, quantity: 1 });
+            cartItems.push({ name: selectedPlan.name, price: selectedPlan.price, quantity: 1 });
         }
         for (const addonId in selectedAddons) {
             if (selectedAddons[addonId]) {
                 const addon = addOns.find(a => a.id === addonId);
                 if (addon) {
-                    items.push({ name: addon.name, price: addon.price, quantity: 1 });
+                    cartItems.push({ name: addon.name, price: addon.price, quantity: 1 });
                 }
             }
         }
         
-        if (items.length === 0) {
+        if (cartItems.length === 0) {
             toast({
                 variant: 'destructive',
                 title: 'Empty Cart',
@@ -126,23 +127,8 @@ export default function PricingPage() {
             return;
         }
 
-        try {
-            const { url } = await createCheckoutSession(items);
-            if (url) {
-                window.open(url, '_blank');
-            } else {
-                throw new Error("Could not create checkout session.");
-            }
-        } catch (error) {
-            console.error("Stripe checkout error:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Checkout Failed',
-                description: 'Could not connect to the payment gateway. Please try again.',
-            });
-        } finally {
-            setIsProcessing(false);
-        }
+        const cartQueryParam = encodeURIComponent(JSON.stringify(cartItems));
+        router.push(`/checkout?cart=${cartQueryParam}`);
     };
 
   return (
@@ -208,7 +194,7 @@ export default function PricingPage() {
                           {feature.includes('plus:') ? (
                               <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0 text-primary" />
                           ) : (
-                              <Check className="mr-3 h-5 w-5 flex-green-500" />
+                              <Check className="mr-3 h-5 w-5 text-green-500" />
                           )}
                           <span className="text-sm text-muted-foreground">{feature}</span>
                         </motion.li>
