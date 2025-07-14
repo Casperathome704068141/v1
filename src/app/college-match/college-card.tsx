@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Sparkles, BookOpenCheck, WandSparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, Sparkles, BookOpenCheck, WandSparkles, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -41,11 +41,13 @@ interface CollegeCardProps {
     college: College;
     studentProfile: ReturnType<typeof useApplication>['applicationData'];
     filteringLogic: string;
+    isMatch: boolean;
+    reason?: string;
 }
 
-export function CollegeCard({ college, studentProfile, filteringLogic }: CollegeCardProps) {
+export function CollegeCard({ college, studentProfile, filteringLogic, isMatch, reason }: CollegeCardProps) {
   return (
-    <Card className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+    <Card className={cn("flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-xl", !isMatch && "opacity-60 hover:opacity-100")}>
       <div className="relative h-40 w-full bg-muted">
         <Image src={college.image} alt={college.name} layout="fill" objectFit="cover" data-ai-hint={college.aiHint} />
          <Badge className="absolute top-2 right-2" variant="secondary">{college.province}</Badge>
@@ -91,31 +93,37 @@ export function CollegeCard({ college, studentProfile, filteringLogic }: College
 
         <div className="flex items-center justify-between space-x-2 mt-4 pt-4 border-t">
             <div className="flex items-center space-x-2">
-                <Switch id={`favorite-${college.dliNumber}`} />
+                <Switch id={`favorite-${college.dliNumber}`} disabled={!isMatch}/>
                 <Label htmlFor={`favorite-${college.dliNumber}`} className="text-xs font-normal">Favorite</Label>
             </div>
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary">
-                        <WandSparkles className="h-3 w-3 mr-1.5" /> Why not a match?
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>AI Reasoning for {college.name}</DialogTitle>
-                        <DialogDescription>
-                            Based on your profile and filters, here's why this college might not be an ideal match.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <ReasoningPanel 
-                            dliDetails={{ name: college.name, province: college.province }} 
-                            filteringLogic={filteringLogic} 
-                            studentProfile={studentProfile} 
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {!isMatch && reason && (
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-xs text-destructive hover:text-destructive">
+                            <WandSparkles className="h-3 w-3 mr-1.5" /> Why not a match?
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                             <DialogTitle className="flex items-center gap-2">
+                                <AlertCircle className="h-5 w-5 text-destructive" />
+                                AI Reasoning for {college.name}
+                            </DialogTitle>
+                            <DialogDescription>
+                                This college may not be an ideal match based on your current profile and filters.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                            <ReasoningPanel 
+                                dliDetails={{ name: college.name, province: college.province, tuition: college.tuitionHigh }} 
+                                filteringLogic={filteringLogic} 
+                                studentProfile={studentProfile} 
+                                initialReasoning={reason}
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
       </CardContent>
     </Card>

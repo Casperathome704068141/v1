@@ -9,12 +9,14 @@ type ReasoningPanelProps = {
   dliDetails: {
     name: string;
     province: string;
+    tuition: number;
   };
   studentProfile: object;
   filteringLogic: string;
+  initialReasoning: string;
 };
 
-export function ReasoningPanel({ dliDetails, studentProfile, filteringLogic }: ReasoningPanelProps) {
+export function ReasoningPanel({ dliDetails, studentProfile, filteringLogic, initialReasoning }: ReasoningPanelProps) {
   const [reasoning, setReasoning] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,7 @@ export function ReasoningPanel({ dliDetails, studentProfile, filteringLogic }: R
         profileDetails: JSON.stringify(studentProfile, null, 2),
         dliDetails: JSON.stringify(dliDetails, null, 2),
         filteringLogic: filteringLogic,
+        initialReasoning: initialReasoning
       };
 
       try {

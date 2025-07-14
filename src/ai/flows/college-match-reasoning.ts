@@ -1,3 +1,4 @@
+
 // src/ai/flows/college-match-reasoning.ts
 'use server';
 /**
@@ -17,8 +18,9 @@ const CollegeMatchReasoningInputSchema = z.object({
     .describe('Details of the student profile, including academic scores, financial situation, and program of interest.'),
   dliDetails: z
     .string()
-    .describe('Details about the Designated Learning Institution (DLI), including location, programs offered, and admission criteria.'),
+    .describe('Details about the Designated Learning Institution (DLI), including location, programs offered, tuition, and admission criteria.'),
   filteringLogic: z.string().describe('The filtering logic applied to match students with DLIs.'),
+  initialReasoning: z.string().describe('The initial, simple reason why the college was filtered out (e.g., "Tuition exceeds budget").')
 });
 export type CollegeMatchReasoningInput = z.infer<typeof CollegeMatchReasoningInputSchema>;
 
@@ -37,15 +39,30 @@ const prompt = ai.definePrompt({
   name: 'collegeMatchReasoningPrompt',
   input: {schema: CollegeMatchReasoningInputSchema},
   output: {schema: CollegeMatchReasoningOutputSchema},
-  prompt: `You are an AI assistant designed to help students understand why certain Designated Learning Institutions (DLIs) are filtered out during the college matching process.
+  prompt: `You are an AI assistant for an education consulting firm. Your role is to provide clear, empathetic, and constructive feedback to students about why a college might not be a good match for them right now.
 
-  Given the following student profile details, DLI details, and filtering logic, explain why the DLI was filtered out for the student.
+The student has been shown a list of recommended colleges, and this college was filtered out for the following reason:
+**Initial Reason:** {{{initialReasoning}}}
 
-  Student Profile Details: {{{profileDetails}}}
-DLI Details: {{{dliDetails}}}
-Filtering Logic: {{{filteringLogic}}}
+Your task is to expand on this reason in a helpful and encouraging tone. Do not just repeat the reason. Explain what it means and suggest potential next steps.
 
-  Reasoning:`,
+**Student Profile Details:**
+{{{profileDetails}}}
+
+**DLI Details:**
+{{{dliDetails}}}
+
+**Filtering Logic Used:**
+{{{filteringLogic}}}
+
+Based on all this information, generate a short, helpful explanation (2-3 sentences).
+
+**Example Scenarios:**
+- If the reason is high tuition, you could say: "This university's estimated tuition is higher than the budget you've set. To make it a viable option, you could explore scholarship opportunities on their website or adjust your budget filters to see other excellent institutions that are a better financial fit."
+- If the reason is a location mismatch, you could say: "This college is located in a province that wasn't included in your search filter. If you're open to exploring options across Canada, you can change the province filter to 'All Provinces' to see more great schools."
+
+Now, generate the reasoning for this specific case.
+`,
 });
 
 const collegeMatchReasoningFlow = ai.defineFlow(

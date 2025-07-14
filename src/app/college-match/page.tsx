@@ -10,8 +10,8 @@ import { CollegeCard } from './college-card';
 import { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
-import { WandSparkles } from 'lucide-react';
 import { useApplication } from '@/context/application-context';
+import { Switch } from '@/components/ui/switch';
 
 
 const mockColleges = [
@@ -58,23 +58,39 @@ function CollegeMatchPageContent() {
     // State for filters
     const [province, setProvince] = useState('all');
     const [programType, setProgramType] = useState('all');
-    const [maxTuition, setMaxTuition] = useState(70000);
+    const [showUnmatched, setShowUnmatched] = useState(false);
     
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        // This is a mock search, so we just show a loading state
-        // In a real app, you would fetch data here
-        setTimeout(() => setLoading(false), 1500);
-    }
+    // User's budget from their profile, with a default fallback
+    const studentBudget = applicationData.finances?.totalFunds;
+    const [maxTuition, setMaxTuition] = useState(studentBudget || 70000);
     
-    const filteredColleges = useMemo(() => {
-        return mockColleges.filter(college => {
-            const provinceMatch = province === 'all' || college.province === province;
-            const tuitionMatch = college.tuitionHigh <= maxTuition;
-            // Program type filter not implemented yet
-            return provinceMatch && tuitionMatch;
-        });
+    const matchedColleges = useMemo(() => {
+        return mockColleges
+            .map(college => {
+                const isProvinceMatch = province === 'all' || college.province === province;
+                const isTuitionMatch = college.tuitionHigh <= maxTuition;
+                const isMatch = isProvinceMatch && isTuitionMatch;
+                let reason = '';
+                if (!isTuitionMatch) reason = 'Tuition exceeds your budget.';
+                else if (!isProvinceMatch) reason = 'Not in your selected province.';
+                
+                return { ...college, isMatch, reason };
+            })
+            .filter(college => college.isMatch);
+    }, [province, maxTuition]);
+
+    const unmatchedColleges = useMemo(() => {
+         return mockColleges
+            .map(college => {
+                const isProvinceMatch = province === 'all' || college.province === province;
+                const isTuitionMatch = college.tuitionHigh <= maxTuition;
+                const isMatch = isProvinceMatch && isTuitionMatch;
+                let reason = '';
+                if (!isTuitionMatch) reason = `The estimated high-end tuition of ${formatCurrency(college.tuitionHigh)} exceeds your current budget of ${formatCurrency(maxTuition)}.`;
+                
+                return { ...college, isMatch, reason };
+            })
+            .filter(college => !college.isMatch && (province === 'all' || college.province === province));
     }, [province, maxTuition]);
 
 
@@ -96,7 +112,7 @@ function CollegeMatchPageContent() {
               <CardDescription>Refine your search.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <form className="space-y-6" onSubmit={handleSearch}>
+              <form className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="province" className="text-xs">Province</Label>
                   <Select value={province} onValueChange={setProvince}>
@@ -132,13 +148,17 @@ function CollegeMatchPageContent() {
                   </Select>
                 </div>
                  <div className="space-y-4">
-                  <Label className="text-xs">Max Tuition: <span className="font-semibold">{formatCurrency(maxTuition)}</span></Label>
+                  <Label className="text-xs">Your Max Tuition: <span className="font-semibold">{formatCurrency(maxTuition)}</span></Label>
                   <Slider
-                    defaultValue={[70000]}
+                    defaultValue={[maxTuition]}
                     max={100000}
                     step={1000}
                     onValueChange={(value) => setMaxTuition(value[0])}
                   />
+                </div>
+                 <div className="flex items-center space-x-2 pt-4">
+                    <Switch id="show-unmatched" checked={showUnmatched} onCheckedChange={setShowUnmatched} />
+                    <Label htmlFor="show-unmatched">Show colleges beyond my budget</Label>
                 </div>
               </form>
             </CardContent>
@@ -147,9 +167,9 @@ function CollegeMatchPageContent() {
 
         <main className="md:col-span-3">
             <div className="mb-4">
-                <h1 className="font-bold text-xl">Matching DLIs ({loading ? '...' : filteredColleges.length})</h1>
+                <h1 className="font-bold text-xl">Recommended DLIs ({loading ? '...' : matchedColleges.length})</h1>
                 <p className="text-sm text-muted-foreground">
-                    Use the AI assistant on each card to understand why a college might not be a perfect match.
+                    Based on your profile and selected filters.
                 </p>
             </div>
 
@@ -171,16 +191,41 @@ function CollegeMatchPageContent() {
                     ))}
                 </div>
             ) : (
+                <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredColleges.map((college) => (
+                    {matchedColleges.map((college) => (
                         <CollegeCard 
                             key={college.dliNumber} 
                             college={college} 
                             studentProfile={applicationData}
                             filteringLogic={filteringLogic}
+                            isMatch={true}
                         />
                     ))}
                 </div>
+                {showUnmatched && unmatchedColleges.length > 0 && (
+                    <>
+                        <div className="my-8">
+                            <h2 className="font-bold text-xl">Other DLIs ({unmatchedColleges.length})</h2>
+                            <p className="text-sm text-muted-foreground">
+                                These may not be a match based on your current budget.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                             {unmatchedColleges.map((college) => (
+                                <CollegeCard 
+                                    key={college.dliNumber} 
+                                    college={college} 
+                                    studentProfile={applicationData}
+                                    filteringLogic={filteringLogic}
+                                    isMatch={false}
+                                    reason={college.reason}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
+                </>
             )}
         </main>
       </div>
