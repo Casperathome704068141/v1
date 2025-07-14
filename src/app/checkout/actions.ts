@@ -2,6 +2,7 @@
 'use server';
 
 import Stripe from 'stripe';
+import { auth } from '@/lib/firebase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -16,7 +17,10 @@ export async function getStripePublishableKey() {
 }
 
 export async function createPaymentIntent(items: CartItem[]) {
-    const origin = 'http://localhost:9002'; // In production, this should be dynamic from headers()
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error('User not authenticated.');
+    }
 
     const calculateOrderAmount = (items: CartItem[]) => {
         return items.reduce((total, item) => total + item.price * item.quantity, 0) * 100; // Total in cents
@@ -27,6 +31,9 @@ export async function createPaymentIntent(items: CartItem[]) {
     if (amount <= 0) {
         throw new Error("Invalid order amount.");
     }
+    
+    // Find the primary plan from the cart items (assuming it doesn't have "addon" in the id)
+    const primaryPlan = items.find(item => !item.name.toLowerCase().includes("addon"));
 
     const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -34,6 +41,10 @@ export async function createPaymentIntent(items: CartItem[]) {
         automatic_payment_methods: {
             enabled: true,
         },
+        metadata: {
+            userId: user.uid,
+            planName: primaryPlan?.name || 'Custom Plan',
+        }
     });
 
     return { clientSecret: paymentIntent.client_secret, totalAmount: amount };
