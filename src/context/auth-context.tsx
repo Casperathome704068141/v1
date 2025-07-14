@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -8,7 +7,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { ApplicationProvider } from './application-context';
 
 export interface UserProfile {
     uid: string;
@@ -61,6 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const isStudentRoute = !pathname.startsWith('/admin');
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setLoading(true); // Start loading whenever auth state might change
         if (currentUser && isStudentRoute) {
             setUser(currentUser);
             const userRef = doc(db, 'users', currentUser.uid);

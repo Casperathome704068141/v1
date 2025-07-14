@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
@@ -11,6 +10,8 @@ import type { FamilyFormValues } from '@/components/forms/family-form';
 import type { BackgroundFormValues } from '@/components/forms/background-form';
 import { useAuth } from './auth-context';
 import type { College } from '@/lib/college-data';
+import { db } from '@/lib/firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 export interface UploadedFile {
     url: string;
@@ -64,10 +65,9 @@ interface ApplicationData {
 
 interface ApplicationContextType {
   applicationData: ApplicationData;
-  setApplicationData: (data: ApplicationData) => void;
-  updateStepData: (step: keyof ApplicationData, data: any) => void;
-  updateCollegeAndProgram: (college: College, program: string) => void;
-  resetApplicationData: () => void;
+  updateStepData: (step: keyof Omit<ApplicationData, 'selectedCollege'>, data: any) => Promise<void>;
+  updateCollegeAndProgram: (college: College, program: string) => Promise<void>;
+  resetApplicationData: () => Promise<void>;
   isLoaded: boolean;
 }
 
@@ -86,73 +86,96 @@ const initialApplicationData: ApplicationData = {
    documents: {},
 };
 
+function convertTimestampsToDates(data: any): any {
+    if (data?.toDate && typeof data.toDate === 'function') {
+        return data.toDate();
+    }
+    if (Array.isArray(data)) {
+        return data.map(item => convertTimestampsToDates(item));
+    }
+    if (typeof data === 'object' && data !== null) {
+        const res: { [key: string]: any } = {};
+        for (const key in data) {
+            res[key] = convertTimestampsToDates(data[key]);
+        }
+        return res;
+    }
+    return data;
+}
+
 export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
   const [applicationData, setApplicationData] = useState<ApplicationData>(initialApplicationData);
   const [isLoaded, setIsLoaded] = useState(false);
-  const { user } = useAuth();
-
-  const persistData = (data: ApplicationData) => {
-    if (typeof window !== 'undefined' && user?.uid) {
-        localStorage.setItem(`applicationData_${user.uid}`, JSON.stringify(data));
-    }
-  };
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && user?.uid) {
-      const savedData = localStorage.getItem(`applicationData_${user.uid}`);
-      if (savedData) {
-        try {
-          const parsedData = JSON.parse(savedData);
-          setApplicationData(parsedData);
-        } catch (e) {
-            console.error("Failed to parse application data from localStorage", e);
-            setApplicationData(initialApplicationData);
+    if (authLoading) {
+      setIsLoaded(false);
+      return;
+    }
+
+    if (user?.uid) {
+      const docRef = doc(db, 'users', user.uid, 'application', 'draft');
+      const unsubscribe = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const dataFromDb = docSnap.data();
+          const convertedData = convertTimestampsToDates(dataFromDb);
+          setApplicationData(convertedData as ApplicationData);
+        } else {
+          setApplicationData(initialApplicationData);
         }
-      } else {
-        setApplicationData(initialApplicationData);
-      }
-      setIsLoaded(true);
-    } else if (!user) {
-        setApplicationData(initialApplicationData);
-        setIsLoaded(false);
+        setIsLoaded(true);
+      }, (error) => {
+        console.error("Error listening to application draft:", error);
+        setIsLoaded(true);
+      });
+
+      return () => unsubscribe();
+    } else {
+      setApplicationData(initialApplicationData);
+      setIsLoaded(false);
+    }
+  }, [user, authLoading]);
+
+  const updateStepData = useCallback(async (step: keyof Omit<ApplicationData, 'selectedCollege'>, data: any) => {
+    if (!user?.uid) return;
+    const docRef = doc(db, 'users', user.uid, 'application', 'draft');
+    try {
+      await setDoc(docRef, { [step]: data }, { merge: true });
+    } catch (error) {
+      console.error("Error updating application step data:", error);
     }
   }, [user]);
-  
-  const updateStepData = (step: keyof ApplicationData, data: any) => {
-    setApplicationData(prev => {
-        const newData = {
-            ...prev,
-            [step]: data,
-        };
-        persistData(newData);
-        return newData;
-    });
-  };
 
-  const updateCollegeAndProgram = (college: College, program: string) => {
-    setApplicationData(prev => {
-        const newData = {
-            ...prev,
-            selectedCollege: college,
-            studyPlan: {
-              ...prev.studyPlan,
-              programChoice: program,
-            },
-        };
-        persistData(newData);
-        return newData;
-    });
-  }
+  const updateCollegeAndProgram = useCallback(async (college: College, program: string) => {
+    if (!user?.uid) return;
+    const docRef = doc(db, 'users', user.uid, 'application', 'draft');
+    const newStudyPlan = {
+      ...(applicationData.studyPlan || {}),
+      programChoice: program,
+    };
+    try {
+      await setDoc(docRef, {
+        selectedCollege: college,
+        studyPlan: newStudyPlan
+      }, { merge: true });
+    } catch (error) {
+      console.error("Error updating college/program:", error);
+    }
+  }, [user, applicationData.studyPlan]);
 
-  const resetApplicationData = useCallback(() => {
-    setApplicationData(initialApplicationData);
-    if(typeof window !== 'undefined' && user?.uid) {
-      localStorage.removeItem(`applicationData_${user.uid}`);
+  const resetApplicationData = useCallback(async () => {
+    if (!user?.uid) return;
+    const docRef = doc(db, 'users', user.uid, 'application', 'draft');
+    try {
+      await setDoc(docRef, initialApplicationData);
+    } catch (error) {
+      console.error("Error resetting application data:", error);
     }
   }, [user]);
 
   return (
-    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData, updateCollegeAndProgram, resetApplicationData, isLoaded }}>
+    <ApplicationContext.Provider value={{ applicationData, updateStepData, updateCollegeAndProgram, resetApplicationData, isLoaded }}>
       {children}
     </ApplicationContext.Provider>
   );
