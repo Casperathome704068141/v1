@@ -64,35 +64,34 @@ function CollegeMatchPageContent() {
     const studentBudget = applicationData.finances?.totalFunds;
     const [maxTuition, setMaxTuition] = useState(studentBudget || 70000);
     
-    const matchedColleges = useMemo(() => {
-        return mockColleges
-            .map(college => {
-                const isProvinceMatch = province === 'all' || college.province === province;
-                const isTuitionMatch = college.tuitionHigh <= maxTuition;
-                const isMatch = isProvinceMatch && isTuitionMatch;
-                let reason = '';
-                if (!isTuitionMatch) reason = 'Tuition exceeds your budget.';
-                else if (!isProvinceMatch) reason = 'Not in your selected province.';
-                
-                return { ...college, isMatch, reason };
-            })
-            .filter(college => college.isMatch);
-    }, [province, maxTuition]);
+    const { matchedColleges, unmatchedColleges } = useMemo(() => {
+        const matched: (typeof mockColleges[0] & { isMatch: boolean; reason: string })[] = [];
+        const unmatched: (typeof mockColleges[0] & { isMatch: boolean; reason: string })[] = [];
 
-    const unmatchedColleges = useMemo(() => {
-         return mockColleges
-            .map(college => {
-                const isProvinceMatch = province === 'all' || college.province === province;
-                const isTuitionMatch = college.tuitionHigh <= maxTuition;
-                const isMatch = isProvinceMatch && isTuitionMatch;
-                let reason = '';
-                if (!isTuitionMatch) reason = `The estimated high-end tuition of ${formatCurrency(college.tuitionHigh)} exceeds your current budget of ${formatCurrency(maxTuition)}.`;
-                
-                return { ...college, isMatch, reason };
-            })
-            .filter(college => !college.isMatch && (province === 'all' || college.province === province));
-    }, [province, maxTuition]);
+        mockColleges.forEach(college => {
+            const isProvinceMatch = province === 'all' || college.province === province;
+            const isTuitionMatch = college.tuitionHigh <= maxTuition;
+            const isMatch = isProvinceMatch && isTuitionMatch;
+            
+            let reason = '';
+            if (!isTuitionMatch) {
+                reason = `The estimated high-end tuition of ${formatCurrency(college.tuitionHigh)} exceeds your current budget of ${formatCurrency(maxTuition)}.`;
+            } else if (!isProvinceMatch) {
+                reason = 'Not in your selected province.';
+            }
+            
+            const collegeWithStatus = { ...college, isMatch, reason };
 
+            if (isMatch) {
+                matched.push(collegeWithStatus);
+            } else if (province === 'all' || isProvinceMatch) {
+                // Only add to unmatched if it's in the selected province (or all provinces)
+                unmatched.push(collegeWithStatus);
+            }
+        });
+
+        return { matchedColleges: matched, unmatchedColleges: unmatched };
+    }, [province, maxTuition]);
 
     const filteringLogic = `Filtered for ${programType !== 'all' ? programType : 'any program'} in ${province !== 'all' ? province : 'any province'} with tuition under ${formatCurrency(maxTuition)}.`;
 
@@ -208,7 +207,7 @@ function CollegeMatchPageContent() {
                         <div className="my-8">
                             <h2 className="font-bold text-xl">Other DLIs ({unmatchedColleges.length})</h2>
                             <p className="text-sm text-muted-foreground">
-                                These may not be a match based on your current budget.
+                                These may not be a match based on your current budget or filters.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

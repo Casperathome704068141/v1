@@ -25,14 +25,14 @@ interface DocumentsData {
 
 // Define types for all form sections.
 interface ApplicationData {
-  personalInfo?: PersonalInfoFormValues;
-  academics?: AcademicsFormValues;
-  language?: LanguageFormValues;
-  finances?: FinancesFormValues;
-  studyPlan?: StudyPlanFormValues;
-  family?: FamilyFormValues;
-  background?: BackgroundFormValues;
-  documents?: DocumentsData;
+  personalInfo: Partial<PersonalInfoFormValues>;
+  academics: Partial<AcademicsFormValues>;
+  language: Partial<LanguageFormValues>;
+  finances: Partial<FinancesFormValues>;
+  studyPlan: Partial<StudyPlanFormValues>;
+  family: Partial<FamilyFormValues>;
+  background: Partial<BackgroundFormValues>;
+  documents: DocumentsData;
 }
 
 interface ApplicationContextType {
@@ -46,7 +46,7 @@ const ApplicationContext = createContext<ApplicationContextType | undefined>(und
 
 // Define initial empty state for the application data
 const initialApplicationData: ApplicationData = {
-   personalInfo: undefined,
+   personalInfo: {},
    academics: { educationHistory: [], employmentHistory: [] },
    language: { testTaken: 'none' },
    finances: { fundingSources: [], proofType: [] },

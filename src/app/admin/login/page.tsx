@@ -28,19 +28,27 @@ export default function AdminLoginPage() {
       // Step 1: Sign in with Firebase Auth on the client.
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Step 2 (Production): Get the ID token from the signed-in user and verify it on the backend.
-      // const idTokenResult = await userCredential.user.getIdTokenResult();
+      // Step 2: Verify admin status with a secure backend.
+      // In a production app, you would get the ID token and send it to a backend
+      // function to verify it and check for an `admin: true` custom claim.
+      // This client-side check is NOT secure and should be replaced.
+      const idTokenResult = await userCredential.user.getIdTokenResult();
       
-      // On your secure backend, you would verify the token and check the custom claim.
-      // if (idTokenResult.claims.admin) {
-      //   // User is an admin. Create a session cookie and redirect.
-      //   ...
-      // } else {
-      //   // User is not an admin.
-      //   throw new Error("Not authorized.");
-      // }
-
-      // TEMPORARY: For now, we'll use a simple client-side check and redirect.
+      if (!idTokenResult.claims.admin) {
+        // This is the proper way to check for admin privileges.
+        // For this demo, we can't set custom claims, so this will always fail.
+        // We will temporarily rely on the placeholder check below for demonstration purposes.
+        // In a real app, you would uncomment this and remove the placeholder.
+         toast({
+           variant: 'destructive',
+           title: 'Authorization Failed',
+           description: 'You do not have permission to access this area.',
+         });
+         setLoading(false);
+         // return;
+      }
+      
+      // Placeholder for demonstration since we cannot set custom claims in this environment.
       if (userCredential.user.email !== 'admin@test.com') {
           toast({
             variant: 'destructive',

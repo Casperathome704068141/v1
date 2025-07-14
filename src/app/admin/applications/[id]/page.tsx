@@ -12,9 +12,10 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '') return null;
@@ -40,23 +41,31 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
     const router = useRouter();
 
     useEffect(() => {
         async function getApplication() {
             setLoading(true);
-            const docRef = doc(db, 'applications', params.id);
-            const docSnap = await getDoc(docRef);
+            setError(null);
+            try {
+                const docRef = doc(db, 'applications', params.id);
+                const docSnap = await getDoc(docRef);
 
-            if (docSnap.exists()) {
-                const appData = docSnap.data();
-                setApplication(appData);
-                setStatus(appData.status);
-            } else {
-                console.log("No such document!");
+                if (docSnap.exists()) {
+                    const appData = docSnap.data();
+                    setApplication(appData);
+                    setStatus(appData.status);
+                } else {
+                    setError("No application found with this ID.");
+                }
+            } catch (err) {
+                console.error("Firebase error getting document:", err);
+                setError("An error occurred while fetching the application.");
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         }
         getApplication();
     }, [params.id]);
@@ -102,9 +111,29 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
         )
     }
     
+    if (error) {
+        return (
+            <AdminLayout>
+                <main className="p-4 md:p-8">
+                     <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Applications
+                    </Button>
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                </main>
+            </AdminLayout>
+        );
+    }
+
     if (!application) {
+        // This case should ideally not be reached if error handling is correct, but as a fallback.
         return <AdminLayout><main className="p-8">Application not found.</main></AdminLayout>;
     }
+
 
     const { personalInfo, academics, finances, submittedAt } = application;
 
