@@ -1,8 +1,52 @@
 
 import { AdminLayout } from '@/components/admin/admin-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { format } from 'date-fns';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
-export default function AdminDashboardPage() {
+type Application = {
+    id: string;
+    studentName: string;
+    status: string;
+    submittedAt: string;
+}
+
+function getStatusBadgeVariant(status: string) {
+    switch (status) {
+        case 'Approved': return 'default';
+        case 'Pending Review': return 'secondary';
+        case 'Action Required': return 'destructive';
+        default: return 'outline';
+    }
+}
+
+async function getRecentApplications() {
+    const applicationsCollection = collection(db, 'applications');
+    const q = query(applicationsCollection, orderBy('submittedAt', 'desc'), limit(5));
+    const appSnapshot = await getDocs(q);
+    
+    const applicationsList = appSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            studentName: data.studentName,
+            status: data.status,
+            submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'PPP') : 'N/A',
+        };
+    });
+    return applicationsList;
+}
+
+
+export default async function AdminDashboardPage() {
+  const recentApplications = await getRecentApplications();
+
   return (
     <AdminLayout>
       <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -50,11 +94,42 @@ export default function AdminDashboardPage() {
         </div>
 
         <Card>
-            <CardHeader>
-                <CardTitle>Recent Applications</CardTitle>
+            <CardHeader className="flex items-center justify-between">
+                <div>
+                    <CardTitle>Recent Applications</CardTitle>
+                    <CardDescription>The last 5 applications submitted by students.</CardDescription>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                    <Link href="/admin/applications">
+                        View All
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                </Button>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground">Application list will be displayed here.</p>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Student Name</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Submitted On</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {recentApplications.map(app => (
+                             <TableRow key={app.id}>
+                                <TableCell>
+                                    <div className="font-medium">{app.studentName}</div>
+                                    <div className="text-xs text-muted-foreground md:hidden">{app.id.substring(0, 7).toUpperCase()}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
+                                </TableCell>
+                                <TableCell className="text-right">{app.submittedAt}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </CardContent>
         </Card>
 
