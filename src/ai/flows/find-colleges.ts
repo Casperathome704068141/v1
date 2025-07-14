@@ -9,6 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { collegeData } from '@/lib/college-data';
 
 const CollegeSchema = z.object({
   dliNumber: z.string().describe("The Designated Learning Institution (DLI) number."),
@@ -40,28 +41,32 @@ export async function findColleges(input: FindCollegesInput): Promise<FindColleg
   return findCollegesFlow(input);
 }
 
+// System prompt to guide the AI
+const findCollegesSystemPrompt = `You are an expert on Canadian Designated Learning Institutions (DLIs). Your task is to act as a filter for a provided list of colleges.
+
+You will be given a master list of colleges and the user's preferences. You must return a subset of this list, formatted exactly like the input, containing only the colleges that are a good match for the user.
+
+User Preferences:
+- Province: {{{province}}}
+- Program Type: {{{programType}}} (Note: For now, you can ignore this as our data doesn't contain program types. Focus on province and tuition.)
+- Maximum Annual Tuition: \${{{maxTuition}}} CAD
+
+Filtering Criteria:
+1.  **Province**: If the user specifies a province, only return colleges from that province. If they select 'all', consider all provinces.
+2.  **Tuition**: The college's high-end tuition ('tuitionHigh') must be less than or equal to the user's maximum tuition budget.
+3.  **Return Value**: You must only return colleges from the provided master list. Do not invent new colleges or modify the data. Return up to 20 matching colleges.
+
+Here is the master list of colleges you must use as your source of truth:
+${JSON.stringify(collegeData, null, 2)}
+`;
+
+
 const prompt = ai.definePrompt({
   name: 'findCollegesPrompt',
   input: { schema: FindCollegesInputSchema },
   output: { schema: FindCollegesOutputSchema },
-  prompt: `You are an expert on Canadian Designated Learning Institutions (DLIs). Your task is to generate a list of 20 diverse and realistic colleges and universities in Canada that are suitable for international students.
-
-  The user's preferences are:
-  - Province: {{{province}}}
-  - Program Type: {{{programType}}}
-  - Maximum Annual Tuition: \${{{maxTuition}}} CAD
-
-  CRITERIA FOR GENERATION:
-  1.  **Diversity**: Include a mix of universities and colleges. Include institutions from various provinces, unless a specific province is requested.
-  2.  **Realism**: Ensure PGWP and SDS eligibility are accurate (most public colleges/universities are). Use realistic tuition ranges for international students.
-  3.  **Formatting**:
-      - For the 'image' field, ALWAYS use 'https://placehold.co/600x400.png'.
-      - For the 'aiHint' field, provide one or two relevant keywords (e.g., 'modern campus', 'historic building').
-      - For 'programs', list 3-4 popular programs for international students at that institution.
-      - For 'province', use the 2-letter abbreviation (e.g., ON, BC, QC).
-
-  Generate a list of exactly 20 institutions now based on these criteria.
-  `,
+  system: findCollegesSystemPrompt,
+  prompt: `Based on the user preferences and the master list provided in the system instructions, please generate the list of matching colleges now.`
 });
 
 const findCollegesFlow = ai.defineFlow(
@@ -71,6 +76,8 @@ const findCollegesFlow = ai.defineFlow(
     outputSchema: FindCollegesOutputSchema,
   },
   async (input) => {
+    // In a more complex app, we might pre-filter `collegeData` here before sending to the AI
+    // to save tokens, but for this size, it's fine to let the AI do the filtering.
     const { output } = await prompt(input);
     return output!;
   }
