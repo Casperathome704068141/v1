@@ -60,7 +60,10 @@ export function LanguageForm({ onSave }: LanguageFormProps) {
 
   const form = useForm<LanguageFormValues>({
     resolver: zodResolver(languageSchema),
-    defaultValues: applicationData.language,
+    defaultValues: {
+      ...applicationData.language,
+      testDate: applicationData.language?.testDate ? new Date(applicationData.language.testDate) : undefined,
+    }
   });
 
   const watchTestTaken = form.watch("testTaken");
@@ -250,4 +253,7 @@ export function LanguageForm({ onSave }: LanguageFormProps) {
                 </>
             )}
         </CardContent>
-        {/* Footer with buttons is in
+      </form>
+    </Form>
+  );
+}

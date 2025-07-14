@@ -70,7 +70,7 @@ export function DashboardContent() {
 
   const filledApplicationSteps = applicationSteps.filter(step => step.id);
   const completedStepsCount = filledApplicationSteps.filter(step => step.completed).length;
-  const progressPercentage = (completedStepsCount / filledApplicationSteps.length) * 100;
+  const progressPercentage = filledApplicationSteps.length > 0 ? (completedStepsCount / filledApplicationSteps.length) * 100 : 0;
   const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
   const currentStep = currentStepIndex !== -1 ? applicationSteps[currentStepIndex] : null;
 
@@ -108,7 +108,6 @@ export function DashboardContent() {
 
                               return (
                               <div key={step.name} className="flex items-start gap-4 pb-8">
-                                  {/* Vertical line */}
                                   {index < applicationSteps.length - 1 && (
                                       <div className={cn(
                                           "absolute left-4 top-5 -ml-px h-full w-0.5",
@@ -116,7 +115,6 @@ export function DashboardContent() {
                                       )}></div>
                                   )}
 
-                                  {/* Icon */}
                                   <div className={cn(
                                       "relative z-10 flex h-8 w-8 items-center justify-center rounded-full",
                                       isCompleted ? 'bg-primary' : isCurrent ? 'bg-primary/20 border-2 border-primary' : 'bg-muted',
@@ -134,7 +132,6 @@ export function DashboardContent() {
                                       )}
                                   </div>
                                   
-                                  {/* Step content */}
                                   <div className="flex-1 -mt-1.5">
                                        <div className="flex items-center justify-between">
                                           <p className={cn(
@@ -225,4 +222,9 @@ export function DashboardContent() {
                           <Link href="/appointments">Manage Appointments</Link>
                       </Button>
                   </CardContent>
-              </
+              </Card>
+          </div>
+      </div>
+    </main>
+  );
+}
