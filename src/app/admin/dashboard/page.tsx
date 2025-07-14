@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, where,getCountFromServer } from 'firebase/firestore';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, UserPlus, Hourglass, CheckCircle, Ban } from 'lucide-react';
 
 type Application = {
     id: string;
@@ -26,12 +26,33 @@ function getStatusBadgeVariant(status: string) {
     }
 }
 
-async function getRecentApplications() {
+async function getDashboardData() {
     const applicationsCollection = collection(db, 'applications');
-    const q = query(applicationsCollection, orderBy('submittedAt', 'desc'), limit(5));
-    const appSnapshot = await getDocs(q);
+    const usersCollection = collection(db, 'users');
+
+    const recentApplicationsQuery = query(applicationsCollection, orderBy('submittedAt', 'desc'), limit(5));
     
-    const applicationsList = appSnapshot.docs.map(doc => {
+    // Server-side aggregate queries
+    const totalAppsQuery = query(applicationsCollection);
+    const pendingAppsQuery = query(applicationsCollection, where('status', '==', 'Pending Review'));
+    const approvedAppsQuery = query(applicationsCollection, where('status', '==', 'Approved'));
+    const totalUsersQuery = query(usersCollection);
+
+    const [
+        appSnapshot,
+        totalAppsSnapshot,
+        pendingAppsSnapshot,
+        approvedAppsSnapshot,
+        totalUsersSnapshot
+    ] = await Promise.all([
+        getDocs(recentApplicationsQuery),
+        getCountFromServer(totalAppsQuery),
+        getCountFromServer(pendingAppsQuery),
+        getCountFromServer(approvedAppsQuery),
+        getCountFromServer(totalUsersQuery)
+    ]);
+    
+    const recentApplications = appSnapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -40,12 +61,20 @@ async function getRecentApplications() {
             submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'PPP') : 'N/A',
         };
     });
-    return applicationsList;
+
+    const stats = {
+        totalApplications: totalAppsSnapshot.data().count,
+        pendingReview: pendingAppsSnapshot.data().count,
+        approvedVisas: approvedAppsSnapshot.data().count,
+        newUsers: totalUsersSnapshot.data().count,
+    };
+    
+    return { recentApplications, stats };
 }
 
 
 export default async function AdminDashboardPage() {
-  const recentApplications = await getRecentApplications();
+  const { recentApplications, stats } = await getDashboardData();
 
   return (
     <AdminLayout>
@@ -58,37 +87,41 @@ export default async function AdminDashboardPage() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+                    <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">452</div>
-                    <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                    <div className="text-2xl font-bold">{stats.totalApplications}</div>
+                    <p className="text-xs text-muted-foreground">All-time application count</p>
                 </CardContent>
             </Card>
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+                     <Hourglass className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">31</div>
-                    <p className="text-xs text-muted-foreground">5 waiting more than 48h</p>
+                    <div className="text-2xl font-bold">{stats.pendingReview}</div>
+                    <p className="text-xs text-muted-foreground">Applications awaiting action</p>
                 </CardContent>
             </Card>
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Approved Visas</CardTitle>
+                    <CardTitle className="text-sm font-medium">Approved Applications</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">189</div>
-                    <p className="text-xs text-muted-foreground">+12 since last week</p>
+                    <div className="text-2xl font-bold">{stats.approvedVisas}</div>
+                    <p className="text-xs text-muted-foreground">Successfully approved applications</p>
                 </CardContent>
             </Card>
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">New Users</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                     <UserPlus className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">82</div>
-                    <p className="text-xs text-muted-foreground">+15.2% from last month</p>
+                    <div className="text-2xl font-bold">{stats.newUsers}</div>
+                    <p className="text-xs text-muted-foreground">Total registered users</p>
                 </CardContent>
             </Card>
         </div>
