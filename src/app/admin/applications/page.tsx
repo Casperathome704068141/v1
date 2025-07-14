@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 
@@ -35,6 +35,8 @@ function getStatusBadgeVariant(status: string) {
 export default function AdminApplicationsPage() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
     const router = useRouter();
 
     useEffect(() => {
@@ -60,6 +62,14 @@ export default function AdminApplicationsPage() {
         getApplications();
     }, []);
 
+    const filteredApplications = useMemo(() => {
+        return applications.filter(app => {
+            const matchesSearch = app.studentName.toLowerCase().includes(searchTerm.toLowerCase()) || app.id.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
+    }, [applications, searchTerm, statusFilter]);
+
   return (
     <AdminLayout>
       <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -73,16 +83,22 @@ export default function AdminApplicationsPage() {
                 <CardTitle>Student Applications</CardTitle>
                 <CardDescription>View, manage, and track all submitted applications. Click a row to view details.</CardDescription>
                 <div className="mt-4 flex space-x-2">
-                    <Input placeholder="Search by name or ID..." className="max-w-xs" />
-                    <Select>
+                    <Input 
+                        placeholder="Search by name or ID..." 
+                        className="max-w-xs"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="pending">Pending Review</SelectItem>
-                            <SelectItem value="approved">Approved</SelectItem>
-                            <SelectItem value="required">Action Required</SelectItem>
+                            <SelectItem value="Pending Review">Pending Review</SelectItem>
+                            <SelectItem value="Approved">Approved</SelectItem>
+                            <SelectItem value="Action Required">Action Required</SelectItem>
+                            <SelectItem value="Rejected">Rejected</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -110,7 +126,7 @@ export default function AdminApplicationsPage() {
                                 </TableRow>
                             ))
                         ) : (
-                            applications.map(app => (
+                            filteredApplications.map(app => (
                                 <TableRow key={app.id} onClick={() => router.push(`/admin/applications/${app.id}`)} className="cursor-pointer">
                                     <TableCell className="font-mono">{app.id.substring(0, 7).toUpperCase()}</TableCell>
                                     <TableCell>{app.studentName}</TableCell>
