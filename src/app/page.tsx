@@ -53,7 +53,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen w-full">
       <div className="hidden lg:flex lg:w-1/2 bg-muted items-center justify-center relative">
          <Image 
-            src="https://placehold.co/800x1000.png"
+            src="/login-background.jpg"
             alt="Students studying in Canada"
             layout="fill"
             objectFit="cover"
