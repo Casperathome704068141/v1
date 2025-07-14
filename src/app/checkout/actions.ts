@@ -13,7 +13,7 @@ type CartItem = {
 }
 
 export async function createCheckoutSession(items: CartItem[]) {
-    const origin = headers().get('origin') || 'http://localhost:3000';
+    const origin = headers().get('origin') || 'http://localhost:9002';
 
     const line_items = items.map(item => ({
         price_data: {
