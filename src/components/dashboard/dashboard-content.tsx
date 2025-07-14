@@ -53,7 +53,7 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
             return data.certification === true;
         case 'documents':
             const requiredDocs = ['passport', 'loa', 'proofOfFunds', 'languageTest', 'sop', 'photo'];
-            return requiredDocs.every((docId: string) => data[docId]?.status === 'Uploaded');
+            return requiredDocs.every((docId: string) => data[docId]?.files?.length > 0);
         default:
             return false;
     }

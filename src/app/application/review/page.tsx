@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useApplication } from '@/context/application-context';
+import { useApplication, UploadedFile } from '@/context/application-context';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, FileText, AlertTriangle, Send } from 'lucide-react';
 import { format } from 'date-fns';
@@ -72,18 +72,17 @@ function ApplicationReviewContent() {
         setIsSubmitting(false);
     }
   };
-
-  const requiredDocIds = ['passport', 'loa', 'proofOfFunds', 'languageTest', 'sop', 'photo'];
-  const allDocsUploaded = requiredDocIds.every(docId => documents?.[docId]?.status === 'Uploaded');
+  
   const documentList = [
-    { id: 'passport', name: 'Passport' },
-    { id: 'loa', name: 'Letter of Acceptance' },
-    { id: 'proofOfFunds', name: 'Proof of Funds' },
-    { id: 'languageTest', name: 'Language Test' },
-    { id: 'sop', name: 'Statement of Purpose' },
-    { id: 'photo', name: 'Digital Photo' },
-  ]
-
+    { id: 'passport', name: 'Passport', required: true },
+    { id: 'loa', name: 'Letter of Acceptance', required: true },
+    { id: 'proofOfFunds', name: 'Proof of Funds', required: true },
+    { id: 'languageTest', name: 'Language Test', required: true },
+    { id: 'sop', name: 'Statement of Purpose', required: true },
+    { id: 'photo', name: 'Digital Photo', required: true },
+  ];
+  
+  const allDocsUploaded = documentList.every(doc => documents?.[doc.id]?.files?.length > 0);
 
   return (
     <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -160,7 +159,7 @@ function ApplicationReviewContent() {
                 <ul className="mt-4 space-y-2 text-sm">
                     {documentList.map(doc => (
                         <li key={doc.id} className="flex items-center gap-2">
-                           {documents?.[doc.id]?.status === 'Uploaded' 
+                           {documents?.[doc.id]?.files?.length > 0
                            ? <CheckCircle className="h-4 w-4 text-green-500" />
                            : <FileText className="h-4 w-4 text-muted-foreground" />}
                            <span>{doc.name}</span>

@@ -12,10 +12,11 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, FileText, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import type { UploadedFile } from '@/context/application-context';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '') return null;
@@ -35,6 +36,17 @@ function getStatusBadgeVariant(status: string) {
         default: return 'outline';
     }
 }
+
+const documentDisplayList = [
+    { id: 'passport', name: 'Passport Bio Page' },
+    { id: 'loa', name: 'Letter of Acceptance' },
+    { id: 'proofOfFunds', name: 'Proof of Funds' },
+    { id: 'languageTest', name: 'Language Test Results' },
+    { id: 'sop', name: 'Statement of Purpose' },
+    { id: 'photo', name: 'Digital Photo' },
+    { id: 'marriageCert', name: 'Marriage Certificate' },
+    { id: 'eca', name: 'ECA' },
+];
 
 export default function ApplicationDetailPage({ params }: { params: { id: string } }) {
     const [application, setApplication] = useState<any>(null);
@@ -130,12 +142,22 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
     }
 
     if (!application) {
-        // This case should ideally not be reached if error handling is correct, but as a fallback.
         return <AdminLayout><main className="p-8">Application not found.</main></AdminLayout>;
     }
 
 
-    const { personalInfo, academics, finances, submittedAt } = application;
+    const { personalInfo, academics, finances, submittedAt, documents } = application;
+    
+    const allUploadedFiles = documentDisplayList.flatMap(docDef => {
+        const docData = documents?.[docDef.id];
+        if (docData?.files && docData.files.length > 0) {
+            return docData.files.map((file: UploadedFile) => ({
+                category: docDef.name,
+                ...file
+            }));
+        }
+        return [];
+    });
 
     return (
         <AdminLayout>
@@ -187,6 +209,31 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                                         <DataRow label="Funding Sources" value={finances.fundingSources?.join(', ')} />
                                         <DataRow label="Sponsor" value={finances.primarySponsorName} />
                                     </dl>
+                                </CardContent>
+                            </Card>
+                        )}
+                         {allUploadedFiles.length > 0 && (
+                            <Card>
+                                <CardHeader><CardTitle>Uploaded Documents</CardTitle></CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-3">
+                                        {allUploadedFiles.map((file, index) => (
+                                            <li key={index} className="flex items-center justify-between rounded-md border p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <FileText className="h-5 w-5 text-muted-foreground" />
+                                                    <div>
+                                                        <p className="text-sm font-medium">{file.fileName}</p>
+                                                        <p className="text-xs text-muted-foreground">{file.category} &middot; {format(new Date(file.date), 'PP')}</p>
+                                                    </div>
+                                                </div>
+                                                <Button variant="outline" size="sm" asChild>
+                                                    <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                                        <Download className="mr-2 h-4 w-4" /> View
+                                                    </a>
+                                                </Button>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </CardContent>
                             </Card>
                         )}

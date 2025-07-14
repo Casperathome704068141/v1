@@ -11,13 +11,16 @@ import type { FamilyFormValues } from '@/components/forms/family-form';
 import type { BackgroundFormValues } from '@/components/forms/background-form';
 import { useAuth } from './auth-context';
 
-// Documents state is simpler for now
-interface DocumentStatus {
+export interface UploadedFile {
+    url: string;
+    fileName: string;
+    date: string; // ISO date string
+}
+
+export interface DocumentStatus {
     status: 'Uploaded' | 'Pending' | 'Action Required';
-    url?: string;
-    fileName?: string;
+    files: UploadedFile[];
     message?: string;
-    date?: string; // ISO date string
 }
 
 interface DocumentsData {
@@ -68,7 +71,24 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
       const savedData = localStorage.getItem(`applicationData_${user.uid}`);
       if (savedData) {
         try {
-          setApplicationData(JSON.parse(savedData));
+          // Add migration logic for old data structure if needed
+          const parsedData = JSON.parse(savedData);
+          if (parsedData.documents) {
+            Object.keys(parsedData.documents).forEach(key => {
+              if (parsedData.documents[key] && !Array.isArray(parsedData.documents[key].files)) {
+                 if(parsedData.documents[key].fileName) {
+                     parsedData.documents[key].files = [{
+                        fileName: parsedData.documents[key].fileName,
+                        url: parsedData.documents[key].url,
+                        date: parsedData.documents[key].date,
+                     }];
+                 } else {
+                    parsedData.documents[key].files = [];
+                 }
+              }
+            });
+          }
+          setApplicationData(parsedData);
         } catch (e) {
             console.error("Failed to parse application data from localStorage", e);
             setApplicationData(initialApplicationData);
