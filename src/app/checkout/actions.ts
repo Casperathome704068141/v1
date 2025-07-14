@@ -1,6 +1,6 @@
 
 'use server';
-import 'dotenv/config';
+
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 
