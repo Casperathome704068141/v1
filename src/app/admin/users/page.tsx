@@ -8,6 +8,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
+import Image from 'next/image';
 
 async function getUsers() {
     const usersCollection = collection(db, 'users');
@@ -62,7 +63,7 @@ export default async function AdminUsersPage() {
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar>
-                                            <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="user avatar" />
+                                            <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} data-ai-hint="user avatar" alt={user.name} />
                                             <AvatarFallback>{user.name ? user.name.charAt(0) : 'U'}</AvatarFallback>
                                         </Avatar>
                                         <div>
