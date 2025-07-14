@@ -6,21 +6,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle, FileText, UploadCloud } from 'lucide-react';
-import { useApplication, UploadedFile } from '@/context/application-context';
+import { useApplication, UploadedFile, documentList } from '@/context/application-context';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-
-const documentList = [
-    { id: 'passport', name: 'Passport Bio Page', required: true },
-    { id: 'loa', name: 'Letter of Acceptance (LOA)', required: true },
-    { id: 'proofOfFunds', name: 'Proof of Funds', required: true },
-    { id: 'languageTest', name: 'Language Test Results', required: true },
-    { id: 'sop', name: 'Statement of Purpose (SOP/LOE)', required: true },
-    { id: 'photo', name: 'Digital Photo', required: true },
-    { id: 'marriageCert', name: 'Marriage Certificate', required: false },
-    { id: 'eca', name: 'Educational Credential Assessment (ECA)', required: false },
-];
 
 function getStatusInfo(files?: UploadedFile[]) {
     if (files && files.length > 0) {
@@ -34,9 +23,8 @@ function DocumentsPageContent() {
     const { applicationData } = useApplication();
     const { documents } = applicationData;
 
-    const isMarried = applicationData.personalInfo?.maritalStatus === 'married';
-    const requiredDocs = documentList.filter(d => d.required);
-    const optionalDocs = documentList.filter(d => !d.required && (d.id !== 'marriageCert' || isMarried));
+    const requiredDocs = documentList.filter(d => d.category === 'Core');
+    const situationalDocs = documentList.filter(d => d.category === 'Situational');
 
     return (
         <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -47,7 +35,7 @@ function DocumentsPageContent() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Required Documents</CardTitle>
+                    <CardTitle>Core Required Documents</CardTitle>
                     <CardDescription>These documents are mandatory for your study permit application.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -55,17 +43,15 @@ function DocumentsPageContent() {
                 </CardContent>
             </Card>
 
-            {optionalDocs.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Optional &amp; Situational Documents</CardTitle>
-                        <CardDescription>These documents are required based on your specific situation (e.g., if you are married).</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DocumentTable docs={optionalDocs} uploadedData={documents} />
-                    </CardContent>
-                </Card>
-            )}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Situational & Recommended Documents</CardTitle>
+                    <CardDescription>These documents may be required based on your specific situation (e.g., if you are married, have a study gap, or have a sponsor).</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <DocumentTable docs={situationalDocs} uploadedData={documents} />
+                </CardContent>
+            </Card>
 
             <Card className="bg-primary/5 border-primary/20">
                 <CardHeader className="flex flex-row items-center gap-4 space-y-0">
@@ -140,4 +126,3 @@ export default function DocumentsPage() {
       <DocumentsPageContent />
     </AppLayout>
   );
-}

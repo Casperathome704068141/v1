@@ -151,7 +151,7 @@ export function LanguageForm({ onSave }: LanguageFormProps) {
                                 )}
                                 >
                                 {field.value ? (
-                                    format(field.value, "PPP")
+                                    format(new Date(field.value), "PPP")
                                 ) : (
                                     <span>Pick a date</span>
                                 )}
@@ -161,6 +161,9 @@ export function LanguageForm({ onSave }: LanguageFormProps) {
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
+                                captionLayout="dropdown-buttons"
+                                fromYear={new Date().getFullYear() - 2}
+                                toYear={new Date().getFullYear()}
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
@@ -247,8 +250,4 @@ export function LanguageForm({ onSave }: LanguageFormProps) {
                 </>
             )}
         </CardContent>
-        {/* Footer with buttons is in the parent page.tsx */}
-      </form>
-    </Form>
-  );
-}
+        {/* Footer with buttons is in

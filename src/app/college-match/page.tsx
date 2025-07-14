@@ -2,7 +2,6 @@
 'use client';
 
 import { AppLayout } from '@/components/app-layout';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,21 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { useApplication } from '@/context/application-context';
 import { Switch } from '@/components/ui/switch';
-import { collegeData } from '@/lib/college-data';
-
-type College = {
-  dliNumber: string;
-  name: string;
-  province: string;
-  city: string;
-  pgwpEligible: boolean;
-  sdsEligible: boolean;
-  tuitionLow: number;
-  tuitionHigh: number;
-  image: string;
-  aiHint: string;
-  programs: string[];
-};
+import { collegeData, College } from '@/lib/college-data';
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('en-US', {
@@ -39,7 +24,6 @@ function formatCurrency(value: number) {
 
 function CollegeMatchPageContent() {
     const { applicationData } = useApplication();
-    const [loading, setLoading] = useState(false); // Kept for potential future async operations, but not used for filtering.
     const allColleges: College[] = collegeData;
     
     // State for filters
@@ -114,6 +98,11 @@ function CollegeMatchPageContent() {
                       <SelectItem value="MB">Manitoba</SelectItem>
                       <SelectItem value="SK">Saskatchewan</SelectItem>
                       <SelectItem value="NL">Newfoundland</SelectItem>
+                      <SelectItem value="PE">Prince Edward Island</SelectItem>
+                      <SelectItem value="NB">New Brunswick</SelectItem>
+                      <SelectItem value="YT">Yukon</SelectItem>
+                      <SelectItem value="NT">Northwest Territories</SelectItem>
+                      <SelectItem value="NU">Nunavut</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -158,58 +147,37 @@ function CollegeMatchPageContent() {
                 </p>
             </div>
 
-            {loading ? (
-                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <Card key={i} className="overflow-hidden">
-                            <Skeleton className="h-40 w-full" />
-                            <div className="p-4 space-y-2">
-                                <Skeleton className="h-5 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                                <Skeleton className="h-4 w-1/4" />
-                                <div className="flex gap-2 pt-2">
-                                    <Skeleton className="h-5 w-16" />
-                                    <Skeleton className="h-5 w-20" />
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {matchedColleges.map((college) => (
+                    <CollegeCard 
+                        key={college.dliNumber} 
+                        college={college} 
+                        studentProfile={applicationData}
+                        filteringLogic={filteringLogic}
+                        isMatch={true}
+                    />
+                ))}
+            </div>
+            {showUnmatched && unmatchedColleges.length > 0 && (
                 <>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {matchedColleges.map((college) => (
-                        <CollegeCard 
-                            key={college.dliNumber} 
-                            college={college} 
-                            studentProfile={applicationData}
-                            filteringLogic={filteringLogic}
-                            isMatch={true}
-                        />
-                    ))}
-                </div>
-                {showUnmatched && unmatchedColleges.length > 0 && (
-                    <>
-                        <div className="my-8">
-                            <h2 className="font-bold text-xl">Other DLIs ({unmatchedColleges.length})</h2>
-                            <p className="text-sm text-muted-foreground">
-                                These may not be a match based on your current budget or filters.
-                            </p>
-                        </div>
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                             {unmatchedColleges.map((college) => (
-                                <CollegeCard 
-                                    key={college.dliNumber} 
-                                    college={college} 
-                                    studentProfile={applicationData}
-                                    filteringLogic={filteringLogic}
-                                    isMatch={false}
-                                    reason={college.reason}
-                                />
-                            ))}
-                        </div>
-                    </>
-                )}
+                    <div className="my-8">
+                        <h2 className="font-bold text-xl">Other DLIs ({unmatchedColleges.length})</h2>
+                        <p className="text-sm text-muted-foreground">
+                            These may not be a match based on your current budget or filters.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                         {unmatchedColleges.map((college) => (
+                            <CollegeCard 
+                                key={college.dliNumber} 
+                                college={college} 
+                                studentProfile={applicationData}
+                                filteringLogic={filteringLogic}
+                                isMatch={false}
+                                reason={college.reason}
+                            />
+                        ))}
+                    </div>
                 </>
             )}
         </main>
@@ -221,7 +189,3 @@ function CollegeMatchPageContent() {
 export default function CollegeMatchPage() {
   return (
     <AppLayout>
-      <CollegeMatchPageContent />
-    </AppLayout>
-  );
-}

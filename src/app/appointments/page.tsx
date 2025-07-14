@@ -87,6 +87,9 @@ function AppointmentsContent() {
             selected={date}
             onSelect={setDate}
             className="rounded-md border"
+            captionLayout="dropdown-buttons"
+            fromYear={new Date().getFullYear()}
+            toYear={new Date().getFullYear() + 2}
           />
         </div>
         <div className="md:col-span-2">
@@ -122,8 +125,4 @@ export default function AppointmentsPage() {
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-3xl font-bold">Book a Consultation</h1>
         </div>
-        <AppointmentsContent />
-      </main>
-    </AppLayout>
-  );
-}
+        <AppointmentsContent

@@ -74,7 +74,9 @@ export function DashboardContent() {
   const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
   const currentStep = currentStepIndex !== -1 ? applicationSteps[currentStepIndex] : null;
 
-  const chosenInstitution = applicationData.studyPlan?.programChoice?.split(' - ')[1] || 'Not Selected';
+  const { selectedCollege } = applicationData;
+  const chosenInstitution = selectedCollege?.name || 'Not Selected';
+  const programOfChoice = applicationData.studyPlan?.programChoice || 'Not Entered';
 
   return (
     <main className="flex-1 space-y-8 p-4 md:p-8">
@@ -182,14 +184,12 @@ export function DashboardContent() {
                   <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
                           <GraduationCap className="h-5 w-5 text-primary" />
-                          Chosen Institution
+                          Your Study Plan
                       </CardTitle>
-                      <CardDescription>
-                          Your selected destination for your studies in Canada.
-                      </CardDescription>
                   </CardHeader>
                   <CardContent>
-                      <p className="font-semibold text-center text-primary">{chosenInstitution}</p>
+                      <p className="font-semibold text-primary">{chosenInstitution}</p>
+                      <p className="text-sm text-muted-foreground">{programOfChoice}</p>
                   </CardContent>
               </Card>
 
@@ -205,7 +205,7 @@ export function DashboardContent() {
                   </CardHeader>
                   <CardContent>
                       <Button asChild className="w-full">
-                          <Link href="/college-match">Find a College</Link>
+                          <Link href="/college-match">Find or Change College</Link>
                       </Button>
                   </CardContent>
               </Card>
@@ -225,9 +225,4 @@ export function DashboardContent() {
                           <Link href="/appointments">Manage Appointments</Link>
                       </Button>
                   </CardContent>
-              </Card>
-          </div>
-      </div>
-    </main>
-  );
-}
+              </

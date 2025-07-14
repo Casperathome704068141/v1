@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -6,27 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Sparkles, BookOpenCheck, WandSparkles, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Sparkles, BookOpenCheck, WandSparkles, AlertCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ReasoningPanel } from './reasoning-panel';
 import type { useApplication } from '@/context/application-context';
-
-type College = {
-  dliNumber: string;
-  name: string;
-  province: string;
-  city: string;
-  pgwpEligible: boolean;
-  sdsEligible: boolean;
-  tuitionLow: number;
-  tuitionHigh: number;
-  image: string;
-  aiHint: string;
-  programs: string[];
-};
+import type { College } from '@/lib/college-data';
+import Link from 'next/link';
+import { useApplication as useApplicationContext } from '@/context/application-context';
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat('en-US', {
@@ -39,15 +27,30 @@ function formatCurrency(value: number) {
 
 interface CollegeCardProps {
     college: College;
-    studentProfile: ReturnType<typeof useApplication>['applicationData'];
+    studentProfile: ReturnType<typeof useApplicationContext>['applicationData'];
     filteringLogic: string;
     isMatch: boolean;
     reason?: string;
 }
 
 export function CollegeCard({ college, studentProfile, filteringLogic, isMatch, reason }: CollegeCardProps) {
+  const { applicationData } = useApplicationContext();
+  const isSelected = applicationData.selectedCollege?.dliNumber === college.dliNumber;
+  
+  const selectionUrl = `/application/select-program?college=${encodeURIComponent(JSON.stringify(college))}`;
+
   return (
-    <Card className={cn("flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-xl", !isMatch && "opacity-60 hover:opacity-100")}>
+    <Card className={cn(
+        "flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl relative", 
+        !isMatch && "opacity-60 hover:opacity-100",
+        isSelected && "border-2 border-primary shadow-2xl"
+    )}>
+       {isSelected && (
+          <Badge className="absolute top-2 left-2 z-10" variant="default">
+            <CheckCircle2 className="h-3 w-3 mr-1.5" />
+            Selected
+          </Badge>
+        )}
       <div className="relative h-40 w-full bg-muted">
         <Image src={college.image} alt={college.name} layout="fill" objectFit="cover" data-ai-hint={college.aiHint} />
          <Badge className="absolute top-2 right-2" variant="secondary">{college.province}</Badge>
@@ -59,7 +62,7 @@ export function CollegeCard({ college, studentProfile, filteringLogic, isMatch, 
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col justify-between p-4 pt-2">
-        <div>
+        <div className="flex-grow">
             <div className="text-sm font-semibold text-foreground mb-2">
                 {formatCurrency(college.tuitionLow)} - {formatCurrency(college.tuitionHigh)}
                 <span className="text-xs font-normal text-muted-foreground"> / year</span>
@@ -91,15 +94,18 @@ export function CollegeCard({ college, studentProfile, filteringLogic, isMatch, 
             </div>
         </div>
 
-        <div className="flex items-center justify-between space-x-2 mt-4 pt-4 border-t">
-            <div className="flex items-center space-x-2">
-                <Switch id={`favorite-${college.dliNumber}`} disabled={!isMatch}/>
-                <Label htmlFor={`favorite-${college.dliNumber}`} className="text-xs font-normal">Favorite</Label>
-            </div>
-            {!isMatch && reason && (
-                <Dialog>
+        <div className="flex flex-col space-y-2 mt-4 pt-4 border-t">
+            {isMatch ? (
+                <Button asChild className="w-full" variant={isSelected ? "secondary" : "default"}>
+                    <Link href={selectionUrl}>
+                        <Send className="h-4 w-4 mr-2" />
+                        {isSelected ? 'Edit Program Choice' : 'Select College'}
+                    </Link>
+                </Button>
+            ) : (
+                 <Dialog>
                     <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-xs text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="sm" className="text-xs text-destructive hover:text-destructive w-full">
                             <WandSparkles className="h-3 w-3 mr-1.5" /> Why not a match?
                         </Button>
                     </DialogTrigger>
@@ -118,7 +124,7 @@ export function CollegeCard({ college, studentProfile, filteringLogic, isMatch, 
                                 dliDetails={{ name: college.name, province: college.province, tuition: college.tuitionHigh }} 
                                 filteringLogic={filteringLogic} 
                                 studentProfile={studentProfile} 
-                                initialReasoning={reason}
+                                initialReasoning={reason || ''}
                             />
                         </div>
                     </DialogContent>

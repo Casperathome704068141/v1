@@ -10,6 +10,7 @@ import type { StudyPlanFormValues } from '@/components/forms/study-plan-form';
 import type { FamilyFormValues } from '@/components/forms/family-form';
 import type { BackgroundFormValues } from '@/components/forms/background-form';
 import { useAuth } from './auth-context';
+import type { College } from '@/lib/college-data';
 
 export interface UploadedFile {
     url: string;
@@ -27,8 +28,30 @@ interface DocumentsData {
   [key: string]: DocumentStatus;
 }
 
+export const documentList = [
+    // Core
+    { id: 'passport', name: 'Passport Bio Page', description: "A clear, full-color scan of your passport's photo page.", category: 'Core' },
+    { id: 'loa', name: 'Letter of Acceptance (LOA)', description: 'The official acceptance letter from your DLI.', category: 'Core' },
+    { id: 'proofOfFunds', name: 'Proof of Funds', description: 'Bank statements, GIC certificate, or loan approval letters.', category: 'Core' },
+    { id: 'languageTest', name: 'Language Test Results', description: 'Your official IELTS, TOEFL, PTE, or other test score report.', category: 'Core' },
+    { id: 'sop', name: 'Statement of Purpose (SOP/LOE)', description: 'Your letter explaining your study plans and goals.', category: 'Core' },
+    { id: 'photo', name: 'Digital Photo', description: 'A recent passport-style photo with a white background.', category: 'Core' },
+    { id: 'educationDocs', name: 'Previous Education Documents', description: 'Degree/diploma certificates and transcripts.', category: 'Core' },
+    // Situational & Recommended
+    { id: 'custodian', name: 'Custodian Declaration (for minors)', description: 'Required if the applicant is under 18.', category: 'Situational' },
+    { id: 'tiesToHome', name: 'Ties to Home Country', description: 'Property docs, job offers, family business ownership.', category: 'Situational' },
+    { id: 'resume', name: 'Resume / CV', description: 'Helpful for mature students or post-graduate applicants.', category: 'Situational' },
+    { id: 'travelHistory', name: 'Travel History', description: 'Copies of previous visas/stamps to show travel profile.', category: 'Situational' },
+    { id: 'explanationLetter', name: 'Letter of Explanation for Gaps/Refusals', description: 'Explain any study/work gaps or previous visa refusals.', category: 'Situational' },
+    { id: 'sponsorship', name: 'Sponsorship Letter & Documents', description: "If a third-party is funding your studies.", category: 'Situational' },
+    { id: 'medical', name: 'Medical Exam (eMedical Sheet)', description: 'Required if staying 6+ months or from a designated country.', category: 'Situational' },
+    { id: 'pcc', name: 'Police Clearance Certificate (PCC)', description: 'Recommended for applicants over 18.', category: 'Situational' },
+    { id: 'marriageCert', name: 'Marriage Certificate', description: 'Required only if your spouse is coming with you.', category: 'Situational' },
+];
+
 // Define types for all form sections.
 interface ApplicationData {
+  selectedCollege: College | null;
   personalInfo: Partial<PersonalInfoFormValues>;
   academics: Partial<AcademicsFormValues>;
   language: Partial<LanguageFormValues>;
@@ -43,6 +66,7 @@ interface ApplicationContextType {
   applicationData: ApplicationData;
   setApplicationData: (data: ApplicationData) => void;
   updateStepData: (step: keyof ApplicationData, data: any) => void;
+  updateCollegeAndProgram: (college: College, program: string) => void;
   resetApplicationData: () => void;
   isLoaded: boolean;
 }
@@ -51,6 +75,7 @@ const ApplicationContext = createContext<ApplicationContextType | undefined>(und
 
 // Define initial empty state for the application data
 const initialApplicationData: ApplicationData = {
+   selectedCollege: null,
    personalInfo: {},
    academics: { educationHistory: [], employmentHistory: [] },
    language: { testTaken: 'none' },
@@ -66,28 +91,18 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { user } = useAuth();
 
+  const persistData = (data: ApplicationData) => {
+    if (typeof window !== 'undefined' && user?.uid) {
+        localStorage.setItem(`applicationData_${user.uid}`, JSON.stringify(data));
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined' && user?.uid) {
       const savedData = localStorage.getItem(`applicationData_${user.uid}`);
       if (savedData) {
         try {
-          // Add migration logic for old data structure if needed
           const parsedData = JSON.parse(savedData);
-          if (parsedData.documents) {
-            Object.keys(parsedData.documents).forEach(key => {
-              if (parsedData.documents[key] && !Array.isArray(parsedData.documents[key].files)) {
-                 if(parsedData.documents[key].fileName) {
-                     parsedData.documents[key].files = [{
-                        fileName: parsedData.documents[key].fileName,
-                        url: parsedData.documents[key].url,
-                        date: parsedData.documents[key].date,
-                     }];
-                 } else {
-                    parsedData.documents[key].files = [];
-                 }
-              }
-            });
-          }
           setApplicationData(parsedData);
         } catch (e) {
             console.error("Failed to parse application data from localStorage", e);
@@ -98,7 +113,6 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
       }
       setIsLoaded(true);
     } else if (!user) {
-        // If user logs out, reset the state but don't mark as loaded until a user logs in.
         setApplicationData(initialApplicationData);
         setIsLoaded(false);
     }
@@ -110,12 +124,25 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
             ...prev,
             [step]: data,
         };
-        if (typeof window !== 'undefined' && user?.uid) {
-            localStorage.setItem(`applicationData_${user.uid}`, JSON.stringify(newData));
-        }
+        persistData(newData);
         return newData;
     });
   };
+
+  const updateCollegeAndProgram = (college: College, program: string) => {
+    setApplicationData(prev => {
+        const newData = {
+            ...prev,
+            selectedCollege: college,
+            studyPlan: {
+              ...prev.studyPlan,
+              programChoice: program,
+            },
+        };
+        persistData(newData);
+        return newData;
+    });
+  }
 
   const resetApplicationData = useCallback(() => {
     setApplicationData(initialApplicationData);
@@ -125,7 +152,7 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   return (
-    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData, resetApplicationData, isLoaded }}>
+    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData, updateCollegeAndProgram, resetApplicationData, isLoaded }}>
       {children}
     </ApplicationContext.Provider>
   );
@@ -136,5 +163,4 @@ export const useApplication = () => {
   if (context === undefined) {
     throw new Error('useApplication must be used within an ApplicationProvider');
   }
-  return context;
-};
+  return

@@ -4,24 +4,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { WandSparkles } from "lucide-react";
-import { Separator } from "../ui/separator";
 import { useApplication } from "@/context/application-context";
-import { generateSopDraft, GenerateSopDraftInput } from "@/ai/flows/generate-sop-draft";
-import { useState } from "react";
+import { useEffect } from "react";
 
 const studyPlanSchema = z.object({
-  programChoice: z.string().min(1, "Program choice is required."),
+  programChoice: z.string(), // This will be read-only, populated from context
   whyInstitution: z.string().min(150, { message: "Please provide a detailed answer of at least 150 characters." }),
   howProgramFitsCareer: z.string().min(150, { message: "Please provide a detailed answer of at least 150 characters." }),
   longTermGoals: z.string().optional(),
-  studyPlanDraft: z.string().optional(),
 });
 
 export type StudyPlanFormValues = z.infer<typeof studyPlanSchema>;
@@ -32,58 +27,33 @@ interface StudyPlanFormProps {
 
 export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
   const { applicationData, updateStepData } = useApplication();
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<StudyPlanFormValues>({
     resolver: zodResolver(studyPlanSchema),
     defaultValues: {
       ...applicationData.studyPlan,
-      programChoice: applicationData.studyPlan?.programChoice || "Diploma in Business Management - Seneca College", // This would be dynamic
+      programChoice: applicationData.studyPlan?.programChoice 
+        ? `${applicationData.studyPlan.programChoice} - ${applicationData.selectedCollege?.name}`
+        : 'Please select a college first'
     },
   });
 
-  async function handleGenerateSop() {
-    setIsGenerating(true);
-    form.setValue('studyPlanDraft', ''); // Clear previous draft
-
-    const input: GenerateSopDraftInput = {
-      personalInfo: JSON.stringify(applicationData.personalInfo || {}),
-      academics: JSON.stringify(applicationData.academics || {}),
-      studyPlan: JSON.stringify(form.getValues()),
-      finances: JSON.stringify(applicationData.finances || {}),
-      longTermGoals: form.getValues().longTermGoals,
-    };
-
-    try {
-      const response = await generateSopDraft(input);
-      const reader = response.getReader();
-      const decoder = new TextDecoder();
-      
-      let done = false;
-      while (!done) {
-        const { value, done: streamDone } = await reader.read();
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          form.setValue('studyPlanDraft', form.getValues().studyPlanDraft + chunk);
-        }
-        done = streamDone;
-      }
-
-    } catch (error) {
-      console.error("Error generating SOP:", error);
-      toast({
-        variant: "destructive",
-        title: "AI Assist Failed",
-        description: "Could not generate the SOP draft. Please try again.",
-      });
-    } finally {
-      setIsGenerating(false);
+  useEffect(() => {
+    const program = applicationData.studyPlan?.programChoice;
+    const college = applicationData.selectedCollege?.name;
+    if (program && college) {
+      form.setValue('programChoice', `${program} - ${college}`);
     }
-  }
+  }, [applicationData.studyPlan?.programChoice, applicationData.selectedCollege?.name, form]);
 
 
   function onSubmit(data: StudyPlanFormValues) {
-    updateStepData('studyPlan', data);
+    // We only need to save the fields from this form, not the programChoice which is managed elsewhere.
+    const { programChoice, ...formDataToSave } = data;
+    const existingStudyPlan = applicationData.studyPlan || {};
+
+    updateStepData('studyPlan', { ...existingStudyPlan, ...formDataToSave });
+    
     toast({
       title: "Study Plan Saved!",
       description: "Your study plan information has been successfully saved.",
@@ -106,7 +76,7 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
                 <FormItem>
                   <FormLabel>Program Choice</FormLabel>
                   <FormControl>
-                    <Input readOnly {...field} />
+                    <Input readOnly disabled {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -163,37 +133,4 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
                 </FormItem>
               )}
             />
-            <Separator />
-             <div>
-                <FormLabel>Study Plan Draft (SOP)</FormLabel>
-                 <div className="flex items-center justify-between mt-2 mb-2">
-                    <CardDescription>
-                        We'll use your answers to generate a draft. You can edit it below or use our AI assistant.
-                    </CardDescription>
-                    <Button type="button" variant="outline" size="sm" onClick={handleGenerateSop} disabled={isGenerating}>
-                        <WandSparkles className="mr-2 h-4 w-4" /> 
-                        {isGenerating ? 'Generating...' : 'AI Assist'}
-                    </Button>
-                </div>
-                <FormField
-                control={form.control}
-                name="studyPlanDraft"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormControl>
-                        <Textarea
-                        placeholder="Click 'AI Assist' to generate your Statement of Purpose draft here..."
-                        className="min-h-[300px]"
-                        {...field}
-                        />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
         </CardContent>
-      </form>
-    </Form>
-  );
-}

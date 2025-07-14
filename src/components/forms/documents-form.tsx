@@ -1,4 +1,3 @@
-
 'use client';
 
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -9,20 +8,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
-import { useApplication, UploadedFile } from "@/context/application-context";
+import { useApplication, UploadedFile, documentList } from "@/context/application-context";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-
-const documentList = [
-    { id: 'passport', name: 'Passport Bio Page', required: true, description: 'A clear, full-color scan of your passport\'s photo page.' },
-    { id: 'loa', name: 'Letter of Acceptance (LOA)', required: true, description: 'The official acceptance letter from your DLI.' },
-    { id: 'proofOfFunds', name: 'Proof of Funds', required: true, description: 'Bank statements, GIC certificate, or loan approval letters.' },
-    { id: 'languageTest', name: 'Language Test Results', required: true, description: 'Your official IELTS, TOEFL, PTE, or other test score report.' },
-    { id: 'sop', name: 'Statement of Purpose (SOP/LOE)', required: true, description: 'Your letter explaining your study plans and goals.' },
-    { id: 'photo', name: 'Digital Photo', required: true, description: 'A recent passport-style photo with a white background.' },
-    { id: 'marriageCert', name: 'Marriage Certificate', required: false, condition: 'if married and spouse is accompanying', description: 'Required only if your spouse is coming with you.' },
-    { id: 'eca', name: 'Educational Credential Assessment (ECA)', required: false, condition: 'if required by your program', description: 'Often needed for post-graduate or professional programs.' },
-];
 
 const getStatusInfo = (files?: UploadedFile[]) => {
     if (files && files.length > 0) {
@@ -59,7 +47,7 @@ export function DocumentsForm() {
         };
 
         updateAndPersist(newDocData);
-    }, [docData, updateStepData]);
+    }, [docData]);
 
     const handleDelete = (docId: string, fileToDelete: UploadedFile) => {
         const newDocData = { ...docData };
@@ -75,10 +63,8 @@ export function DocumentsForm() {
         updateAndPersist(newDocData);
     };
 
-    const isMarried = applicationData.family?.maritalStatus === 'married';
-    
-    const requiredDocs = documentList.filter(d => d.required);
-    const optionalDocs = documentList.filter(d => !d.required && (d.id !== 'marriageCert' || isMarried));
+    const coreDocs = documentList.filter(d => d.category === 'Core');
+    const situationalDocs = documentList.filter(d => d.category === 'Situational');
 
     return (
         <>
@@ -93,9 +79,9 @@ export function DocumentsForm() {
 
                 <div className="space-y-6">
                     <div>
-                        <h4 className="text-base font-semibold mb-2">Required Documents</h4>
+                        <h4 className="text-base font-semibold mb-2">Core Documents</h4>
                         <div className="rounded-md border">
-                            {requiredDocs.map((doc, index, arr) => (
+                            {coreDocs.map((doc, index, arr) => (
                                 <div key={doc.id}>
                                     <DocumentItem 
                                         docInfo={doc}
@@ -110,11 +96,11 @@ export function DocumentsForm() {
                         </div>
                     </div>
                     
-                    {optionalDocs.length > 0 && (
+                    {situationalDocs.length > 0 && (
                         <div>
-                            <h4 className="text-base font-semibold mb-2">Optional/Situational Documents</h4>
+                            <h4 className="text-base font-semibold mb-2">Situational & Recommended Documents</h4>
                             <div className="rounded-md border">
-                                {optionalDocs.map((doc, index, arr) => (
+                                {situationalDocs.map((doc, index, arr) => (
                                     <div key={doc.id}>
                                         <DocumentItem 
                                             docInfo={doc}
@@ -182,18 +168,12 @@ function DocumentItem({ docInfo, statusData, onUpload, onDelete, router }: {
                     <statusInfo.icon className={cn("h-6 w-6 flex-shrink-0 mt-1 sm:mt-0", statusInfo.color)} />
                     <div className="flex-1">
                         <p className="font-medium text-sm">{docInfo.name}</p>
-                        <p className="text-xs text-muted-foreground">{docInfo.description} {docInfo.condition && `(Required ${docInfo.condition})`}</p>
+                        <p className="text-xs text-muted-foreground">{docInfo.description}</p>
                         {statusData?.status === 'Action Required' && <p className="text-xs text-red-500">{statusData.message}</p>}
                     </div>
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
                      <Badge variant={statusInfo.badgeVariant} className="hidden md:inline-flex w-28 justify-center">{statusInfo.label}</Badge>
-                     {docInfo.id === 'sop' && statusData?.files?.length === 0 && (
-                         <Button variant="outline" size="sm" onClick={() => router.push('/application?step=plan')}>
-                            <WandSparkles className="mr-2 h-4 w-4" />
-                            Generate
-                        </Button>
-                     )}
                      <Button variant="secondary" size="sm" asChild>
                         <label>
                             <UploadCloud className="mr-2 h-4 w-4" />
