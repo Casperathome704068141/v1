@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { createCheckoutSession } from '@/app/checkout/actions';
+import { createCheckoutSession, getStripePublishableKey } from '@/app/checkout/actions';
 import { loadStripe } from '@stripe/stripe-js';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -72,7 +72,19 @@ const addOns = [
     { id: "addon_consulting", name: "Hourly Consulting (beyond included)", price: 100 },
 ];
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+let stripePromise: Promise<any> | null = null;
+
+const getStripe = async () => {
+    if (!stripePromise) {
+        const publishableKey = await getStripePublishableKey();
+        if (publishableKey) {
+            stripePromise = loadStripe(publishableKey);
+        }
+    }
+    return stripePromise;
+};
+
 
 export default function PricingPage() {
     const [selectedPlan, setSelectedPlan] = useState<typeof tiers[0] | null>(null);
@@ -131,12 +143,14 @@ export default function PricingPage() {
 
         try {
             const { sessionId } = await createCheckoutSession(items);
-            const stripe = await stripePromise;
+            const stripe = await getStripe();
             if (stripe) {
                 const { error } = await stripe.redirectToCheckout({ sessionId });
                 if (error) {
                     throw error;
                 }
+            } else {
+                 throw new Error("Stripe.js has not loaded yet.");
             }
         } catch (error) {
             console.error("Stripe checkout error:", error);
@@ -145,6 +159,7 @@ export default function PricingPage() {
                 title: 'Checkout Failed',
                 description: 'Could not connect to the payment gateway. Please try again.',
             });
+        } finally {
             setIsProcessing(false);
         }
     };

@@ -1,4 +1,3 @@
-
 'use server';
 
 import { headers } from 'next/headers';
@@ -10,6 +9,10 @@ type CartItem = {
     name: string;
     price: number;
     quantity: number;
+}
+
+export async function getStripePublishableKey() {
+    return process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 }
 
 export async function createCheckoutSession(items: CartItem[]) {
