@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Shield } from 'lucide-react';
+import { Shield, ArrowLeft } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import Link from 'next/link';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -105,6 +106,12 @@ export default function AdminLoginPage() {
               {loading ? 'Authenticating...' : 'Log In'}
             </Button>
           </form>
+           <div className="mt-6 text-center text-sm">
+            <Link href="/" className="inline-flex items-center font-semibold text-primary/90 hover:text-primary hover:underline">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Student Portal
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </main>
