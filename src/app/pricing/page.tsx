@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, PlusCircle } from 'lucide-react';
+import { Check, PlusCircle, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
@@ -16,47 +16,50 @@ import { useRouter } from 'next/navigation';
 
 const tiers = [
   {
-    id: 'price_starter',
+    id: 'price_starter_450',
     name: 'Starter',
-    price: 149,
+    price: 450,
     priceSuffix: 'CAD',
-    description: 'For high-score quiz users (≥75) who just need compliant paperwork.',
+    description: 'For DIY-leaning students who already have an LOA & strong funds.',
     features: [
-      'Auto-filled IMM Forms',
-      'Dynamic Document Checklist',
-      'AI SOP Template Generator',
-      'Live Chat Support (24h)',
+      'Auto-filled IMM1294/5645',
+      'Dynamic document checklist',
+      'AI SOP generator',
+      '1 × 30-min RCIC video call',
+      'Live-chat (48 h SLA)',
     ],
     cta: 'Select Plan',
     variant: 'outline' as const,
   },
   {
-    id: 'price_advantage',
+    id: 'price_advantage_745',
     name: 'Advantage',
-    price: 299,
+    price: 745,
     priceSuffix: 'CAD',
-    description: 'For mid-score users (50–74) who want an expert to double-check their work.',
+    description: 'For mid-risk applicants or first-time filers who want hand-holding.',
     features: [
       'Everything in Starter, plus:',
-      '45-min RCIC Consultation',
-      'Expert SOP Review & Edit',
-      'Final Application QA Check',
+      'Full SOP/LOE ghost-writing',
+      'Proof-of-funds verification',
+      '2 × 45-min RCIC sessions',
+      'Final pre-submission QA check',
     ],
     cta: 'Select Plan',
     popular: true,
     variant: 'default' as const,
   },
   {
-    id: 'price_elite',
-    name: 'Elite',
-    price: 1099,
+    id: 'price_elite_1200',
+    name: 'Elite Concierge',
+    price: 1200,
     priceSuffix: 'CAD',
-    description: 'For low-score users (<50) or busy families wanting full representation.',
+    description: 'For previous refusals, busy families, or corporate-sponsored clients.',
     features: [
-      'All Advantage features, plus:',
-      'Up to 3 College LOA Sourcing',
-      'Full IRCC Portal Submission',
-      'Priority WhatsApp Support',
+      'Everything—no add-on needed',
+      'Up to 3 college LOA sourcing',
+      'Full IRCC portal submission',
+      'PAL & GIC handling',
+      'Priority WhatsApp (same-day)',
     ],
     cta: 'Select Plan',
     variant: 'outline' as const,
@@ -64,11 +67,20 @@ const tiers = [
 ];
 
 const addOns = [
-    { id: "addon_sop", name: "SOP/LOE Full Ghost-Writing", price: 50 },
-    { id: "addon_extra_app", name: "Extra College Application", price: 100 },
-    { id: "addon_submission", name: "IRCC Submission (for Starter/Advantage)", price: 150 },
-    { id: "addon_rush", name: "24-Hour Rush Processing", price: 79 },
-    { id: "addon_consulting", name: "Hourly Consulting (beyond included)", price: 100 },
+    { id: "addon_extra_loa", name: "Extra college application/LOA filing", price: 175 },
+    { id: "addon_ircc_submission", name: "IRCC submission by RCIC", price: 250 },
+    { id: "addon_rush_processing", name: "24-hour rush processing", price: 149 },
+    { id: "addon_hourly_consulting", name: "Hourly consulting (beyond included)", price: 125 },
+    { id: "addon_refusal_strategy", name: "Visa-refusal re-application strategy session", price: 199 },
+    { id: "addon_health_insurance", name: "Health-insurance arrangement (1 yr)", price: 79 },
+    { id: "addon_biometrics_booking", name: "Biometrics-appointment booking", price: 39 },
+    { id: "addon_medical_scheduling", name: "Medical-exam scheduling", price: 49 },
+    { id: "addon_pal_handling", name: "PAL (Provincial Attestation Letter) handling", price: 89 },
+    { id: "addon_translation", name: "Document translation & notarization (per page)", price: 25 },
+    { id: "addon_airport_setup", name: "Airport pickup + SIM + SIN setup (GTA / YVR)", price: 299 },
+    { id: "addon_housing_search", name: "Housing search & lease review", price: 199 },
+    { id: "addon_pre_arrival_webinar", name: "Pre-arrival orientation webinar", price: 49 },
+    { id: "addon_post_arrival_coaching", name: "Post-arrival settlement coaching", price: 149 },
 ];
 
 export default function PricingPage() {
@@ -78,21 +90,41 @@ export default function PricingPage() {
     const { toast } = useToast();
     const router = useRouter();
 
+    const isEliteSelected = selectedPlan?.id === 'price_elite_1200';
+
     const handleSelectPlan = (plan: typeof tiers[0]) => {
-        setSelectedPlan(plan.id === selectedPlan?.id ? null : plan);
+        if (plan.id === selectedPlan?.id) {
+            setSelectedPlan(null);
+            setSelectedAddons({}); // Clear addons if plan is deselected
+        } else {
+            setSelectedPlan(plan);
+             if (plan.id === 'price_elite_1200') {
+                // If Elite is selected, auto-select all addons
+                const allAddons = addOns.reduce((acc, addon) => {
+                    acc[addon.id] = true;
+                    return acc;
+                }, {} as Record<string, boolean>);
+                setSelectedAddons(allAddons);
+            } else {
+                setSelectedAddons({});
+            }
+        }
     };
 
     const handleAddonToggle = (addonId: string) => {
+        if (isEliteSelected) return; // Don't allow toggling for Elite plan
         setSelectedAddons(prev => ({ ...prev, [addonId]: !prev[addonId] }));
     };
     
     const calculateTotal = () => {
         let total = selectedPlan?.price || 0;
-        for (const addonId in selectedAddons) {
-            if (selectedAddons[addonId]) {
-                const addon = addOns.find(a => a.id === addonId);
-                if (addon) {
-                    total += addon.price;
+        if (!isEliteSelected) {
+            for (const addonId in selectedAddons) {
+                if (selectedAddons[addonId]) {
+                    const addon = addOns.find(a => a.id === addonId);
+                    if (addon) {
+                        total += addon.price;
+                    }
                 }
             }
         }
@@ -107,12 +139,14 @@ export default function PricingPage() {
         const cartItems = [];
         if (selectedPlan) {
             cartItems.push({ name: selectedPlan.name, price: selectedPlan.price, quantity: 1 });
-        }
-        for (const addonId in selectedAddons) {
-            if (selectedAddons[addonId]) {
-                const addon = addOns.find(a => a.id === addonId);
-                if (addon) {
-                    cartItems.push({ name: addon.name, price: addon.price, quantity: 1 });
+            if (!isEliteSelected) {
+                 for (const addonId in selectedAddons) {
+                    if (selectedAddons[addonId]) {
+                        const addon = addOns.find(a => a.id === addonId);
+                        if (addon) {
+                            cartItems.push({ name: addon.name, price: addon.price, quantity: 1 });
+                        }
+                    }
                 }
             }
         }
@@ -191,7 +225,7 @@ export default function PricingPage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.3, delay: i * 0.1 + 0.2 + index * 0.05 }}
                         >
-                          {feature.includes('plus:') ? (
+                          {feature.includes('plus:') || feature.includes('needed') ? (
                               <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0 text-primary" />
                           ) : (
                               <Check className="mr-3 h-5 w-5 text-green-500" />
@@ -236,21 +270,28 @@ export default function PricingPage() {
                             {addOns.map((addon, i) => (
                                 <motion.li 
                                     key={addon.id} 
-                                    className="flex justify-between items-center rounded-lg border p-4"
+                                    className={cn("flex justify-between items-center rounded-lg border p-4", isEliteSelected && "bg-muted/50")}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.3, delay: i * 0.1 }}
+                                    transition={{ duration: 0.3, delay: i * 0.05 }}
                                 >
                                     <div>
-                                        <Label htmlFor={addon.id} className="font-medium">{addon.name}</Label>
+                                        <Label htmlFor={addon.id} className={cn("font-medium", isEliteSelected && "text-muted-foreground")}>{addon.name}</Label>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <span className="font-semibold text-primary">${addon.price}</span>
-                                        <Switch 
-                                            id={addon.id} 
-                                            checked={!!selectedAddons[addon.id]}
-                                            onCheckedChange={() => handleAddonToggle(addon.id)}
-                                        />
+                                        <span className={cn("font-semibold text-primary", isEliteSelected && "text-muted-foreground line-through")}>${addon.price}</span>
+                                        {isEliteSelected ? (
+                                            <div className="flex items-center gap-2 text-sm font-semibold text-green-600">
+                                                <Lock className="h-4 w-4" />
+                                                Included
+                                            </div>
+                                        ) : (
+                                            <Switch 
+                                                id={addon.id} 
+                                                checked={!!selectedAddons[addon.id]}
+                                                onCheckedChange={() => handleAddonToggle(addon.id)}
+                                            />
+                                        )}
                                     </div>
                                 </motion.li>
                             ))}
@@ -273,7 +314,7 @@ function CartSummary({ total, onCheckout, isProcessing }: { total: number, onChe
         <AnimatePresence>
             {total > 0 && (
                 <motion.div
-                    className="sticky bottom-0 w-full p-4"
+                    className="sticky bottom-0 w-full p-4 z-20"
                     initial={{ opacity: 0, y: 100 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 100 }}
