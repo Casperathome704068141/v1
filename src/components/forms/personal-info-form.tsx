@@ -17,6 +17,8 @@ import { CardHeader, CardTitle, CardDescription, CardContent } from "@/component
 import { toast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { useApplication } from "@/context/application-context";
+import { useAuth } from "@/context/auth-context";
+import { useEffect } from "react";
 
 const personalInfoSchema = z.object({
   surname: z.string().min(1, "Surname is required."),
@@ -44,11 +46,19 @@ interface PersonalInfoFormProps {
 
 export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
   const { applicationData, updateStepData } = useApplication();
+  const { user } = useAuth();
 
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: applicationData.personalInfo,
   });
+
+  useEffect(() => {
+    // Pre-fill email from user auth if it's not already set
+    if (user?.email && !form.getValues('email')) {
+      form.setValue('email', user.email);
+    }
+  }, [user, form]);
 
   function onSubmit(data: PersonalInfoFormValues) {
     updateStepData('personalInfo', data);
@@ -136,7 +146,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(new Date(field.value), "PPP")
                           ) : (
                             <span>Pick a date</span>
                           )}
@@ -147,7 +157,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
+                        selected={field.value ? new Date(field.value) : undefined}
                         onSelect={field.onChange}
                         disabled={(date) =>
                           date > new Date() || date < new Date("1900-01-01")
@@ -263,7 +273,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(new Date(field.value), "PPP")
                           ) : (
                             <span>Pick a date</span>
                           )}
@@ -274,7 +284,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
+                        selected={field.value ? new Date(field.value) : undefined}
                         onSelect={field.onChange}
                         disabled={(date) => date > new Date()}
                         initialFocus
@@ -302,7 +312,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(new Date(field.value), "PPP")
                           ) : (
                             <span>Pick a date</span>
                           )}
@@ -313,7 +323,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
+                        selected={field.value ? new Date(field.value) : undefined}
                         onSelect={field.onChange}
                         disabled={(date) => date < new Date()}
                         initialFocus

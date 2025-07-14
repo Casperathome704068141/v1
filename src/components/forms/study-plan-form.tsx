@@ -17,9 +17,9 @@ import { generateSopDraft, GenerateSopDraftInput } from "@/ai/flows/generate-sop
 import { useState } from "react";
 
 const studyPlanSchema = z.object({
-  programChoice: z.string().min(1, "Program choice is required.").optional(),
-  whyInstitution: z.string().min(150, { message: "Please provide a detailed answer of at least 150 words." }).optional(),
-  howProgramFitsCareer: z.string().min(150, { message: "Please provide a detailed answer of at least 150 words." }).optional(),
+  programChoice: z.string().min(1, "Program choice is required."),
+  whyInstitution: z.string().min(150, { message: "Please provide a detailed answer of at least 150 characters." }),
+  howProgramFitsCareer: z.string().min(150, { message: "Please provide a detailed answer of at least 150 characters." }),
   longTermGoals: z.string().optional(),
   studyPlanDraft: z.string().optional(),
 });

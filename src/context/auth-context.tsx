@@ -8,6 +8,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { ApplicationProvider } from './application-context';
 
 export interface UserProfile {
     uid: string;
@@ -157,7 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ user, profile, loading, signOut, signInWithGoogle }}>
-      {children}
+        {children}
     </AuthContext.Provider>
   );
 };

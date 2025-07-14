@@ -51,7 +51,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen w-full">
-      <div className="hidden lg:flex lg:w-1/2 bg-muted items-center justify-center relative">
+      <div className="relative hidden lg:flex lg:w-1/2">
          <Image 
             src="/login-background.jpg"
             alt="Students studying in Canada"
@@ -59,14 +59,14 @@ export default function LoginPage() {
             objectFit="cover"
             data-ai-hint="university students"
          />
-         <div className="absolute inset-0 bg-primary/60" />
-          <div className="relative z-10 text-center p-8 text-primary-foreground">
+         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          <div className="relative z-10 flex flex-col justify-end p-12 text-primary-foreground">
                 <h1 className="text-5xl font-black font-headline tracking-tighter">Your Journey to Canadian Education Starts Here.</h1>
-                <p className="mt-4 text-lg max-w-lg mx-auto">Access our AI-powered platform to find the perfect college and streamline your application.</p>
+                <p className="mt-4 text-lg max-w-lg">Access our AI-powered platform to find the perfect college and streamline your application.</p>
             </div>
       </div>
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-4">
-        <Card className="relative w-full max-w-md border-0 shadow-none lg:border lg:shadow-2xl">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-4 bg-background">
+        <Card className="relative w-full max-w-md border-0 shadow-none animate-fade-in">
           <Link href="/admin/login" className="absolute bottom-2 right-2">
               <Button variant="ghost" size="icon" aria-label="Admin Login">
                   <Briefcase className="h-4 w-4 text-muted-foreground" />

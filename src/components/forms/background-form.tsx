@@ -14,37 +14,37 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useApplication } from "@/context/application-context";
 
 const backgroundSchema = z.object({
-  visaRefusal: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
+  visaRefusal: z.enum(["yes", "no"], { required_error: "This field is required." }),
   visaRefusalDetails: z.string().optional(),
-  criminalRecord: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
+  criminalRecord: z.enum(["yes", "no"], { required_error: "This field is required." }),
   criminalRecordDetails: z.string().optional(),
-  medicalConditions: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
+  medicalConditions: z.enum(["yes", "no"], { required_error: "This field is required." }),
   medicalConditionsDetails: z.string().optional(),
-  refugeeClaim: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
+  refugeeClaim: z.enum(["yes", "no"], { required_error: "This field is required." }),
   refugeeClaimDetails: z.string().optional(),
-  deportation: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
+  deportation: z.enum(["yes", "no"], { required_error: "This field is required." }),
   deportationDetails: z.string().optional(),
-  overstay: z.enum(["yes", "no"], { required_error: "This field is required." }).optional(),
+  overstay: z.enum(["yes", "no"], { required_error: "This field is required." }),
   overstayDetails: z.string().optional(),
   certification: z.boolean().refine(val => val === true, {
     message: "You must certify that the information provided is true and complete.",
   }),
-}).refine(data => data.visaRefusal === 'no' || (data.visaRefusal === 'yes' && data.visaRefusalDetails), {
+}).refine(data => data.visaRefusal !== 'yes' || (data.visaRefusal === 'yes' && data.visaRefusalDetails && data.visaRefusalDetails.length > 0), {
   message: "Please provide details about the visa refusal.",
   path: ["visaRefusalDetails"],
-}).refine(data => data.criminalRecord === 'no' || (data.criminalRecord === 'yes' && data.criminalRecordDetails), {
+}).refine(data => data.criminalRecord !== 'yes' || (data.criminalRecord === 'yes' && data.criminalRecordDetails && data.criminalRecordDetails.length > 0), {
   message: "Please provide details about your criminal record.",
   path: ["criminalRecordDetails"],
-}).refine(data => data.medicalConditions === 'no' || (data.medicalConditions === 'yes' && data.medicalConditionsDetails), {
+}).refine(data => data.medicalConditions !== 'yes' || (data.medicalConditions === 'yes' && data.medicalConditionsDetails && data.medicalConditionsDetails.length > 0), {
     message: "Please describe your medical condition.",
     path: ["medicalConditionsDetails"],
-}).refine(data => data.refugeeClaim === 'no' || (data.refugeeClaim === 'yes' && data.refugeeClaimDetails), {
+}).refine(data => data.refugeeClaim !== 'yes' || (data.refugeeClaim === 'yes' && data.refugeeClaimDetails && data.refugeeClaimDetails.length > 0), {
     message: "Please provide details about the refugee claim.",
     path: ["refugeeClaimDetails"],
-}).refine(data => data.deportation === 'no' || (data.deportation === 'yes' && data.deportationDetails), {
+}).refine(data => data.deportation !== 'yes' || (data.deportation === 'yes' && data.deportationDetails && data.deportationDetails.length > 0), {
     message: "Please provide details about the deportation or removal.",
     path: ["deportationDetails"],
-}).refine(data => data.overstay === 'no' || (data.overstay === 'yes' && data.overstayDetails), {
+}).refine(data => data.overstay !== 'yes' || (data.overstay === 'yes' && data.overstayDetails && data.overstayDetails.length > 0), {
     message: "Please provide details about the overstay.",
     path: ["overstayDetails"],
 });

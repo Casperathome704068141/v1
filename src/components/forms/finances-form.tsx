@@ -32,7 +32,7 @@ const proofTypes = [
 
 
 const financesSchema = z.object({
-  totalFunds: z.coerce.number().min(20000, "Minimum funds of CAD $20,000 required.").optional(),
+  totalFunds: z.coerce.number().min(20000, "Minimum funds of CAD $20,000 required."),
   fundingSources: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "You have to select at least one funding source.",
   }),
@@ -41,8 +41,8 @@ const financesSchema = z.object({
   proofType: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "You have to select at least one proof type.",
   }),
-  tuitionPrepaid: z.enum(["yes", "no"], { required_error: "Please select an option." }).optional(),
-  gicPurchased: z.enum(["yes", "no"], { required_error: "Please select an option." }).optional(),
+  tuitionPrepaid: z.enum(["yes", "no"], { required_error: "Please select an option." }),
+  gicPurchased: z.enum(["yes", "no"], { required_error: "Please select an option." }),
 }).refine((data) => {
     if(!data.fundingSources) return true;
     const sponsorSelected = data.fundingSources.includes("family") || data.fundingSources.includes("sponsor");
@@ -233,13 +233,6 @@ export function FinancesForm({ onSave }: FinancesFormProps) {
               )}
             />
             
-            <div>
-                <FormLabel>Proof Upload</FormLabel>
-                <FormDescription>Upload your financial documents (.pdf, .jpg).</FormDescription>
-                <Input type="file" multiple className="mt-2" />
-                <FormMessage />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField control={form.control} name="tuitionPrepaid" render={({ field }) => (
                     <FormItem className="space-y-3"><FormLabel>Have you pre-paid your first year's tuition?</FormLabel>

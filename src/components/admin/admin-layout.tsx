@@ -11,7 +11,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
@@ -81,10 +80,25 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <div className="flex min-h-screen">
         <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center gap-3 p-4">
-              <Image src="/logo.svg" alt="MLE Logo" width={32} height={32} className="text-sidebar-foreground"/>
-              <h1 className="text-lg font-semibold text-sidebar-foreground">MLE Admin</h1>
+          <SidebarHeader className="p-2">
+            <div className="flex h-12 items-center justify-center">
+              <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
+                <Image
+                  src="/logo.svg"
+                  alt="Maple Leafs Education Logo"
+                  width={32}
+                  height={32}
+                  className="shrink-0"
+                />
+                <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
+                  <span className="text-lg font-bold text-sidebar-foreground leading-tight">
+                    Maple Leafs
+                  </span>
+                  <span className="text-xs text-sidebar-foreground/80 leading-tight">
+                    Education Admin
+                  </span>
+                </div>
+              </Link>
             </div>
           </SidebarHeader>
           <SidebarContent>

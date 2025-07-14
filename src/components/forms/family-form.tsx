@@ -27,12 +27,12 @@ const childSchema = z.object({
 });
 
 const familySchema = z.object({
-  parent1Name: z.string().min(1, "Parent's name is required.").optional(),
-  parent1Dob: z.date({ required_error: "Date of birth is required." }).optional(),
-  parent2Name: z.string().min(1, "Parent's name is required.").optional(),
-  parent2Dob: z.date({ required_error: "Date of birth is required." }).optional(),
-  parentAddresses: z.string().min(1, "Parent addresses are required.").optional(),
-  maritalStatus: z.string({ required_error: "Marital status is required." }).optional(),
+  parent1Name: z.string().min(1, "Parent's name is required."),
+  parent1Dob: z.date({ required_error: "Date of birth is required." }),
+  parent2Name: z.string().optional(),
+  parent2Dob: z.date().optional(),
+  parentAddresses: z.string().min(1, "Parent addresses are required."),
+  maritalStatus: z.string({ required_error: "Marital status is required." }),
   spouseName: z.string().optional(),
   spouseDob: z.date().optional(),
   spouseAccompanying: z.enum(["yes", "no"]).optional(),
@@ -62,7 +62,13 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
     resolver: zodResolver(familySchema),
     defaultValues: {
       ...applicationData.family,
-      maritalStatus: applicationData.personalInfo?.maritalStatus || applicationData.family?.maritalStatus, // Pre-fill from personal info
+      // Pre-fill marital status from personal info form if available
+      maritalStatus: applicationData.personalInfo?.maritalStatus || applicationData.family?.maritalStatus,
+      // Ensure date objects are properly instantiated
+      parent1Dob: applicationData.family?.parent1Dob ? new Date(applicationData.family.parent1Dob) : undefined,
+      parent2Dob: applicationData.family?.parent2Dob ? new Date(applicationData.family.parent2Dob) : undefined,
+      spouseDob: applicationData.family?.spouseDob ? new Date(applicationData.family.spouseDob) : undefined,
+      children: applicationData.family?.children?.map(c => ({...c, dob: c.dob ? new Date(c.dob) : new Date() })) || [],
     },
   });
 
@@ -104,10 +110,10 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <FormField control={form.control} name="parent2Name" render={({ field }) => (
-                        <FormItem><FormLabel>Parent 2 Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Parent 2 Full Name (Optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="parent2Dob" render={({ field }) => (
-                        <FormItem className="flex flex-col"><FormLabel>Parent 2 Date of Birth</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? (format(field.value, "PPP")) : (<span>Pick a date</span>)}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
+                        <FormItem className="flex flex-col"><FormLabel>Parent 2 Date of Birth (Optional)</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? (format(field.value, "PPP")) : (<span>Pick a date</span>)}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
                     )} />
                 </div>
                  <FormField control={form.control} name="parentAddresses" render={({ field }) => (
@@ -203,5 +209,3 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
     </Form>
   );
 }
-
-    

@@ -80,14 +80,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <ApplicationProvider>
       <SidebarProvider>
         <div className="flex min-h-screen">
           <Sidebar>
             <SidebarHeader>
               <div className="flex items-center gap-3 p-4">
-                <Image src="/logo.svg" alt="MLE Logo" width={32} height={32} className="text-sidebar-foreground"/>
-                <h1 className="text-lg font-semibold text-sidebar-foreground">MLE</h1>
+                <Image src="/logo.svg" alt="MLE Logo" width={40} height={40} className="text-sidebar-foreground"/>
+                <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
+                    <h1 className="text-lg font-bold text-sidebar-foreground leading-tight">MLE</h1>
+                    <span className="text-xs text-sidebar-foreground/80 leading-tight">Maple Leafs Education</span>
+                </div>
               </div>
             </SidebarHeader>
             <SidebarContent>
@@ -105,15 +107,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenu>
             </SidebarContent>
           </Sidebar>
-          <SidebarInset>
-            <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
-              <SidebarTrigger className="sm:hidden" />
-              <UserMenu />
-            </header>
-            {children}
-          </SidebarInset>
+          <ApplicationProvider>
+            <SidebarInset>
+              <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
+                <SidebarTrigger className="sm:hidden" />
+                <UserMenu />
+              </header>
+              {children}
+            </SidebarInset>
+          </ApplicationProvider>
         </div>
       </SidebarProvider>
-    </ApplicationProvider>
   );
 }

@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import type { PersonalInfoFormValues } from '@/components/forms/personal-info-form';
 import type { AcademicsFormValues } from '@/components/forms/academics-form';
 import type { LanguageFormValues } from '@/components/forms/language-form';
@@ -9,6 +9,7 @@ import type { FinancesFormValues } from '@/components/forms/finances-form';
 import type { StudyPlanFormValues } from '@/components/forms/study-plan-form';
 import type { FamilyFormValues } from '@/components/forms/family-form';
 import type { BackgroundFormValues } from '@/components/forms/background-form';
+import { useAuth } from './auth-context';
 
 // Documents state is simpler for now
 interface DocumentStatus {
@@ -40,6 +41,7 @@ interface ApplicationContextType {
   setApplicationData: (data: ApplicationData) => void;
   updateStepData: (step: keyof ApplicationData, data: any) => void;
   resetApplicationData: () => void;
+  isLoaded: boolean;
 }
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
@@ -58,20 +60,41 @@ const initialApplicationData: ApplicationData = {
 
 export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
   const [applicationData, setApplicationData] = useState<ApplicationData>(initialApplicationData);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.uid) {
+      const savedData = localStorage.getItem(`applicationData_${user.uid}`);
+      if (savedData) {
+        setApplicationData(JSON.parse(savedData));
+      }
+      setIsLoaded(true);
+    }
+  }, [user]);
   
   const updateStepData = (step: keyof ApplicationData, data: any) => {
-    setApplicationData(prev => ({
-        ...prev,
-        [step]: data,
-    }));
+    setApplicationData(prev => {
+        const newData = {
+            ...prev,
+            [step]: data,
+        };
+        if (user?.uid) {
+            localStorage.setItem(`applicationData_${user.uid}`, JSON.stringify(newData));
+        }
+        return newData;
+    });
   };
 
   const resetApplicationData = useCallback(() => {
     setApplicationData(initialApplicationData);
-  }, []);
+    if(user?.uid) {
+      localStorage.removeItem(`applicationData_${user.uid}`);
+    }
+  }, [user]);
 
   return (
-    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData, resetApplicationData }}>
+    <ApplicationContext.Provider value={{ applicationData, setApplicationData, updateStepData, resetApplicationData, isLoaded }}>
       {children}
     </ApplicationContext.Provider>
   );
