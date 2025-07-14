@@ -18,9 +18,11 @@ import {
   YAxis,
   ResponsiveContainer,
   LabelList,
+  Tooltip,
 } from 'recharts';
 import { PieChart, Pie, Cell } from 'recharts';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface QuizResultsProps {
   totalScore: number;
@@ -43,9 +45,9 @@ const getResultDetails = (score: number) => {
   if (score >= 50) {
     return {
       status: 'Needs Improvement',
-      description: '🔧 A few gaps to close before you apply. Review your scores below for details.',
-      ctaText: 'View Action Plan',
-      ctaLink: '/action-plan', // Updated Link
+      description: '🔧 A few gaps to close before you apply. Let\'s generate a personalized action plan for you.',
+      ctaText: 'View Your AI-Generated Action Plan',
+      ctaLink: '/action-plan',
       ctaVariant: 'secondary',
     };
   }
@@ -66,6 +68,7 @@ export function QuizResults({
   onReset,
 }: QuizResultsProps) {
   const resultDetails = getResultDetails(totalScore);
+  const router = useRouter();
 
   const chartData = Object.keys(sectionScores).map(section => ({
     name: section,
@@ -80,13 +83,14 @@ export function QuizResults({
   
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
   
-  const getCtaLink = () => {
+  const handleCtaClick = () => {
     if (resultDetails.ctaLink === '/action-plan') {
       const answersQuery = encodeURIComponent(JSON.stringify(answers));
       const scoresQuery = encodeURIComponent(JSON.stringify(sectionScores));
-      return `${resultDetails.ctaLink}?answers=${answersQuery}&scores=${scoresQuery}`;
+      router.push(`${resultDetails.ctaLink}?answers=${answersQuery}&scores=${scoresQuery}`);
+    } else {
+      router.push(resultDetails.ctaLink);
     }
-    return resultDetails.ctaLink;
   }
 
   return (
@@ -130,8 +134,16 @@ export function QuizResults({
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 30, bottom: 5 }}>
                     <XAxis type="number" hide />
-                    <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
-                    <Bar dataKey="score" fill="hsl(var(--primary))" radius={[4, 4, 4, 4]}>
+                    <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip 
+                         contentStyle={{
+                            background: "hsl(var(--background))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "var(--radius)",
+                        }}
+                        formatter={(value, name) => [`${value} / ${sectionMaxPoints[name as string]}`, 'Score']}
+                    />
+                    <Bar dataKey="score" fill="hsl(var(--primary))" radius={[4, 4, 4, 4]} barSize={20}>
                         <LabelList dataKey="score" position="right" offset={10} className="fill-foreground font-semibold" />
                     </Bar>
                 </BarChart>
@@ -139,8 +151,8 @@ export function QuizResults({
         </div>
       </CardContent>
       <CardFooter className="flex-col gap-4 border-t pt-6">
-        <Button asChild size="lg" variant={resultDetails.ctaVariant} className="w-full">
-          <Link href={getCtaLink()}>{resultDetails.ctaText}</Link>
+        <Button onClick={handleCtaClick} size="lg" variant={resultDetails.ctaVariant} className="w-full">
+          {resultDetails.ctaText}
         </Button>
         <Button variant="outline" onClick={onReset} className="w-full">
           Take the Quiz Again

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { generateActionPlan } from '@/ai/flows/generate-action-plan';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // A simple markdown-to-HTML converter
 const toHtml = (text: string) => {
@@ -35,7 +36,7 @@ export function ActionPlanDisplay() {
       setLoading(true);
       setError(null);
       
-      if (!quizAnswers || !sectionScores) {
+      if (!quizAnswers || !sectionScores || quizAnswers === '{}' || sectionScores === '{}') {
         setError("Quiz data is missing. Please retake the quiz.");
         setLoading(false);
         return;
@@ -59,14 +60,14 @@ export function ActionPlanDisplay() {
     return (
        <div className="space-y-6">
             <div className="space-y-2">
-                <div className="h-6 w-1/2 bg-gray-200 animate-pulse rounded"></div>
-                <div className="h-4 w-full bg-gray-200 animate-pulse rounded"></div>
-                <div className="h-4 w-4/5 bg-gray-200 animate-pulse rounded"></div>
+                <Skeleton className="h-6 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
             </div>
              <div className="space-y-2">
-                <div className="h-6 w-1/2 bg-gray-200 animate-pulse rounded"></div>
-                <div className="h-4 w-full bg-gray-200 animate-pulse rounded"></div>
-                <div className="h-4 w-4/5 bg-gray-200 animate-pulse rounded"></div>
+                <Skeleton className="h-6 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
             </div>
         </div>
     );
@@ -84,7 +85,7 @@ export function ActionPlanDisplay() {
 
   return (
     <div 
-        className="prose prose-lg max-w-none"
+        className="prose prose-lg max-w-none text-foreground"
         dangerouslySetInnerHTML={{ __html: toHtml(actionPlan) }} 
     />
   );

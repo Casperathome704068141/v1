@@ -38,7 +38,7 @@ export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
     resolver: zodResolver(studyPlanSchema),
     defaultValues: {
       ...applicationData.studyPlan,
-      programChoice: "Diploma in Business Management - Seneca College", // This would be dynamic
+      programChoice: applicationData.studyPlan?.programChoice || "Diploma in Business Management - Seneca College", // This would be dynamic
     },
   });
 
