@@ -28,35 +28,18 @@ export default function AdminLoginPage() {
       // Step 1: Sign in with Firebase Auth on the client.
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Step 2: Verify admin status with a secure backend.
-      // In a production app, you would get the ID token and send it to a backend
-      // function to verify it and check for an `admin: true` custom claim.
-      // This client-side check is NOT secure and should be replaced.
+      // Step 2: Get the ID token and check for the `admin` custom claim.
+      // This is the secure way to verify admin privileges.
       const idTokenResult = await userCredential.user.getIdTokenResult();
       
       if (!idTokenResult.claims.admin) {
-        // This is the proper way to check for admin privileges.
-        // For this demo, we can't set custom claims, so this will always fail.
-        // We will temporarily rely on the placeholder check below for demonstration purposes.
-        // In a real app, you would uncomment this and remove the placeholder.
          toast({
            variant: 'destructive',
            title: 'Authorization Failed',
            description: 'You do not have permission to access this area.',
          });
          setLoading(false);
-         // return;
-      }
-      
-      // Placeholder for demonstration since we cannot set custom claims in this environment.
-      if (userCredential.user.email !== 'admin@test.com') {
-          toast({
-            variant: 'destructive',
-            title: 'Authorization Failed',
-            description: 'You do not have permission to access this area.',
-          });
-          setLoading(false);
-          return;
+         return;
       }
       
       toast({
@@ -94,7 +77,7 @@ export default function AdminLoginPage() {
               <Input 
                 id="email" 
                 type="email" 
-                placeholder="admin@test.com" 
+                placeholder="admin@mapleleafs.edu" 
                 required 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
