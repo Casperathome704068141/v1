@@ -36,7 +36,7 @@ function DocumentsPageContent() {
     const { applicationData } = useApplication();
     const { documents } = applicationData;
 
-    const isMarried = applicationData.family?.maritalStatus === 'married';
+    const isMarried = applicationData.personalInfo?.maritalStatus === 'married';
     const requiredDocs = documentList.filter(d => d.required);
     const optionalDocs = documentList.filter(d => !d.required && (d.id !== 'marriageCert' || isMarried));
 

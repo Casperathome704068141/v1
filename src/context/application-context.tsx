@@ -12,7 +12,7 @@ import type { BackgroundFormValues } from '@/components/forms/background-form';
 
 // Documents state is simpler for now
 interface DocumentStatus {
-    status: 'Uploaded' | 'Pending' | 'Action Required' | 'Not Applicable';
+    status: 'Uploaded' | 'Pending' | 'Action Required';
     url?: string;
     fileName?: string;
     message?: string;
