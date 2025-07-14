@@ -19,7 +19,7 @@ const CollegeSchema = z.object({
   sdsEligible: z.boolean().describe("Whether the institution is eligible for the Student Direct Stream (SDS)."),
   tuitionLow: z.number().describe("The low-end estimate for annual international tuition fees."),
   tuitionHigh: z.number().describe("The high-end estimate for annual international tuition fees."),
-  image: z.string().url().describe("A placeholder image URL from placehold.co, formatted as https://placehold.co/600x400.png."),
+  image: z.string().describe("A placeholder image URL from placehold.co, formatted as https://placehold.co/600x400.png."),
   aiHint: z.string().describe("One or two keywords for the placeholder image (e.g., 'university campus')."),
   programs: z.array(z.string()).describe("A list of 3-4 popular or relevant programs offered."),
 });
