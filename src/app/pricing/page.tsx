@@ -1,27 +1,24 @@
 
+'use client';
+
+import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { createCheckoutSession } from '@/app/checkout/actions';
+import { loadStripe } from '@stripe/stripe-js';
+import { useToast } from '@/hooks/use-toast';
 
 const tiers = [
   {
-    name: 'Explorer',
-    price: '$0',
-    description: 'Get started with our core tools and see what you can achieve.',
-    features: [
-      'Eligibility Quiz Access',
-      'Basic College Match',
-      '15-min Discovery Call Booking',
-    ],
-    cta: 'Start for Free',
-    variant: 'outline' as const,
-  },
-  {
+    id: 'price_starter',
     name: 'Starter',
-    price: '$149',
+    price: 149,
     priceSuffix: 'CAD',
     description: 'For high-score quiz users (≥75) who just need compliant paperwork.',
     features: [
@@ -30,12 +27,13 @@ const tiers = [
       'AI SOP Template Generator',
       'Live Chat Support (24h)',
     ],
-    cta: 'Choose Starter',
+    cta: 'Select Plan',
     variant: 'outline' as const,
   },
   {
+    id: 'price_advantage',
     name: 'Advantage',
-    price: '$299',
+    price: 299,
     priceSuffix: 'CAD',
     description: 'For mid-score users (50–74) who want an expert to double-check their work.',
     features: [
@@ -44,13 +42,14 @@ const tiers = [
       'Expert SOP Review & Edit',
       'Final Application QA Check',
     ],
-    cta: 'Choose Advantage',
+    cta: 'Select Plan',
     popular: true,
     variant: 'default' as const,
   },
   {
+    id: 'price_elite',
     name: 'Elite',
-    price: '$1,099+',
+    price: 1099,
     priceSuffix: 'CAD',
     description: 'For low-score users (<50) or busy families wanting full representation.',
     features: [
@@ -59,20 +58,96 @@ const tiers = [
       'Full IRCC Portal Submission',
       'Priority WhatsApp Support',
     ],
-    cta: 'Book Elite Consult',
+    cta: 'Select Plan',
     variant: 'outline' as const,
   },
 ];
 
 const addOns = [
-    { name: "SOP/LOE Full Ghost-Writing", price: "$50" },
-    { name: "Extra College Application", price: "$100 ea." },
-    { name: "IRCC Submission (for Starter/Advantage)", price: "$150" },
-    { name: "24-Hour Rush Processing", price: "$79" },
-    { name: "Hourly Consulting (beyond included)", price: "$100 / hr" },
-]
+    { id: "addon_sop", name: "SOP/LOE Full Ghost-Writing", price: 50 },
+    { id: "addon_extra_app", name: "Extra College Application", price: 100 },
+    { id: "addon_submission", name: "IRCC Submission (for Starter/Advantage)", price: 150 },
+    { id: "addon_rush", name: "24-Hour Rush Processing", price: 79 },
+    { id: "addon_consulting", name: "Hourly Consulting (beyond included)", price: 100 },
+];
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function PricingPage() {
+    const [selectedPlan, setSelectedPlan] = useState<typeof tiers[0] | null>(null);
+    const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>({});
+    const [isProcessing, setIsProcessing] = useState(false);
+    const { toast } = useToast();
+
+    const handleSelectPlan = (plan: typeof tiers[0]) => {
+        setSelectedPlan(plan.id === selectedPlan?.id ? null : plan);
+    };
+
+    const handleAddonToggle = (addonId: string) => {
+        setSelectedAddons(prev => ({ ...prev, [addonId]: !prev[addonId] }));
+    };
+    
+    const calculateTotal = () => {
+        let total = selectedPlan?.price || 0;
+        for (const addonId in selectedAddons) {
+            if (selectedAddons[addonId]) {
+                const addon = addOns.find(a => a.id === addonId);
+                if (addon) {
+                    total += addon.price;
+                }
+            }
+        }
+        return total;
+    };
+
+    const total = calculateTotal();
+
+    const handleCheckout = async () => {
+        setIsProcessing(true);
+
+        const items = [];
+        if (selectedPlan) {
+            items.push({ name: selectedPlan.name, price: selectedPlan.price, quantity: 1 });
+        }
+        for (const addonId in selectedAddons) {
+            if (selectedAddons[addonId]) {
+                const addon = addOns.find(a => a.id === addonId);
+                if (addon) {
+                    items.push({ name: addon.name, price: addon.price, quantity: 1 });
+                }
+            }
+        }
+        
+        if (items.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Empty Cart',
+                description: 'Please select a plan before checking out.',
+            });
+            setIsProcessing(false);
+            return;
+        }
+
+        try {
+            const { sessionId } = await createCheckoutSession(items);
+            const stripe = await stripePromise;
+            if (stripe) {
+                const { error } = await stripe.redirectToCheckout({ sessionId });
+                if (error) {
+                    throw error;
+                }
+            }
+        } catch (error) {
+            console.error("Stripe checkout error:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Checkout Failed',
+                description: 'Could not connect to the payment gateway. Please try again.',
+            });
+            setIsProcessing(false);
+        }
+    };
+
   return (
     <AppLayout>
       <main className="flex-1 space-y-12 p-4 md:p-8">
@@ -81,18 +156,20 @@ export default function PricingPage() {
             Find the Plan That's Right For You
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Whether you're just starting out or need expert guidance, we have a package to help you succeed on your Canadian education journey.
+            Select a base package and add any optional services to build your perfect plan.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 items-start">
+        
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 items-start">
           {tiers.map((tier) => (
             <Card key={tier.name} className={cn(
-              `flex flex-col h-full`, 
-              tier.popular && 'border-2 border-primary shadow-2xl relative'
+              `flex flex-col h-full transition-all duration-300`, 
+              selectedPlan?.id === tier.id ? 'border-2 border-primary shadow-2xl scale-105' : 'border-border',
+              tier.popular && !selectedPlan && 'border-primary'
             )}>
               {tier.popular && (
                   <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
-                    <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
+                    <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
                       Most Popular
                     </div>
                   </div>
@@ -100,7 +177,7 @@ export default function PricingPage() {
               <CardHeader className="pt-8">
                 <CardTitle className="font-headline text-2xl font-bold">{tier.name}</CardTitle>
                 <div className="pt-4 flex items-baseline">
-                    <span className="text-4xl font-bold text-foreground">{tier.price}</span>
+                    <span className="text-4xl font-bold text-foreground">${tier.price}</span>
                     {tier.priceSuffix && <span className="text-sm font-semibold text-muted-foreground ml-1">{tier.priceSuffix}</span>}
                 </div>
                 <CardDescription className="h-12">{tier.description}</CardDescription>
@@ -109,7 +186,7 @@ export default function PricingPage() {
                 <ul className="space-y-4">
                   {tier.features.map((feature, index) => (
                     <li key={feature} className="flex items-start">
-                      {index === 0 && tier.features.length > 1 && feature.includes('Everything') ? (
+                      {feature.includes('plus:') ? (
                           <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0 text-primary" />
                       ) : (
                           <Check className="mr-3 h-5 w-5 flex-shrink-0 text-green-500" />
@@ -120,8 +197,12 @@ export default function PricingPage() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full" variant={tier.variant}>
-                  {tier.cta}
+                <Button 
+                    className="w-full" 
+                    variant={selectedPlan?.id === tier.id ? 'default' : 'outline'}
+                    onClick={() => handleSelectPlan(tier)}
+                >
+                  {selectedPlan?.id === tier.id ? 'Plan Selected' : tier.cta}
                 </Button>
               </CardFooter>
             </Card>
@@ -130,18 +211,27 @@ export default function PricingPage() {
         
         <Separator />
 
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
             <Card>
                 <CardHeader className="text-center">
-                    <CardTitle className="font-headline text-2xl">À-la-carte Services</CardTitle>
-                    <CardDescription>Add these services to any package as needed.</CardDescription>
+                    <CardTitle className="font-headline text-2xl">Customize Your Plan</CardTitle>
+                    <CardDescription>Select any à-la-carte services to add to your package.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ul className="space-y-3">
+                    <ul className="space-y-4">
                         {addOns.map(addon => (
-                            <li key={addon.name} className="flex justify-between items-center text-sm">
-                                <span className="text-foreground">{addon.name}</span>
-                                <span className="font-semibold text-primary">{addon.price}</span>
+                            <li key={addon.id} className="flex justify-between items-center rounded-lg border p-4">
+                                <div>
+                                    <Label htmlFor={addon.id} className="font-medium">{addon.name}</Label>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <span className="font-semibold text-primary">${addon.price}</span>
+                                    <Switch 
+                                        id={addon.id} 
+                                        checked={!!selectedAddons[addon.id]}
+                                        onCheckedChange={() => handleAddonToggle(addon.id)}
+                                    />
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -149,7 +239,34 @@ export default function PricingPage() {
             </Card>
         </div>
 
+        <CartSummary total={total} onCheckout={handleCheckout} isProcessing={isProcessing} />
+
       </main>
     </AppLayout>
   );
 }
+
+function CartSummary({ total, onCheckout, isProcessing }: { total: number, onCheckout: () => void, isProcessing: boolean }) {
+    if (total === 0) return null;
+
+    return (
+        <div className="sticky bottom-0 w-full p-4">
+            <Card className="max-w-2xl mx-auto shadow-2xl bg-background/95 backdrop-blur-sm">
+                <CardContent className="p-4 flex items-center justify-between">
+                    <div>
+                        <p className="text-lg font-bold">Total</p>
+                        <p className="text-muted-foreground">Your customized package</p>
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <p className="text-2xl font-black text-primary">${total.toLocaleString()}</p>
+                        <Button size="lg" onClick={onCheckout} disabled={isProcessing}>
+                            {isProcessing ? 'Processing...' : 'Proceed to Checkout'}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+    
