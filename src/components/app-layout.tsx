@@ -26,7 +26,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy, LogOut, DollarSign } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy, LogOut, DollarSign, User, CreditCard } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ApplicationProvider } from '@/context/application-context';
 import Image from 'next/image';
@@ -52,9 +52,24 @@ function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Billing</DropdownMenuItem>
-        <DropdownMenuItem>Settings</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <User className="mr-2 h-4 w-4" />
+            Profile
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/billing">
+             <CreditCard className="mr-2 h-4 w-4" />
+             Billing
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+           <Link href="/settings">
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+           </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" />
