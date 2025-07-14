@@ -1,6 +1,6 @@
 
 'use server';
-
+import 'dotenv/config';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 
@@ -36,5 +36,3 @@ export async function createCheckoutSession(items: CartItem[]) {
 
     return { sessionId: session.id };
 }
-
-    
