@@ -114,8 +114,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      // The onAuthStateChanged listener will handle the rest
-      router.push('/dashboard');
+      // The onAuthStateChanged listener will handle redirecting and profile listening
+      // but we need to ensure the document is created right away.
+      await createUserDocument(result.user);
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({

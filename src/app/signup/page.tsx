@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -22,17 +22,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     />
   </svg>
 );
-
-async function createUserDocument(user: User, fullName: string) {
-  const userRef = doc(db, 'users', user.uid);
-  await setDoc(userRef, {
-    uid: user.uid,
-    name: fullName,
-    email: user.email,
-    signedUp: serverTimestamp(),
-    plan: 'Free', // Default plan
-  });
-}
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
@@ -60,7 +49,8 @@ export default function SignupPage() {
       await updateProfile(userCredential.user, {
         displayName: fullName,
       });
-      await createUserDocument(userCredential.user, fullName);
+      // The createUserDocument logic is now handled by the AuthProvider,
+      // so we don't need to call it here. The listener will pick up the new user.
       router.push('/dashboard');
     } catch (error: any) {
       toast({
