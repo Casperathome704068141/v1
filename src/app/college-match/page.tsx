@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollegeCard } from './college-card';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { useApplication } from '@/context/application-context';
@@ -222,4 +222,6 @@ export default function CollegeMatchPage() {
   return (
     <AppLayout>
       <CollegeMatchPageContent />
-    
+    </AppLayout>
+  );
+}
