@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Check, Circle, FileText, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle, CalendarCheck, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
+import { format } from 'date-fns';
 
 const applicationStepsConfig = [
     { id: 'personalInfo', name: 'Profile Information', href: '/application?step=profile', icon: UserCheck },
@@ -74,6 +75,7 @@ function DashboardPageContent() {
   const currentStepIndex = applicationSteps.findIndex(step => !step.completed);
   const currentStep = currentStepIndex !== -1 ? applicationSteps[currentStepIndex] : null;
 
+  const chosenInstitution = applicationData.studyPlan?.programChoice?.split(' - ')[1] || 'Not Selected';
 
   return (
       <main className="flex-1 space-y-8 p-4 md:p-8">
@@ -180,17 +182,15 @@ function DashboardPageContent() {
                 <Card className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
-                            <FileText className="h-5 w-5 text-primary" />
-                            Eligibility Quiz
+                            <GraduationCap className="h-5 w-5 text-primary" />
+                            Chosen Institution
                         </CardTitle>
                         <CardDescription>
-                            Confirm you meet the basic requirements for a study permit.
+                            Your selected destination for your studies in Canada.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button asChild className="w-full">
-                            <Link href="/eligibility-quiz">Take the Quiz</Link>
-                        </Button>
+                        <p className="font-semibold text-center text-primary">{chosenInstitution}</p>
                     </CardContent>
                 </Card>
 
@@ -214,16 +214,16 @@ function DashboardPageContent() {
                  <Card className="bg-primary/5 border-primary/20 hover:shadow-lg transition-shadow">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg text-primary">
-                            <UserCheck className="h-5 w-5 text-primary" />
-                           Expert Review
+                           <CalendarCheck className="h-5 w-5 text-primary" />
+                           Next Appointment
                         </CardTitle>
                         <CardDescription>
-                           Upgrade to our Premium or Ultimate plans for an RCIC expert to review your application.
+                           RCIC Consultation: {format(new Date('2024-08-15T14:00:00'), 'PPP, p')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Button asChild variant="outline" className="w-full border-primary/50 text-primary hover:bg-primary/10 hover:text-primary">
-                            <Link href="/pricing">View Plans</Link>
+                            <Link href="/appointments">Manage Appointments</Link>
                         </Button>
                     </CardContent>
                 </Card>
