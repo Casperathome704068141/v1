@@ -288,7 +288,7 @@ export function EligibilityQuizFlow() {
                     {currentQuestion.options.map(opt => (
                         <div key={opt.value} className="flex items-center space-x-2">
                             <RadioGroupItem value={opt.value} id={`${currentQuestion.id}-${opt.value}`} />
-                            <Label htmlFor={`${currentQuestion.id}-${opt.value}`} className="text-base font-normal">
+                            <Label htmlFor={`${currentQuestion.id}-${opt.vealue}`} className="text-base font-normal">
                                 {opt.label}
                             </Label>
                         </div>
