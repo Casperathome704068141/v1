@@ -36,5 +36,5 @@ export async function createCheckoutSession(items: CartItem[]) {
         cancel_url: `${origin}/pricing`, // Return to pricing on cancellation
     });
 
-    return { sessionId: session.id };
+    return { sessionId: session.id, url: session.url };
 }

@@ -10,8 +10,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { createCheckoutSession, getStripePublishableKey } from '@/app/checkout/actions';
-import { loadStripe } from '@stripe/stripe-js';
+import { createCheckoutSession } from '@/app/checkout/actions';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -72,20 +71,6 @@ const addOns = [
     { id: "addon_consulting", name: "Hourly Consulting (beyond included)", price: 100 },
 ];
 
-
-let stripePromise: Promise<any> | null = null;
-
-const getStripe = async () => {
-    if (!stripePromise) {
-        const publishableKey = await getStripePublishableKey();
-        if (publishableKey) {
-            stripePromise = loadStripe(publishableKey);
-        }
-    }
-    return stripePromise;
-};
-
-
 export default function PricingPage() {
     const [selectedPlan, setSelectedPlan] = useState<typeof tiers[0] | null>(null);
     const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>({});
@@ -142,15 +127,11 @@ export default function PricingPage() {
         }
 
         try {
-            const { sessionId } = await createCheckoutSession(items);
-            const stripe = await getStripe();
-            if (stripe) {
-                const { error } = await stripe.redirectToCheckout({ sessionId });
-                if (error) {
-                    throw error;
-                }
+            const { url } = await createCheckoutSession(items);
+            if (url) {
+                window.open(url, '_blank');
             } else {
-                 throw new Error("Stripe.js has not loaded yet.");
+                throw new Error("Could not create checkout session.");
             }
         } catch (error) {
             console.error("Stripe checkout error:", error);
@@ -227,7 +208,7 @@ export default function PricingPage() {
                           {feature.includes('plus:') ? (
                               <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0 text-primary" />
                           ) : (
-                              <Check className="mr-3 h-5 w-5 flex-shrink-0 text-green-500" />
+                              <Check className="mr-3 h-5 w-5 flex-green-500" />
                           )}
                           <span className="text-sm text-muted-foreground">{feature}</span>
                         </motion.li>
