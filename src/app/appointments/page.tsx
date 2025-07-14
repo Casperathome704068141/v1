@@ -125,4 +125,8 @@ export default function AppointmentsPage() {
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-3xl font-bold">Book a Consultation</h1>
         </div>
-        <AppointmentsContent
+        <AppointmentsContent />
+      </main>
+    </AppLayout>
+  );
+}
