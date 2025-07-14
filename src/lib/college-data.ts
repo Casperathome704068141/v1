@@ -333,7 +333,6 @@ export const collegeData = [
     aiHint: 'community campus',
     programs: ['Business Marketing', 'Flight Training', 'Healthcare Administration', 'Culinary Arts'],
   },
-
   // British Columbia (25 institutions)
   {
     dliNumber: 'O19330231062',
@@ -660,7 +659,6 @@ export const collegeData = [
     aiHint: 'energy sector campus',
     programs: ['Aircraft Maintenance Engineering', 'Trades & Apprenticeships', 'Business Management', 'Health Care Assistant'],
   },
-
   // Alberta (25 institutions)
   {
     dliNumber: 'O19257171832',
@@ -987,7 +985,6 @@ export const collegeData = [
     aiHint: 'northern campus',
     programs: ['Business Administration', 'Computing Technology', 'Nursing', 'Kinesiology'],
   },
-
   // Manitoba (institutions in Manitoba are fewer in number)
   {
     dliNumber: 'O19091528512',
@@ -1132,7 +1129,6 @@ export const collegeData = [
     aiHint: 'technical campus',
     programs: ['Network Technician', 'Business Administration', 'Industrial Welding', 'Cyber Defence'],
   },
-
   // Saskatchewan (key institutions; fewer than 25 in total)
   {
     dliNumber: 'O19425660421',
@@ -1251,7 +1247,6 @@ export const collegeData = [
     aiHint: 'regional campus',
     programs: ['Heavy Equipment Operator', 'Continuing Care Assistant', 'Electrician', 'Administration'],
   },
-
   // Nova Scotia (key institutions)
   {
     dliNumber: 'O19209939282',
@@ -1383,7 +1378,6 @@ export const collegeData = [
     aiHint: 'coastal campus',
     programs: ['Marine Engineering Tech', 'Information Technology', 'Culinary Arts', 'Practical Nursing'],
   },
-
   // New Brunswick (key institutions)
   {
     dliNumber: 'O19348802512',
@@ -1502,7 +1496,6 @@ export const collegeData = [
     aiHint: 'Christian college campus',
     programs: ['Ministry', 'Christian School Education', 'Biblical Studies', 'Pastoral Theology'],
   },
-
   // Prince Edward Island (PEI has only a few institutions)
   {
     dliNumber: 'O19220071452',
@@ -1543,7 +1536,6 @@ export const collegeData = [
     aiHint: 'french college campus',
     programs: ['Practical Nursing', 'Business Administration', 'Youth Worker', 'Bilingual Administration'],
   },
-
   // Newfoundland and Labrador (few institutions)
   {
     dliNumber: 'O19440995346',
