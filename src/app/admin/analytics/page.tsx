@@ -1,7 +1,17 @@
 
+'use client';
+
+import { Suspense } from 'react';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, LineChart } from 'lucide-react';
+import { BarChart, PieChart } from 'lucide-react';
+import { SignupsChart } from '@/components/admin/charts/signups-chart';
+import { StatusChart } from '@/components/admin/charts/status-chart';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function ChartSkeleton() {
+    return <Skeleton className="h-[350px] w-full" />;
+}
 
 export default function AdminAnalyticsPage() {
   return (
@@ -16,22 +26,28 @@ export default function AdminAnalyticsPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <BarChart className="h-5 w-5 text-primary" />
-                        Sign-ups Over Time
+                        New Users (Last 7 Days)
                     </CardTitle>
+                    <CardDescription>A breakdown of user sign-ups over the past week.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">Chart displaying user sign-ups will be here.</p>
+                    <Suspense fallback={<ChartSkeleton />}>
+                        <SignupsChart />
+                    </Suspense>
                 </CardContent>
             </Card>
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <LineChart className="h-5 w-5 text-primary" />
-                        Application Status Trends
+                        <PieChart className="h-5 w-5 text-primary" />
+                        Application Status Distribution
                     </CardTitle>
+                    <CardDescription>The current status of all submitted applications.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">Chart showing application trends (approved, pending) will be here.</p>
+                    <Suspense fallback={<ChartSkeleton />}>
+                        <StatusChart />
+                    </Suspense>
                 </CardContent>
             </Card>
         </div>
