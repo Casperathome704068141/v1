@@ -51,7 +51,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex flex-col lg:flex-row min-h-screen w-full bg-background">
-       <div className="relative flex flex-col justify-end w-full min-h-96 lg:h-auto lg:w-1/2 p-8 lg:p-12 text-primary-foreground">
+       <div className="relative flex flex-col justify-end w-full lg:h-auto lg:w-1/2 p-8 lg:p-12 text-primary-foreground min-h-[300px] sm:min-h-[400px]">
          <Image 
             src="/login-background.jpg"
             alt="Students studying in Canada"

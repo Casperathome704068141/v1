@@ -77,7 +77,7 @@ export default function SettingsPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 max-w-lg">
                             <Input value={user?.email || ''} readOnly disabled />
                             <Button onClick={handlePasswordReset} disabled={isSendingReset}>
                                 {isSendingReset ? 'Sending...' : 'Send Reset Link'}

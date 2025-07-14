@@ -74,12 +74,12 @@ export default function BillingPage() {
         <AppLayout>
             <main className="flex-1 space-y-6 p-4 md:p-8">
                  <div>
-                    <h1 className="font-headline text-3xl font-bold">Billing &amp; Plan</h1>
+                    <h1 className="font-headline text-3xl font-bold">Billing & Plan</h1>
                     <p className="text-muted-foreground">Manage your subscription and billing details.</p>
                 </div>
 
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                             <CardTitle>Your Current Plan</CardTitle>
                              <div className="flex items-center gap-2 pt-2">
@@ -104,7 +104,7 @@ export default function BillingPage() {
                             ))}
                         </ul>
                     </CardContent>
-                    <CardFooter className="border-t pt-4">
+                    <CardFooter className="border-t pt-4 mt-6">
                         <CardDescription>
                             To manage payment methods or view invoices, please visit your Stripe customer portal.
                         </CardDescription>
