@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { createCheckoutSession } from '@/app/checkout/actions';
 import { loadStripe } from '@stripe/stripe-js';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const tiers = [
   {
@@ -151,93 +152,132 @@ export default function PricingPage() {
   return (
     <AppLayout>
       <main className="flex-1 space-y-12 p-4 md:p-8">
-        <div className="text-center">
+        <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+        >
           <h1 className="font-headline text-4xl font-black text-foreground">
             Find the Plan That's Right For You
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             Select a base package and add any optional services to build your perfect plan.
           </p>
-        </div>
+        </motion.div>
         
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 items-start">
-          {tiers.map((tier) => (
-            <Card key={tier.name} className={cn(
-              `flex flex-col h-full transition-all duration-300`, 
-              selectedPlan?.id === tier.id ? 'border-2 border-primary shadow-2xl scale-105' : 'border-border',
-              tier.popular && !selectedPlan && 'border-primary'
-            )}>
-              {tier.popular && (
-                  <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
-                    <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                      Most Popular
+          {tiers.map((tier, i) => (
+            <motion.div
+                key={tier.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+            >
+                <Card className={cn(
+                  `flex flex-col h-full transition-all duration-300`, 
+                  selectedPlan?.id === tier.id ? 'border-2 border-primary shadow-2xl scale-105' : 'border-border',
+                  tier.popular && !selectedPlan && 'border-primary'
+                )}>
+                  {tier.popular && (
+                      <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
+                        <motion.div 
+                            className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold shadow-lg"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.5 }}
+                        >
+                          Most Popular
+                        </motion.div>
+                      </div>
+                  )}
+                  <CardHeader className="pt-8">
+                    <CardTitle className="font-headline text-2xl font-bold">{tier.name}</CardTitle>
+                    <div className="pt-4 flex items-baseline">
+                        <span className="text-4xl font-bold text-foreground">${tier.price}</span>
+                        {tier.priceSuffix && <span className="text-sm font-semibold text-muted-foreground ml-1">{tier.priceSuffix}</span>}
                     </div>
-                  </div>
-              )}
-              <CardHeader className="pt-8">
-                <CardTitle className="font-headline text-2xl font-bold">{tier.name}</CardTitle>
-                <div className="pt-4 flex items-baseline">
-                    <span className="text-4xl font-bold text-foreground">${tier.price}</span>
-                    {tier.priceSuffix && <span className="text-sm font-semibold text-muted-foreground ml-1">{tier.priceSuffix}</span>}
-                </div>
-                <CardDescription className="h-12">{tier.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <ul className="space-y-4">
-                  {tier.features.map((feature, index) => (
-                    <li key={feature} className="flex items-start">
-                      {feature.includes('plus:') ? (
-                          <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0 text-primary" />
-                      ) : (
-                          <Check className="mr-3 h-5 w-5 flex-shrink-0 text-green-500" />
-                      )}
-                      <span className="text-sm text-muted-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                    className="w-full" 
-                    variant={selectedPlan?.id === tier.id ? 'default' : 'outline'}
-                    onClick={() => handleSelectPlan(tier)}
-                >
-                  {selectedPlan?.id === tier.id ? 'Plan Selected' : tier.cta}
-                </Button>
-              </CardFooter>
-            </Card>
+                    <CardDescription className="h-12">{tier.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <ul className="space-y-4">
+                      {tier.features.map((feature, index) => (
+                        <motion.li 
+                            key={feature} 
+                            className="flex items-start"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: i * 0.1 + 0.2 + index * 0.05 }}
+                        >
+                          {feature.includes('plus:') ? (
+                              <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0 text-primary" />
+                          ) : (
+                              <Check className="mr-3 h-5 w-5 flex-shrink-0 text-green-500" />
+                          )}
+                          <span className="text-sm text-muted-foreground">{feature}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                        className="w-full" 
+                        variant={selectedPlan?.id === tier.id ? 'default' : 'outline'}
+                        onClick={() => handleSelectPlan(tier)}
+                    >
+                      {selectedPlan?.id === tier.id ? 'Plan Selected' : tier.cta}
+                    </Button>
+                  </CardFooter>
+                </Card>
+            </motion.div>
           ))}
         </div>
         
         <Separator />
 
-        <div className="max-w-4xl mx-auto">
-            <Card>
-                <CardHeader className="text-center">
-                    <CardTitle className="font-headline text-2xl">Customize Your Plan</CardTitle>
-                    <CardDescription>Select any à-la-carte services to add to your package.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ul className="space-y-4">
-                        {addOns.map(addon => (
-                            <li key={addon.id} className="flex justify-between items-center rounded-lg border p-4">
-                                <div>
-                                    <Label htmlFor={addon.id} className="font-medium">{addon.name}</Label>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="font-semibold text-primary">${addon.price}</span>
-                                    <Switch 
-                                        id={addon.id} 
-                                        checked={!!selectedAddons[addon.id]}
-                                        onCheckedChange={() => handleAddonToggle(addon.id)}
-                                    />
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </CardContent>
-            </Card>
-        </div>
+        <AnimatePresence>
+        {selectedPlan && (
+            <motion.div 
+                className="max-w-4xl mx-auto"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+            >
+                <Card>
+                    <CardHeader className="text-center">
+                        <CardTitle className="font-headline text-2xl">Customize Your Plan</CardTitle>
+                        <CardDescription>Select any à-la-carte services to add to your package.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="space-y-4">
+                            {addOns.map((addon, i) => (
+                                <motion.li 
+                                    key={addon.id} 
+                                    className="flex justify-between items-center rounded-lg border p-4"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.3, delay: i * 0.1 }}
+                                >
+                                    <div>
+                                        <Label htmlFor={addon.id} className="font-medium">{addon.name}</Label>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <span className="font-semibold text-primary">${addon.price}</span>
+                                        <Switch 
+                                            id={addon.id} 
+                                            checked={!!selectedAddons[addon.id]}
+                                            onCheckedChange={() => handleAddonToggle(addon.id)}
+                                        />
+                                    </div>
+                                </motion.li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            </motion.div>
+        )}
+        </AnimatePresence>
 
         <CartSummary total={total} onCheckout={handleCheckout} isProcessing={isProcessing} />
 
@@ -247,26 +287,42 @@ export default function PricingPage() {
 }
 
 function CartSummary({ total, onCheckout, isProcessing }: { total: number, onCheckout: () => void, isProcessing: boolean }) {
-    if (total === 0) return null;
-
     return (
-        <div className="sticky bottom-0 w-full p-4">
-            <Card className="max-w-2xl mx-auto shadow-2xl bg-background/95 backdrop-blur-sm">
-                <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                        <p className="text-lg font-bold">Total</p>
-                        <p className="text-muted-foreground">Your customized package</p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                        <p className="text-2xl font-black text-primary">${total.toLocaleString()}</p>
-                        <Button size="lg" onClick={onCheckout} disabled={isProcessing}>
-                            {isProcessing ? 'Processing...' : 'Proceed to Checkout'}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+        <AnimatePresence>
+            {total > 0 && (
+                <motion.div
+                    className="sticky bottom-0 w-full p-4"
+                    initial={{ opacity: 0, y: 100 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 100 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                >
+                    <Card className="max-w-2xl mx-auto shadow-2xl bg-background/95 backdrop-blur-sm">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-lg font-bold">Total</p>
+                                <p className="text-muted-foreground">Your customized package</p>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <p className="text-2xl font-black text-primary">${total.toLocaleString()}</p>
+                                <Button size="lg" onClick={onCheckout} disabled={isProcessing}>
+                                    <AnimatePresence mode="wait">
+                                        <motion.span
+                                            key={isProcessing ? 'processing' : 'checkout'}
+                                            initial={{ opacity: 0, y: -20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 20 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            {isProcessing ? 'Processing...' : 'Proceed to Checkout'}
+                                        </motion.span>
+                                    </AnimatePresence>
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            )}
+        </AnimatePresence>
     )
 }
-
-    
