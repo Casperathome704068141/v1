@@ -58,13 +58,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (pathname.startsWith('/admin')) {
-        setLoading(false);
-        return;
-    }
+    const isStudentRoute = !pathname.startsWith('/admin');
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        if (currentUser) {
+        if (currentUser && isStudentRoute) {
             setUser(currentUser);
             const userRef = doc(db, 'users', currentUser.uid);
             
@@ -73,10 +70,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (docSnap.exists()) {
                     setProfile(docSnap.data() as UserProfile);
                 } else {
-                    // This handles new user creation. The onSnapshot will fire again once the doc is created.
                     createUserDocument(currentUser).catch(console.error);
                 }
-                setLoading(false); // This is the key fix: always stop loading after the first check.
+                setLoading(false);
               }, 
               (error) => {
                 console.error("Firestore snapshot error:", error);
@@ -125,7 +121,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       await createUserDocument(result.user);
-      // The onAuthStateChanged listener will handle redirecting and profile listening.
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({

@@ -50,7 +50,12 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
 
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
-    defaultValues: applicationData.personalInfo,
+    defaultValues: {
+      ...applicationData.personalInfo,
+      dob: applicationData.personalInfo?.dob ? new Date(applicationData.personalInfo.dob) : undefined,
+      passportIssueDate: applicationData.personalInfo?.passportIssueDate ? new Date(applicationData.personalInfo.passportIssueDate) : undefined,
+      passportExpiryDate: applicationData.personalInfo?.passportExpiryDate ? new Date(applicationData.personalInfo.passportExpiryDate) : undefined,
+    },
   });
 
   useEffect(() => {
@@ -157,7 +162,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
+                        selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) =>
                           date > new Date() || date < new Date("1900-01-01")
@@ -284,7 +289,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
+                        selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) => date > new Date()}
                         initialFocus
@@ -323,7 +328,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
+                        selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) => date < new Date()}
                         initialFocus

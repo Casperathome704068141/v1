@@ -64,12 +64,23 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user?.uid) {
+    if (typeof window !== 'undefined' && user?.uid) {
       const savedData = localStorage.getItem(`applicationData_${user.uid}`);
       if (savedData) {
-        setApplicationData(JSON.parse(savedData));
+        try {
+          setApplicationData(JSON.parse(savedData));
+        } catch (e) {
+            console.error("Failed to parse application data from localStorage", e);
+            setApplicationData(initialApplicationData);
+        }
+      } else {
+        setApplicationData(initialApplicationData);
       }
       setIsLoaded(true);
+    } else if (!user) {
+        // If user logs out, reset the state but don't mark as loaded until a user logs in.
+        setApplicationData(initialApplicationData);
+        setIsLoaded(false);
     }
   }, [user]);
   
@@ -79,7 +90,7 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
             ...prev,
             [step]: data,
         };
-        if (user?.uid) {
+        if (typeof window !== 'undefined' && user?.uid) {
             localStorage.setItem(`applicationData_${user.uid}`, JSON.stringify(newData));
         }
         return newData;
@@ -88,7 +99,7 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
 
   const resetApplicationData = useCallback(() => {
     setApplicationData(initialApplicationData);
-    if(user?.uid) {
+    if(typeof window !== 'undefined' && user?.uid) {
       localStorage.removeItem(`applicationData_${user.uid}`);
     }
   }, [user]);

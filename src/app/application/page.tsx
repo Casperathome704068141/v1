@@ -110,7 +110,7 @@ function ApplicationPageContent() {
                 <BackgroundForm onSave={handleNext} />
               </TabsContent>
 
-              <TabsContent value="documents" forceMoun={true} hidden={currentStepId !== 'documents'}>
+              <TabsContent value="documents" forceMount={true} hidden={currentStepId !== 'documents'}>
                 <DocumentsForm />
               </TabsContent>
 
