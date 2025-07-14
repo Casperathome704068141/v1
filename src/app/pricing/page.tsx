@@ -2,66 +2,75 @@
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { Check, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const tiers = [
   {
-    name: 'Free',
+    name: 'Explorer',
     price: '$0',
-    description: 'Basic self-serve platform to get you started on your journey.',
+    description: 'Get started with our core tools and see what you can achieve.',
     features: [
       'Eligibility Quiz Access',
-      'Basic College Search',
-      'Document Checklist',
+      'Basic College Match',
+      '15-min Discovery Call Booking',
     ],
-    cta: 'Get Started',
+    cta: 'Start for Free',
     variant: 'outline' as const,
   },
   {
-    name: 'Standard',
+    name: 'Starter',
     price: '$149',
     priceSuffix: 'CAD',
-    description: 'DIY application kit with powerful automation tools to guide you.',
+    description: 'For high-score quiz users (≥75) who just need compliant paperwork.',
     features: [
-      'Everything in Free',
-      'AI-Powered SOP Generator',
-      'Dynamic Document Locker',
-      'Full College Match Filtering',
+      'Auto-filled IMM Forms',
+      'Dynamic Document Checklist',
+      'AI SOP Template Generator',
+      'Live Chat Support (24h)',
     ],
-    cta: 'Choose Standard',
+    cta: 'Choose Starter',
     variant: 'outline' as const,
   },
   {
-    name: 'Premium',
+    name: 'Advantage',
     price: '$299',
     priceSuffix: 'CAD',
-    description: 'The most popular choice for a confident application.',
+    description: 'For mid-score users (50–74) who want an expert to double-check their work.',
     features: [
-      'Everything in Standard',
-      '1-on-1 RCIC Consultation (30 mins)',
-      'Expert SOP Review & Feedback',
-      'Final Application Package Review',
+      'Everything in Starter, plus:',
+      '45-min RCIC Consultation',
+      'Expert SOP Review & Edit',
+      'Final Application QA Check',
     ],
-    cta: 'Choose Premium',
+    cta: 'Choose Advantage',
     popular: true,
     variant: 'default' as const,
   },
   {
-    name: 'Ultimate',
-    price: '$999+',
+    name: 'Elite',
+    price: '$1,099+',
     priceSuffix: 'CAD',
-    description: 'A full-service, white-glove experience from start to finish.',
+    description: 'For low-score users (<50) or busy families wanting full representation.',
     features: [
-      'Everything in Premium',
-      'End-to-end School & Visa Service',
-      'LOA Sourcing (up to 3 schools)',
-      'Full Application Filing by RCIC',
+      'All Advantage features, plus:',
+      'Up to 3 College LOA Sourcing',
+      'Full IRCC Portal Submission',
+      'Priority WhatsApp Support',
     ],
-cta: 'Contact Us',
+    cta: 'Book Elite Consult',
     variant: 'outline' as const,
   },
 ];
+
+const addOns = [
+    { name: "SOP/LOE Full Ghost-Writing", price: "$50" },
+    { name: "Extra College Application", price: "$100 ea." },
+    { name: "IRCC Submission (for Starter/Advantage)", price: "$150" },
+    { name: "24-Hour Rush Processing", price: "$79" },
+    { name: "Hourly Consulting (beyond included)", price: "$100 / hr" },
+]
 
 export default function PricingPage() {
   return (
@@ -90,7 +99,6 @@ export default function PricingPage() {
               )}
               <CardHeader className="pt-8">
                 <CardTitle className="font-headline text-2xl font-bold">{tier.name}</CardTitle>
-                
                 <div className="pt-4 flex items-baseline">
                     <span className="text-4xl font-bold text-foreground">{tier.price}</span>
                     {tier.priceSuffix && <span className="text-sm font-semibold text-muted-foreground ml-1">{tier.priceSuffix}</span>}
@@ -99,9 +107,13 @@ export default function PricingPage() {
               </CardHeader>
               <CardContent className="flex-1">
                 <ul className="space-y-4">
-                  {tier.features.map((feature) => (
+                  {tier.features.map((feature, index) => (
                     <li key={feature} className="flex items-start">
-                      <Check className="mr-3 h-5 w-5 flex-shrink-0 text-green-500" />
+                      {index === 0 && tier.features.length > 1 && feature.includes('Everything') ? (
+                          <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0 text-primary" />
+                      ) : (
+                          <Check className="mr-3 h-5 w-5 flex-shrink-0 text-green-500" />
+                      )}
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -115,6 +127,28 @@ export default function PricingPage() {
             </Card>
           ))}
         </div>
+        
+        <Separator />
+
+        <div className="max-w-2xl mx-auto">
+            <Card>
+                <CardHeader className="text-center">
+                    <CardTitle className="font-headline text-2xl">À-la-carte Services</CardTitle>
+                    <CardDescription>Add these services to any package as needed.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ul className="space-y-3">
+                        {addOns.map(addon => (
+                            <li key={addon.name} className="flex justify-between items-center text-sm">
+                                <span className="text-foreground">{addon.name}</span>
+                                <span className="font-semibold text-primary">{addon.price}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </CardContent>
+            </Card>
+        </div>
+
       </main>
     </AppLayout>
   );
