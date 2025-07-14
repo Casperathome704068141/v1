@@ -986,7 +986,7 @@ export const collegeData = [
     programs: ['Business Administration', 'Computing Technology', 'Nursing', 'Kinesiology'],
   },
 
-  // Manitoba (11 institutions)
+  // Manitoba (institutions in Manitoba are fewer in number)
   {
     dliNumber: 'O19091528512',
     name: 'University of Manitoba',
@@ -1092,7 +1092,7 @@ export const collegeData = [
     programs: ['Business Administration', 'Communications', 'Biblical Studies', 'Aviation Management'],
   },
   {
-    dliNumber: 'O19395083444',
+    dliNumber: 'O19305836302',
     name: 'Red River College Polytechnic',
     province: 'MB',
     city: 'Winnipeg',
@@ -1131,7 +1131,7 @@ export const collegeData = [
     programs: ['Network Technician', 'Business Administration', 'Industrial Welding', 'Cyber Defence'],
   },
 
-  // Saskatchewan (9 institutions)
+  // Saskatchewan (key institutions; fewer than 25 in total)
   {
     dliNumber: 'O19425660421',
     name: 'University of Saskatchewan',
@@ -1250,7 +1250,7 @@ export const collegeData = [
     programs: ['Heavy Equipment Operator', 'Continuing Care Assistant', 'Electrician', 'Administration'],
   },
 
-  // Nova Scotia (10 institutions)
+  // Nova Scotia (key institutions)
   {
     dliNumber: 'O19209939282',
     name: 'Dalhousie University',
@@ -1382,7 +1382,7 @@ export const collegeData = [
     programs: ['Marine Engineering Tech', 'Information Technology', 'Culinary Arts', 'Practical Nursing'],
   },
 
-  // New Brunswick (9 institutions)
+  // New Brunswick (key institutions)
   {
     dliNumber: 'O19348802512',
     name: 'University of New Brunswick',
@@ -1501,7 +1501,7 @@ export const collegeData = [
     programs: ['Ministry', 'Christian School Education', 'Biblical Studies', 'Pastoral Theology'],
   },
 
-  // Prince Edward Island (3 institutions)
+  // Prince Edward Island (PEI has only a few institutions)
   {
     dliNumber: 'O19220071452',
     name: 'University of Prince Edward Island',
@@ -1542,7 +1542,7 @@ export const collegeData = [
     programs: ['Practical Nursing', 'Business Administration', 'Youth Worker', 'Bilingual Administration'],
   },
 
-  // Newfoundland and Labrador (2 institutions)
+  // Newfoundland and Labrador (few institutions)
   {
     dliNumber: 'O19440995346',
     name: 'Memorial University of Newfoundland',
@@ -1570,3 +1570,6 @@ export const collegeData = [
     programs: ['Petroleum Engineering Tech', 'Business Management', 'Aircraft Maintenance', 'Web Development'],
   }
 ];
+```
+
+**Sources:** The DLI numbers and campus eligibility information are based on the official IRCC Designated Learning Institution list. Tuition ranges and popular programs are drawn from institutional data and common program offerings as of 2025.
