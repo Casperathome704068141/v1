@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { UserProfile } from '@/context/auth-context';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 
 type Application = {
     id: string;
@@ -37,7 +38,6 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
     const [user, setUser] = useState<UserProfile | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
@@ -47,6 +47,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
 
     useEffect(() => {
+        const id = params.id;
         if (!id) return;
         
         async function getUserData() {
@@ -102,7 +103,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             }
         }
         getUserData();
-    }, [id]);
+    }, [params]);
     
     const handlePlanUpdate = async (newPlan: string) => {
         if (!user) return;
