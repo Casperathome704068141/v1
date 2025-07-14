@@ -71,11 +71,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               (docSnap) => {
                 if (docSnap.exists()) {
                     setProfile(docSnap.data() as UserProfile);
-                    setLoading(false);
                 } else {
+                    // This handles new user creation. The onSnapshot will fire again once the doc is created.
                     createUserDocument(currentUser).catch(console.error);
-                    // setLoading will be set to false once the new doc snapshot is received
                 }
+                setLoading(false); // This is the key fix: always stop loading after the first check.
               }, 
               (error) => {
                 console.error("Firestore snapshot error:", error);
