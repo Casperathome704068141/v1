@@ -255,7 +255,7 @@ export const collegeData = [
     programs: ['Animation', 'Public Relations', 'Construction Engineering Technician', 'Dental Hygiene'],
   },
   {
-    dliNumber: 'O19395083444',
+    dliNumber: 'O19394931342',
     name: 'Red River College Polytechnic',
     province: 'MB',
     city: 'Winnipeg',
