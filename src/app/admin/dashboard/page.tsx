@@ -8,7 +8,7 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, limit, orderBy, query, where,getCountFromServer } from 'firebase/firestore';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { ArrowRight, UserPlus, Hourglass, CheckCircle, Ban } from 'lucide-react';
+import { ArrowRight, UserPlus, Hourglass, CheckCircle, Ban, FileText } from 'lucide-react';
 
 type Application = {
     id: string;
