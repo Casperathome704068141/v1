@@ -17,9 +17,9 @@ import { useState } from 'react';
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
   return (
-    <div className="flex justify-between py-2 text-sm">
+    <div className="flex flex-col sm:flex-row sm:justify-between py-2 text-sm">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium text-foreground">{value}</dd>
+      <dd className="text-left sm:text-right font-medium text-foreground">{String(value)}</dd>
     </div>
   );
 }

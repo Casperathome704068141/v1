@@ -29,7 +29,7 @@ const educationHistorySchema = z.object({
 const employmentHistorySchema = z.object({
   employer: z.string().min(1, "Employer name is required."),
   position: z.string().min(1, "Position/title is required."),
-  cityCountry: z.string().min(1, "City and country are required."),
+  cityCountry: z.string().min(1, "City and country is required."),
   startDate: z.string().min(1, "Start date is required."),
   endDate: z.string().min(1, "End date is required."),
   time: z.string().min(1, "Please select full-time or part-time."),
@@ -88,11 +88,11 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
             <h3 className="text-lg font-medium">Education History</h3>
             <Separator className="my-4" />
             {educationFields.map((field, index) => (
-              <div key={field.id} className="space-y-4 rounded-md border p-4 mb-4 relative">
+              <div key={field.id} className="space-y-6 rounded-md border p-4 mb-4 relative">
                 <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeEducation(index)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={form.control} name={`educationHistory.${index}.institutionName`} render={({ field }) => (
                         <FormItem><FormLabel>Institution Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
@@ -100,7 +100,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         <FormItem><FormLabel>City, Country</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={form.control} name={`educationHistory.${index}.program`} render={({ field }) => (
                         <FormItem><FormLabel>Program/Degree</FormLabel><FormControl><Input placeholder="e.g. BSc Computer Science" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
@@ -119,7 +119,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         <FormMessage /></FormItem>
                     )} />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={form.control} name={`educationHistory.${index}.startDate`} render={({ field }) => (
                         <FormItem><FormLabel>Start Date</FormLabel><FormControl><Input placeholder="MM/YYYY" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
@@ -127,11 +127,11 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         <FormItem><FormLabel>End Date</FormLabel><FormControl><Input placeholder="MM/YYYY" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={form.control} name={`educationHistory.${index}.graduated`} render={({ field }) => (
                         <FormItem><FormLabel>Graduated?</FormLabel>
                         <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-2">
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                             </RadioGroup>
@@ -142,7 +142,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         <FormField control={form.control} name={`educationHistory.${index}.ecaCompleted`} render={({ field }) => (
                             <FormItem><FormLabel>Have you completed an ECA for this credential?</FormLabel>
                             <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-2">
                                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                                 </RadioGroup>
@@ -163,11 +163,11 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
             <h3 className="text-lg font-medium">Employment History</h3>
             <Separator className="my-4" />
             {employmentFields.map((field, index) => (
-              <div key={field.id} className="space-y-4 rounded-md border p-4 mb-4 relative">
+              <div key={field.id} className="space-y-6 rounded-md border p-4 mb-4 relative">
                  <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeEmployment(index)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={form.control} name={`employmentHistory.${index}.employer`} render={({ field }) => (
                         <FormItem><FormLabel>Employer/Organization</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
@@ -175,7 +175,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         <FormItem><FormLabel>Position/Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField control={form.control} name={`employmentHistory.${index}.cityCountry`} render={({ field }) => (
                         <FormItem><FormLabel>City, Country</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
@@ -191,7 +191,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         <FormMessage /></FormItem>
                     )} />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <FormField control={form.control} name={`employmentHistory.${index}.startDate`} render={({ field }) => (
                         <FormItem><FormLabel>Start Date</FormLabel><FormControl><Input placeholder="MM/YYYY" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
