@@ -1,12 +1,9 @@
-
 /**
  * @fileOverview This file contains the master list of Canadian Designated Learning Institutions (DLIs).
  * This data is used by the `findColleges` AI flow as the source of truth for generating recommendations.
  * To update the college information shown to users, edit the array below.
- *
- * Sources: The DLI numbers and campus eligibility information are based on the official IRCC Designated
- * Learning Institution list. Tuition ranges and popular programs are drawn from institutional
- * data and common program offerings as of 2025.
+ * **Sources:** The DLI numbers and campus eligibility information are based on the official IRCC Designated Learning Institution list.
+ * Tuition ranges and popular programs are drawn from institutional data and common program offerings as of 2025.
  */
 
 export const collegeData = [
@@ -336,6 +333,8 @@ export const collegeData = [
     aiHint: 'community campus',
     programs: ['Business Marketing', 'Flight Training', 'Healthcare Administration', 'Culinary Arts'],
   },
+
+  // British Columbia (25 institutions)
   {
     dliNumber: 'O19330231062',
     name: 'University of British Columbia',
@@ -661,6 +660,8 @@ export const collegeData = [
     aiHint: 'energy sector campus',
     programs: ['Aircraft Maintenance Engineering', 'Trades & Apprenticeships', 'Business Management', 'Health Care Assistant'],
   },
+
+  // Alberta (25 institutions)
   {
     dliNumber: 'O19257171832',
     name: 'University of Alberta',
@@ -986,6 +987,8 @@ export const collegeData = [
     aiHint: 'northern campus',
     programs: ['Business Administration', 'Computing Technology', 'Nursing', 'Kinesiology'],
   },
+
+  // Manitoba (institutions in Manitoba are fewer in number)
   {
     dliNumber: 'O19091528512',
     name: 'University of Manitoba',
@@ -1129,6 +1132,8 @@ export const collegeData = [
     aiHint: 'technical campus',
     programs: ['Network Technician', 'Business Administration', 'Industrial Welding', 'Cyber Defence'],
   },
+
+  // Saskatchewan (key institutions; fewer than 25 in total)
   {
     dliNumber: 'O19425660421',
     name: 'University of Saskatchewan',
@@ -1246,6 +1251,8 @@ export const collegeData = [
     aiHint: 'regional campus',
     programs: ['Heavy Equipment Operator', 'Continuing Care Assistant', 'Electrician', 'Administration'],
   },
+
+  // Nova Scotia (key institutions)
   {
     dliNumber: 'O19209939282',
     name: 'Dalhousie University',
@@ -1376,6 +1383,8 @@ export const collegeData = [
     aiHint: 'coastal campus',
     programs: ['Marine Engineering Tech', 'Information Technology', 'Culinary Arts', 'Practical Nursing'],
   },
+
+  // New Brunswick (key institutions)
   {
     dliNumber: 'O19348802512',
     name: 'University of New Brunswick',
@@ -1493,6 +1502,8 @@ export const collegeData = [
     aiHint: 'Christian college campus',
     programs: ['Ministry', 'Christian School Education', 'Biblical Studies', 'Pastoral Theology'],
   },
+
+  // Prince Edward Island (PEI has only a few institutions)
   {
     dliNumber: 'O19220071452',
     name: 'University of Prince Edward Island',
@@ -1532,6 +1543,8 @@ export const collegeData = [
     aiHint: 'french college campus',
     programs: ['Practical Nursing', 'Business Administration', 'Youth Worker', 'Bilingual Administration'],
   },
+
+  // Newfoundland and Labrador (few institutions)
   {
     dliNumber: 'O19440995346',
     name: 'Memorial University of Newfoundland',
