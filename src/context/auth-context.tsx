@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, signOut as firebaseSignOut, signInWithPopup } from 'firebase/auth';
+import { User, signOut as firebaseSignOut, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,13 +34,17 @@ async function createUserDocument(user: User) {
   const docSnap = await getDoc(userRef);
 
   if (!docSnap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      name: user.displayName,
-      email: user.email,
-      signedUp: serverTimestamp(),
-      plan: 'Free', // Default plan
-    });
+    try {
+        await setDoc(userRef, {
+            uid: user.uid,
+            name: user.displayName,
+            email: user.email,
+            signedUp: serverTimestamp(),
+            plan: 'Free', // Default plan
+        });
+    } catch (error) {
+        console.error("Error creating user document:", error);
+    }
   }
 }
 
@@ -54,35 +58,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (pathname.startsWith('/admin')) {
-      setLoading(false);
-      return;
+        setLoading(false);
+        return;
     }
     
-    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-      setUser(user);
-      if (user) {
-        // Create user document if it doesn't exist (for new sign-ups)
-        await createUserDocument(user);
-        
-        // Listen for changes to the user's profile document
-        const userRef = doc(db, 'users', user.uid);
-        const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
-          if (docSnap.exists()) {
-            setProfile(docSnap.data() as UserProfile);
-          } else {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            setUser(user);
+            const userRef = doc(db, 'users', user.uid);
+            const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    setProfile(docSnap.data() as UserProfile);
+                } else {
+                    // This can happen if the doc creation is slightly delayed
+                    // We attempt to create it here as a fallback.
+                    createUserDocument(user).then(() => {
+                        // The listener will pick up the new doc, so we don't need to set profile here.
+                    });
+                }
+                setLoading(false); // Set loading to false only after we get a response from Firestore
+            }, (error) => {
+                console.error("Firestore snapshot error:", error);
+                setProfile(null);
+                setLoading(false); // Also stop loading on error
+            });
+            return () => unsubscribeProfile();
+        } else {
+            setUser(null);
             setProfile(null);
-          }
-          setLoading(false);
-        });
-
-        return () => unsubscribeProfile();
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
+            setLoading(false);
+        }
     });
 
-    return () => unsubscribeAuth();
+    return () => unsubscribe();
   }, [pathname]);
 
   useEffect(() => {
@@ -114,9 +122,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      // The onAuthStateChanged listener will handle redirecting and profile listening
-      // but we need to ensure the document is created right away.
       await createUserDocument(result.user);
+      // The onAuthStateChanged listener will handle redirecting and profile listening.
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({
