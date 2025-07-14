@@ -121,6 +121,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 ))}
               </SidebarMenu>
             </SidebarContent>
+            <SidebarFooter>
+              <div className="px-4 py-2 text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
+                <p>A BENO 1017 PRODUCT. ALL RIGHTS RESERVED</p>
+              </div>
+            </SidebarFooter>
           </Sidebar>
           <ApplicationProvider>
             <SidebarInset>
