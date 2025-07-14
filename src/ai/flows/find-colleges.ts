@@ -47,7 +47,7 @@ export async function findColleges(input: FindCollegesInput): Promise<FindColleg
     return provinceMatch && tuitionMatch;
   });
 
-  return { colleges: filteredColleges.slice(0, 50) }; // Return up to 50 matches
+  return { colleges: filteredColleges }; // Return all matching colleges
 }
 
 // The AI-based flow is no longer needed for simple filtering.
