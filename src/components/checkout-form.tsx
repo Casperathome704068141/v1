@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { type Stripe, loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
 import { Skeleton } from './ui/skeleton';
+import { useAuth } from '@/context/auth-context';
 
 
 type CartItem = {
@@ -26,7 +27,6 @@ type CartItem = {
 const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: CartItem[] }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -89,6 +89,7 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
 export const CheckoutForm = () => {
     const searchParams = useSearchParams();
     const { toast } = useToast();
+    const { user } = useAuth();
     const [clientSecret, setClientSecret] = useState('');
     const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
     
@@ -104,22 +105,24 @@ export const CheckoutForm = () => {
     }, [searchParams]);
 
     useEffect(() => {
-        getStripePublishableKey().then(key => {
-            if (key) {
-                setStripePromise(loadStripe(key));
-            } else {
-                toast({
-                    variant: 'destructive',
-                    title: 'Configuration Error',
-                    description: 'Stripe publishable key is not available.',
-                });
-            }
-        });
-    }, [toast]);
+        if (!stripePromise) {
+            getStripePublishableKey().then(key => {
+                if (key) {
+                    setStripePromise(loadStripe(key));
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Configuration Error',
+                        description: 'Stripe publishable key is not available.',
+                    });
+                }
+            });
+        }
+    }, [stripePromise, toast]);
 
     useEffect(() => {
-        if (cartItems.length > 0) {
-            createPaymentIntent(cartItems)
+        if (cartItems.length > 0 && user?.uid) {
+            createPaymentIntent({ items: cartItems, userId: user.uid })
                 .then(data => {
                     setClientSecret(data.clientSecret);
                 })
@@ -132,7 +135,7 @@ export const CheckoutForm = () => {
                     console.error("Error creating PaymentIntent:", error);
                 });
         }
-    }, [cartItems, toast]);
+    }, [cartItems, toast, user]);
 
     if (!stripePromise || !clientSecret) {
         return (

@@ -13,12 +13,15 @@ type CartItem = {
 }
 
 export async function getStripePublishableKey() {
-    return process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (!key) {
+        throw new Error('Stripe publishable key not found.');
+    }
+    return key;
 }
 
-export async function createPaymentIntent(items: CartItem[]) {
-    const user = auth.currentUser;
-    if (!user) {
+export async function createPaymentIntent({items, userId}: {items: CartItem[], userId: string}) {
+    if (!userId) {
         throw new Error('User not authenticated.');
     }
 
@@ -32,7 +35,7 @@ export async function createPaymentIntent(items: CartItem[]) {
         throw new Error("Invalid order amount.");
     }
     
-    // Find the primary plan from the cart items (assuming it doesn't have "addon" in the id)
+    // Find the primary plan from the cart items
     const primaryPlan = items.find(item => !item.name.toLowerCase().includes("addon"));
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -42,10 +45,14 @@ export async function createPaymentIntent(items: CartItem[]) {
             enabled: true,
         },
         metadata: {
-            userId: user.uid,
+            userId: userId,
             planName: primaryPlan?.name || 'Custom Plan',
         }
     });
 
-    return { clientSecret: paymentIntent.client_secret, totalAmount: amount };
+    if (!paymentIntent.client_secret) {
+        throw new Error('Failed to create PaymentIntent.');
+    }
+
+    return { clientSecret: paymentIntent.client_secret };
 }

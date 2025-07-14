@@ -62,26 +62,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
     }
     
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-            setUser(user);
-            const userRef = doc(db, 'users', user.uid);
-            const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+            setUser(currentUser);
+            const userRef = doc(db, 'users', currentUser.uid);
+            
+            const unsubscribeProfile = onSnapshot(userRef, 
+              (docSnap) => {
                 if (docSnap.exists()) {
                     setProfile(docSnap.data() as UserProfile);
+                    setLoading(false);
                 } else {
-                    // This can happen if the doc creation is slightly delayed
-                    // We attempt to create it here as a fallback.
-                    createUserDocument(user).then(() => {
-                        // The listener will pick up the new doc, so we don't need to set profile here.
-                    });
+                    createUserDocument(currentUser).catch(console.error);
+                    // setLoading will be set to false once the new doc snapshot is received
                 }
-                setLoading(false); // Set loading to false only after we get a response from Firestore
-            }, (error) => {
+              }, 
+              (error) => {
                 console.error("Firestore snapshot error:", error);
                 setProfile(null);
-                setLoading(false); // Also stop loading on error
+                setLoading(false);
             });
+
             return () => unsubscribeProfile();
         } else {
             setUser(null);
@@ -119,8 +120,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const signInWithGoogle = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       await createUserDocument(result.user);
       // The onAuthStateChanged listener will handle redirecting and profile listening.
@@ -140,7 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const isPublicRoute = publicRoutes.includes(pathname);
-  if (loading || (!user && !isPublicRoute)) {
+  if (loading && !isPublicRoute) {
      return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex flex-col items-center space-y-4">
