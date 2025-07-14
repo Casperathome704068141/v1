@@ -67,7 +67,7 @@ export default function SupportPage() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-4">
                         <Mail className="h-5 w-5 text-primary" />
-                        <a href="mailto:support@mapleleafs.edu" className="text-sm hover:underline">support@mapleleafs.edu</a>
+                        <a href="mailto:support@mapleleafseducation.ca" className="text-sm hover:underline">support@mapleleafseducation.ca</a>
                     </div>
                      <div className="flex items-center gap-4">
                         <Phone className="h-5 w-5 text-primary" />
