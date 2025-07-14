@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import {
   Elements,
   PaymentElement,
@@ -14,22 +14,14 @@ import { getStripePublishableKey, createPaymentIntent } from '@/app/checkout/act
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
+import { Skeleton } from './ui/skeleton';
+
 
 type CartItem = {
     name: string;
     price: number;
     quantity: number;
 }
-
-// Stripe Promise must be created outside of a component's render to avoid recreating it on every render.
-const stripePromise = getStripePublishableKey().then(key => {
-    if (!key) {
-        console.error("Stripe publishable key is not available.");
-        return null;
-    }
-    return loadStripe(key);
-});
-
 
 const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: CartItem[] }) => {
   const stripe = useStripe();
@@ -98,6 +90,7 @@ export const CheckoutForm = () => {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const [clientSecret, setClientSecret] = useState('');
+    const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
     
     const cartItems: CartItem[] = useMemo(() => {
         const cartQuery = searchParams.get('cart');
@@ -109,6 +102,20 @@ export const CheckoutForm = () => {
             return [];
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        getStripePublishableKey().then(key => {
+            if (key) {
+                setStripePromise(loadStripe(key));
+            } else {
+                toast({
+                    variant: 'destructive',
+                    title: 'Configuration Error',
+                    description: 'Stripe publishable key is not available.',
+                });
+            }
+        });
+    }, [toast]);
 
     useEffect(() => {
         if (cartItems.length > 0) {
@@ -127,8 +134,19 @@ export const CheckoutForm = () => {
         }
     }, [cartItems, toast]);
 
-    if (!clientSecret || !stripePromise) {
-        return <div className="text-center">Loading payment form...</div>;
+    if (!stripePromise || !clientSecret) {
+        return (
+            <div className="space-y-6">
+                <div className="space-y-2">
+                    <Skeleton className="h-6 w-1/3" />
+                    <Skeleton className="h-4 w-full" />
+                </div>
+                 <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                 <Skeleton className="h-12 w-full" />
+            </div>
+        )
     }
     
     const options = { clientSecret };
