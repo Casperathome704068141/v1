@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import { useApplication } from '@/context/application-context';
 import { Switch } from '@/components/ui/switch';
-import { findColleges } from '@/ai/flows/find-colleges';
+import { collegeData } from '@/lib/college-data';
 
 type College = {
   dliNumber: string;
@@ -39,8 +39,8 @@ function formatCurrency(value: number) {
 
 function CollegeMatchPageContent() {
     const { applicationData } = useApplication();
-    const [loading, setLoading] = useState(true);
-    const [allColleges, setAllColleges] = useState<College[]>([]);
+    const [loading, setLoading] = useState(false); // Kept for potential future async operations, but not used for filtering.
+    const allColleges: College[] = collegeData;
     
     // State for filters
     const [province, setProvince] = useState('all');
@@ -51,22 +51,6 @@ function CollegeMatchPageContent() {
     const studentBudget = applicationData.finances?.totalFunds;
     const [maxTuition, setMaxTuition] = useState(studentBudget || 70000);
 
-    useEffect(() => {
-        async function getColleges() {
-            setLoading(true);
-            try {
-                const result = await findColleges({ province, programType, maxTuition });
-                setAllColleges(result.colleges);
-            } catch (error) {
-                console.error("Failed to fetch colleges:", error);
-                // Optionally set an error state to show a message
-            } finally {
-                setLoading(false);
-            }
-        }
-        getColleges();
-    }, []); // Fetch once on initial load. Re-fetching on filter change could be a future enhancement.
-    
     const { matchedColleges, unmatchedColleges } = useMemo(() => {
         const matched: (College & { isMatch: boolean; reason: string })[] = [];
         const unmatched: (College & { isMatch: boolean; reason: string })[] = [];
@@ -168,7 +152,7 @@ function CollegeMatchPageContent() {
 
         <main className="md:col-span-3">
             <div className="mb-4">
-                <h1 className="font-bold text-xl">Recommended DLIs ({loading ? '...' : matchedColleges.length})</h1>
+                <h1 className="font-bold text-xl">Recommended DLIs ({matchedColleges.length})</h1>
                 <p className="text-sm text-muted-foreground">
                     Based on your profile and selected filters.
                 </p>
@@ -238,6 +222,4 @@ export default function CollegeMatchPage() {
   return (
     <AppLayout>
       <CollegeMatchPageContent />
-    </AppLayout>
-  )
-}
+    
