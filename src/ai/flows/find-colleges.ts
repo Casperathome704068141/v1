@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Finds and suggests colleges based on user criteria.
@@ -38,10 +39,22 @@ const FindCollegesOutputSchema = z.object({
 export type FindCollegesOutput = z.infer<typeof FindCollegesOutputSchema>;
 
 export async function findColleges(input: FindCollegesInput): Promise<FindCollegesOutput> {
-  return findCollegesFlow(input);
+  // Perform filtering directly in code instead of using AI
+  const filteredColleges = collegeData.filter(college => {
+    const provinceMatch = input.province === 'all' || college.province === input.province;
+    const tuitionMatch = college.tuitionHigh <= input.maxTuition;
+    // Program type filtering is not implemented in the data, so we ignore it for now.
+    return provinceMatch && tuitionMatch;
+  });
+
+  return { colleges: filteredColleges.slice(0, 50) }; // Return up to 50 matches
 }
 
-// System prompt to guide the AI
+// The AI-based flow is no longer needed for simple filtering.
+// We keep the Genkit schema definitions for type safety but bypass the AI call.
+
+/*
+// This AI-based flow is deprecated in favor of direct filtering for performance and reliability.
 const findCollegesSystemPrompt = `You are an expert on Canadian Designated Learning Institutions (DLIs). Your task is to act as a filter for a provided list of colleges.
 
 You will be given a master list of colleges and the user's preferences. You must return a subset of this list, formatted exactly like the input, containing only the colleges that are a good match for the user.
@@ -76,9 +89,8 @@ const findCollegesFlow = ai.defineFlow(
     outputSchema: FindCollegesOutputSchema,
   },
   async (input) => {
-    // In a more complex app, we might pre-filter `collegeData` here before sending to the AI
-    // to save tokens, but for this size, it's fine to let the AI do the filtering.
     const { output } = await prompt(input);
     return output!;
   }
 );
+*/
