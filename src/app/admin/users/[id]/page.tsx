@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +24,7 @@ type Application = {
     id: string;
     status: string;
     submittedAt: string;
+    submittedAtTimestamp: Timestamp | null;
 };
 
 function getStatusBadgeVariant(status: string) {
@@ -67,8 +68,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 // Fetch user's applications
                 const appsQuery = query(
                     collection(db, 'applications'),
-                    where('userId', '==', id),
-                    orderBy('submittedAt', 'desc')
+                    where('userId', '==', id)
                 );
                 const appsSnapshot = await getDocs(appsQuery);
                 const appsList = appsSnapshot.docs.map(doc => {
@@ -76,14 +76,27 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                     return {
                         id: doc.id,
                         status: data.status,
+                        submittedAtTimestamp: data.submittedAt || null,
                         submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'yyyy-MM-dd') : 'N/A',
                     };
                 });
+
+                // Sort applications client-side to avoid needing a composite index
+                appsList.sort((a, b) => {
+                    if (!a.submittedAtTimestamp) return 1;
+                    if (!b.submittedAtTimestamp) return -1;
+                    return b.submittedAtTimestamp.toMillis() - a.submittedAtTimestamp.toMillis();
+                });
+
                 setApplications(appsList);
 
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Firebase error getting document:", err);
-                setError("An error occurred while fetching the user's data.");
+                if (err.code === 'failed-precondition') {
+                     setError("This query requires a Firestore index. Please check the browser console for a link to create it, or contact support.");
+                } else {
+                    setError("An error occurred while fetching the user's data.");
+                }
             } finally {
                 setLoading(false);
             }
@@ -249,3 +262,5 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
         </AdminLayout>
     )
 }
+
+    
