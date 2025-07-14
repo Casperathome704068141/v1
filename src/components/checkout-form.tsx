@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { loadStripe, type Stripe } from '@stripe/stripe-js';
+import { type Stripe, loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   PaymentElement,
@@ -49,7 +49,7 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
 
     if (error.type === "card_error" || error.type === "validation_error") {
       toast({ variant: 'destructive', title: 'Payment Failed', description: error.message });
-    } else {
+    } else if (error) {
       toast({ variant: 'destructive', title: 'An unexpected error occurred.', description: 'Please try again.' });
     }
 

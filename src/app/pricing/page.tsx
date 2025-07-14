@@ -287,7 +287,7 @@ function CartSummary({ total, onCheckout, isProcessing }: { total: number, onChe
                             </div>
                             <div className="flex items-center gap-6">
                                 <p className="text-2xl font-black text-primary">${total.toLocaleString()}</p>
-                                <Button size="lg" onClick={onCheckout} disabled={isProcessing}>
+                                <Button size="lg" onClick={onCheckout} disabled={isProcessing || total <= 0}>
                                     <AnimatePresence mode="wait">
                                         <motion.span
                                             key={isProcessing ? 'processing' : 'checkout'}
