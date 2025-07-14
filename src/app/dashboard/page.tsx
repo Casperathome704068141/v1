@@ -60,7 +60,8 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
     }
 };
 
-function DashboardPageContent() {
+
+export default function DashboardPage() {
   const { user } = useUser();
   const { applicationData } = useApplication();
 
@@ -78,6 +79,7 @@ function DashboardPageContent() {
   const chosenInstitution = applicationData.studyPlan?.programChoice?.split(' - ')[1] || 'Not Selected';
 
   return (
+    <AppLayout>
       <main className="flex-1 space-y-8 p-4 md:p-8">
         <div className="space-y-2">
             <h1 className="text-3xl font-bold text-foreground">
@@ -230,13 +232,6 @@ function DashboardPageContent() {
             </div>
         </div>
       </main>
-  );
-}
-
-export default function DashboardPage() {
-  return (
-    <AppLayout>
-      <DashboardPageContent />
     </AppLayout>
   );
 }
