@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '') return null;
@@ -23,6 +24,15 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
       <dd className="font-medium text-foreground col-span-2">{String(value)}</dd>
     </div>
   );
+}
+
+function getStatusBadgeVariant(status: string) {
+    switch (status) {
+        case 'Approved': return 'default';
+        case 'Pending Review': return 'secondary';
+        case 'Action Required': return 'destructive';
+        default: return 'outline';
+    }
 }
 
 export default function ApplicationDetailPage({ params }: { params: { id: string } }) {
@@ -162,7 +172,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                             <CardContent className="space-y-4">
                                 <dl>
                                     <DataRow label="Submitted At" value={submittedAt?.toDate() ? format(submittedAt.toDate(), 'PPP') : 'N/A'} />
-                                    <DataRow label="Current Status" value={<Badge variant={application.status === 'Approved' ? 'default' : application.status === 'Action Required' ? 'destructive' : 'secondary'}>{application.status}</Badge>} />
+                                    <DataRow label="Current Status" value={<Badge variant={getStatusBadgeVariant(application.status)}>{application.status}</Badge>} />
                                 </dl>
                                 <Separator />
                                 <div className="space-y-2">
