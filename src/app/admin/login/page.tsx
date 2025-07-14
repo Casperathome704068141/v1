@@ -12,6 +12,7 @@ import { Shield, ArrowLeft } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -61,14 +62,12 @@ export default function AdminLoginPage() {
   return (
     <main className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center">
-            <div className="mx-auto bg-primary text-primary-foreground p-3 rounded-full w-fit mb-4">
-                <Shield className="h-8 w-8" />
-            </div>
+        <CardHeader className="text-center items-center">
+            <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} className="text-primary"/>
           <CardTitle className="font-headline text-3xl font-black text-foreground">
-            Staff Portal
+            Maple Leafs Education
           </CardTitle>
-          <CardDescription>Please enter your administrator credentials.</CardDescription>
+          <CardDescription>Staff Portal</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">

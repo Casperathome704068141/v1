@@ -29,6 +29,7 @@ import { usePathname } from 'next/navigation';
 import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy, LogOut, DollarSign } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ApplicationProvider } from '@/context/application-context';
+import Image from 'next/image';
 
 function UserMenu() {
   const { user, signOut } = useAuth();
@@ -85,7 +86,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Sidebar>
             <SidebarHeader>
               <div className="flex items-center gap-3 p-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-sidebar-foreground"><path d="M12 22l-2-2 4-4 2 2-4 4z"/><path d="M18 16l-4-4 2-2 4 4-2 2z"/><path d="M12.5 7.5L10 5 2 13l2 2 2.5-2.5L10 10l-2 2 2 2 2-2 2.5 2.5L13 13l7-7-2-2-2.5 2.5L13 10l-2-2 1.5-1.5z"/><path d="M2 13l4.5 4.5"/><path d="M16.5 10.5L21 6"/></svg>
+                <Image src="/logo.svg" alt="MLE Logo" width={24} height={24} className="text-sidebar-foreground"/>
                 <h1 className="text-lg font-semibold text-sidebar-foreground">Maple Leafs</h1>
               </div>
             </SidebarHeader>

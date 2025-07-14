@@ -13,6 +13,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import Image from 'next/image';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props}>
@@ -66,7 +67,8 @@ export default function SignupPage() {
   return (
     <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center items-center">
+          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} className="text-primary"/>
           <CardTitle className="font-headline text-3xl font-black text-foreground">
             Create an Account
           </CardTitle>

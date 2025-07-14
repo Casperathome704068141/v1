@@ -13,6 +13,7 @@ import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Briefcase } from 'lucide-react';
+import Image from 'next/image';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props}>
@@ -56,7 +57,8 @@ export default function LoginPage() {
                 <Briefcase className="h-4 w-4 text-muted-foreground" />
             </Button>
         </Link>
-        <CardHeader className="text-center">
+        <CardHeader className="text-center items-center">
+          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} className="text-primary"/>
           <CardTitle className="font-headline text-3xl font-black text-foreground">
             Maple Leafs Education
           </CardTitle>
