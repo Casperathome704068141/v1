@@ -35,7 +35,7 @@ function UserMenu() {
 
   const handleSignOut = () => {
     // In a real app, clear admin session/token
-    router.push('/admin/login');
+    router.replace('/admin/login');
   };
 
   return (

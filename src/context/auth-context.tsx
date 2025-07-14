@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-      router.push('/');
+      router.replace('/'); // Use replace instead of push
     } catch (error) {
       console.error("Error signing out: ", error);
        toast({
