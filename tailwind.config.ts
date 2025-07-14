@@ -10,9 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Lato', 'sans-serif'],
-        headline: ['Montserrat', 'sans-serif'],
-        code: ['Roboto Mono', 'monospace'],
+        body: ['var(--font-lato)', 'sans-serif'],
+        headline: ['var(--font-montserrat)', 'sans-serif'],
+        code: ['var(--font-roboto-mono)', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
