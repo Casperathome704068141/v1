@@ -50,6 +50,7 @@ const documentDisplayList = [
 ];
 
 export default function ApplicationDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const [application, setApplication] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState('');
@@ -63,7 +64,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
             setLoading(true);
             setError(null);
             try {
-                const docRef = doc(db, 'applications', params.id);
+                const docRef = doc(db, 'applications', id);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -80,12 +81,14 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                 setLoading(false);
             }
         }
-        getApplication();
-    }, [params.id]);
+        if (id) {
+          getApplication();
+        }
+    }, [id]);
 
     const handleStatusUpdate = async () => {
         setIsUpdating(true);
-        const docRef = doc(db, 'applications', params.id);
+        const docRef = doc(db, 'applications', id);
         try {
             await updateDoc(docRef, { status: status });
             toast({
@@ -169,7 +172,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                         Back to Applications
                     </Button>
                     <h1 className="font-headline text-3xl font-bold">Application: {personalInfo?.givenNames} {personalInfo?.surname}</h1>
-                    <p className="text-muted-foreground">ID: {params.id}</p>
+                    <p className="text-muted-foreground">ID: {id}</p>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { UserProfile } from '@/context/auth-context';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 type Application = {
     id: string;
@@ -35,6 +36,7 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const [user, setUser] = useState<UserProfile | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
@@ -44,12 +46,14 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
 
     useEffect(() => {
+        if (!id) return;
+        
         async function getUserData() {
             setLoading(true);
             setError(null);
             try {
                 // Fetch user document
-                const userDocRef = doc(db, 'users', params.id);
+                const userDocRef = doc(db, 'users', id);
                 const userDocSnap = await getDoc(userDocRef);
 
                 if (userDocSnap.exists()) {
@@ -63,7 +67,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 // Fetch user's applications
                 const appsQuery = query(
                     collection(db, 'applications'),
-                    where('userId', '==', params.id),
+                    where('userId', '==', id),
                     orderBy('submittedAt', 'desc')
                 );
                 const appsSnapshot = await getDocs(appsQuery);
@@ -85,7 +89,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             }
         }
         getUserData();
-    }, [params.id]);
+    }, [id]);
     
     const handlePlanUpdate = async (newPlan: string) => {
         if (!user) return;
@@ -192,7 +196,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                                             <SelectItem value="Elite">Elite</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <FormDescription>Changing the plan will grant or revoke access to paid features.</FormDescription>
+                                    <p className="text-xs text-muted-foreground pt-2">Changing the plan will grant or revoke access to paid features.</p>
                                 </div>
                                 <Separator/>
                                  <dl>
