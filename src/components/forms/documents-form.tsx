@@ -93,7 +93,10 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
             toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.` });
         } catch (error: any) {
             console.error("Upload error:", error);
-            toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.` });
+            const description = error.code === 'storage/unauthorized'
+                ? `Permission denied. Please check your Storage rules to allow uploads for path: users/${user.uid}/...`
+                : `Could not upload ${file.name}.`;
+            toast({ variant: 'destructive', title: 'Upload Failed', description });
         } finally {
             setIsUploading(false);
         }
@@ -122,7 +125,10 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.` });
         } catch (error: any) {
             console.error("Delete error:", error);
-            toast({ variant: 'destructive', title: 'Delete Failed', description: `Could not delete ${fileToDelete.fileName}.` });
+             const description = error.code === 'storage/unauthorized'
+                ? `Permission denied. Please check your Storage rules.`
+                : `Could not delete ${fileToDelete.fileName}.`;
+            toast({ variant: 'destructive', title: 'Delete Failed', description });
         } finally {
             setIsUploading(false);
         }
@@ -209,8 +215,11 @@ export function DocumentsForm() {
 
                 filesUploadedCount++;
             } catch (error: any) {
-                console.error("Upload error:", error);
-                toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.` });
+                console.error("Upload error in dropzone:", error);
+                 const description = error.code === 'storage/unauthorized'
+                    ? `Permission denied. Please check your Storage rules.`
+                    : `Could not upload ${file.name}.`;
+                toast({ variant: 'destructive', title: 'Upload Failed', description });
             }
         }
 

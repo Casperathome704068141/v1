@@ -62,12 +62,16 @@ function ApplicationReviewContent() {
         resetApplicationData();
         router.push('/dashboard');
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error submitting application: ", error);
+        const description = error.code === 'permission-denied'
+            ? 'You do not have permission to perform this action. Please check your Firestore rules.'
+            : 'There was an error submitting your application. Please try again.';
+
         toast({
             variant: 'destructive',
             title: 'Submission Failed',
-            description: 'There was an error submitting your application. Please try again.',
+            description: description,
         });
         setIsSubmitting(false);
     }
