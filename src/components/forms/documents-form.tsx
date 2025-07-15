@@ -1,5 +1,6 @@
-'use client';
 
+'use client';
+import * as React from 'react';
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,60 +23,7 @@ const getStatusInfo = (files?: UploadedFile[]) => {
     return { icon: Circle, color: 'text-muted-foreground', badgeVariant: 'secondary' as const, label: 'Pending' };
 }
 
-function FileUploadDropzone({ isUploading, onUploadStart, onUploadComplete }: { isUploading: boolean, onUploadStart: (count: number) => void, onUploadComplete: () => void }) {
-    const { user } = useAuth();
-    const { applicationData, updateStepData } = useApplication();
-    const { toast } = useToast();
-
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
-        if (!user || acceptedFiles.length === 0) return;
-
-        onUploadStart(acceptedFiles.length);
-
-        let filesUploadedCount = 0;
-        const newDocumentsData = structuredClone(applicationData.documents || {});
-
-        for (const file of acceptedFiles) {
-            const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-            const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
-
-            if (!matchingDoc) {
-                toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not categorize '${file.name}'. Please use individual upload buttons.` });
-                continue;
-            }
-
-            try {
-                const storagePath = `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`;
-                const storageRef = ref(storage, storagePath);
-                await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(storageRef);
-
-                const newFile: UploadedFile = {
-                    fileName: file.name,
-                    url: downloadURL,
-                    date: new Date().toISOString(),
-                    path: storagePath,
-                };
-
-                const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
-                currentDoc.files.push(newFile);
-                currentDoc.status = 'Uploaded';
-                newDocumentsData[matchingDoc.id] = currentDoc;
-
-                filesUploadedCount++;
-            } catch (error: any) {
-                toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.` });
-            }
-        }
-
-        if (filesUploadedCount > 0) {
-            await updateStepData('documents', newDocumentsData);
-            toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.` });
-        }
-
-        onUploadComplete();
-    }, [user, applicationData.documents, toast, updateStepData, onUploadStart, onUploadComplete]);
-    
+function FileUploadDropzone({ isUploading, onDrop }: { isUploading: boolean, onDrop: (acceptedFiles: File[]) => void }) {
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
         onDrop, 
         accept: {'application/pdf':[], 'image/jpeg':[], 'image/png':[]},
@@ -164,7 +112,7 @@ function DocumentItem({ docInfo, statusData }: { docInfo: typeof documentList[0]
             const currentDoc = newDocumentsData[docInfo.id];
             if (!currentDoc) return;
 
-            currentDoc.files = currentDoc.files.filter((f: UploadedFile) => f.url !== fileToDelete.url);
+            currentDoc.files = currentDoc.files.filter((f: UploadedFile) => f.path !== fileToDelete.path);
             if (currentDoc.files.length === 0) {
                 currentDoc.status = 'Pending';
             }
@@ -226,8 +174,51 @@ function DocumentItem({ docInfo, statusData }: { docInfo: typeof documentList[0]
 }
 
 export function DocumentsForm() {
-    const { applicationData } = useApplication();
-    const [uploadingFileCount, setUploadingFileCount] = useState(0);
+    const { applicationData, updateStepData } = useApplication();
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isDropzoneUploading, setIsDropzoneUploading] = useState(false);
+
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        if (!user) return;
+        setIsDropzoneUploading(true);
+        
+        let filesUploadedCount = 0;
+        const newDocumentsData = structuredClone(applicationData.documents || {});
+
+        for (const file of acceptedFiles) {
+            const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+            const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
+
+            if (!matchingDoc) {
+                toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not categorize '${file.name}'. Please use individual upload buttons.` });
+                continue;
+            }
+
+            try {
+                const storagePath = `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`;
+                const storageRef = ref(storage, storagePath);
+                await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(storageRef);
+                const newFile: UploadedFile = { fileName: file.name, url: downloadURL, date: new Date().toISOString(), path: storagePath };
+
+                const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
+                currentDoc.files.push(newFile);
+                currentDoc.status = 'Uploaded';
+                newDocumentsData[matchingDoc.id] = currentDoc;
+                filesUploadedCount++;
+            } catch (error: any) {
+                toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.` });
+            }
+        }
+
+        if (filesUploadedCount > 0) {
+            await updateStepData('documents', newDocumentsData);
+            toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.` });
+        }
+
+        setIsDropzoneUploading(false);
+    }, [user, applicationData.documents, toast, updateStepData]);
 
     const coreDocs = documentList.filter(d => d.category === 'Core');
     const situationalDocs = documentList.filter(d => d.category === 'Situational');
@@ -242,9 +233,8 @@ export function DocumentsForm() {
             </CardHeader>
             <CardContent className="space-y-8">
                 <FileUploadDropzone 
-                    isUploading={uploadingFileCount > 0}
-                    onUploadStart={(count) => setUploadingFileCount(count)}
-                    onUploadComplete={() => setUploadingFileCount(0)}
+                    isUploading={isDropzoneUploading}
+                    onDrop={onDrop}
                 />
 
                 <div className="space-y-6">
