@@ -93,11 +93,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
     };
     
-    const isStudentRoute = !pathname.startsWith('/admin');
-    
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setLoading(true);
-        if (currentUser && isStudentRoute) {
+        if (currentUser) {
             setUser(currentUser);
             const userRef = doc(db, 'users', currentUser.uid);
             
@@ -125,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     if (loading || pathname.startsWith('/admin')) {
@@ -152,7 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) return;
     try {
       await firebaseSignOut(auth);
-      router.replace('/');
+      router.replace('/'); // Use replace to prevent back button from going to protected page
     } catch (error) {
       console.error("Error signing out: ", error);
        toast({
