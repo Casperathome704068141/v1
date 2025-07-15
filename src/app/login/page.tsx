@@ -13,7 +13,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -116,6 +116,12 @@ export default function LoginPage() {
               <Link href="/signup" className="font-semibold text-primary/90 hover:text-primary hover:underline">
                 Sign up
               </Link>
+            </div>
+            <div className="mt-4 text-center text-sm">
+                 <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary hover:underline">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Home
+                </Link>
             </div>
           </CardContent>
         </Card>

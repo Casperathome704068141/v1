@@ -15,6 +15,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import Image from 'next/image';
+import { ArrowLeft } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props}>
@@ -110,10 +111,16 @@ export default function SignupPage() {
           </form>
           <div className="mt-6 text-center text-sm">
             Already have an account?{' '}
-            <Link href="/" className="font-semibold text-primary/90 hover:text-primary hover:underline">
+            <Link href="/login" className="font-semibold text-primary/90 hover:text-primary hover:underline">
               Log in
             </Link>
           </div>
+           <div className="mt-4 text-center text-sm">
+                 <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary hover:underline">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Home
+                </Link>
+            </div>
         </CardContent>
       </Card>
     </main>
