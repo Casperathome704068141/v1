@@ -186,18 +186,18 @@ export default function MarketingPage() {
             <div>
               <h4 className="font-semibold mb-2">Platform</h4>
               <nav className="flex flex-col gap-1 text-sm text-muted-foreground">
-                <Link href="#how-it-works" className="hover:text-primary hover:underline">How It Works</Link>
-                <Link href="#testimonials" className="hover:text-primary hover:underline">Testimonials</Link>
+                <Link href="/#how-it-works" className="hover:text-primary hover:underline">How It Works</Link>
+                <Link href="/#testimonials" className="hover:text-primary hover:underline">Testimonials</Link>
                 <Link href="/pricing" className="hover:text-primary hover:underline">Pricing</Link>
               </nav>
             </div>
             <div>
               <h4 className="font-semibold mb-2">Company</h4>
                <nav className="flex flex-col gap-1 text-sm text-muted-foreground">
-                <Link href="#" className="hover:text-primary hover:underline">About Us</Link>
-                <Link href="#" className="hover:text-primary hover:underline">Contact</Link>
-                <Link href="#" className="hover:text-primary hover:underline">Privacy Policy</Link>
-                <Link href="#" className="hover:text-primary hover:underline">Terms of Service</Link>
+                <Link href="/about" className="hover:text-primary hover:underline">About Us</Link>
+                <Link href="/support" className="hover:text-primary hover:underline">Contact</Link>
+                <Link href="/privacy" className="hover:text-primary hover:underline">Privacy Policy</Link>
+                <Link href="/terms" className="hover:text-primary hover:underline">Terms of Service</Link>
               </nav>
             </div>
              <div>
