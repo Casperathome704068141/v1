@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
@@ -140,33 +141,52 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
 
   const updateStepData = useCallback(async (step: keyof Omit<ApplicationData, 'selectedCollege'>, data: any) => {
     if (!user?.uid) return;
+    
+    // Optimistic UI update
+    setApplicationData(prevData => ({ ...prevData, [step]: data }));
+
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
       await setDoc(docRef, { [step]: data }, { merge: true });
     } catch (error) {
       console.error("Error updating application step data:", error);
+      // Optional: Revert state on failure by refetching or storing old state.
     }
   }, [user]);
 
   const updateCollegeAndProgram = useCallback(async (college: College, program: string) => {
     if (!user?.uid) return;
+    
+    let newStudyPlanForDb: Partial<StudyPlanFormValues>;
+
+    // Optimistic UI update using functional form to avoid stale state
+    setApplicationData(prevData => {
+      const newStudyPlan = { ...prevData.studyPlan, programChoice: program };
+      newStudyPlanForDb = newStudyPlan; // capture the new state for db write
+      return {
+          ...prevData,
+          selectedCollege: college,
+          studyPlan: newStudyPlan,
+      };
+    });
+
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
-    const newStudyPlan = {
-      ...(applicationData.studyPlan || {}),
-      programChoice: program,
-    };
     try {
       await setDoc(docRef, {
         selectedCollege: college,
-        studyPlan: newStudyPlan
+        studyPlan: newStudyPlanForDb!
       }, { merge: true });
     } catch (error) {
       console.error("Error updating college/program:", error);
     }
-  }, [user, applicationData.studyPlan]);
+  }, [user]);
 
   const resetApplicationData = useCallback(async () => {
     if (!user?.uid) return;
+    
+    // Optimistic UI update
+    setApplicationData(initialApplicationData);
+
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
       await setDoc(docRef, initialApplicationData);
