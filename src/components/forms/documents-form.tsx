@@ -1,10 +1,11 @@
 
 'use client';
+
 import * as React from 'react';
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, FileText, UploadCloud, Trash2, Loader2, Circle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, FileText, UploadCloud, Trash2, Loader2, Circle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
@@ -65,26 +66,13 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
     const statusData = applicationData.documents?.[docInfo.id];
 
     const handleFileUpload = async (file: File | null) => {
-        console.log(`[handleFileUpload] Triggered for docId: ${docInfo.id}`);
-
-        if (!file || !user) {
-            console.error("[handleFileUpload] Aborting: File or user is missing.", { file, user });
-            return;
-        }
-
+        if (!file || !user) return;
         setIsUploading(true);
-        console.log(`[handleFileUpload] State set to uploading for ${file.name}`);
-
         try {
             const storagePath = `users/${user.uid}/documents/${docInfo.id}/${file.name}`;
-            console.log(`[handleFileUpload] Determined storage path: ${storagePath}`);
-
             const storageRef = ref(storage, storagePath);
             await uploadBytes(storageRef, file);
-            console.log("[handleFileUpload] uploadBytes successful.");
-
             const downloadURL = await getDownloadURL(storageRef);
-            console.log(`[handleFileUpload] getDownloadURL successful. URL: ${downloadURL}`);
 
             const newFile: UploadedFile = {
                 fileName: file.name,
@@ -92,27 +80,22 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
                 date: new Date().toISOString(),
                 path: storagePath,
             };
-            console.log("[handleFileUpload] Created newFile object:", newFile);
-            
-            const currentDocs = applicationData.documents || {};
-            const newDocumentsData = structuredClone(currentDocs);
-            
+
+            const newDocumentsData = structuredClone(applicationData.documents || {});
             const currentDoc = newDocumentsData[docInfo.id] || { status: 'Pending', files: [] };
+            
             currentDoc.files.push(newFile);
             currentDoc.status = 'Uploaded';
             newDocumentsData[docInfo.id] = currentDoc;
-            console.log("[handleFileUpload] Prepared new documents object for update:", newDocumentsData);
 
             await updateStepData('documents', newDocumentsData);
-            console.log("[handleFileUpload] updateStepData successful.");
 
             toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.` });
         } catch (error: any) {
-            console.error("[handleFileUpload] An error occurred in the try block:", error);
-            toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}. Check console for details.` });
+            console.error("Upload error:", error);
+            toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.` });
         } finally {
             setIsUploading(false);
-            console.log(`[handleFileUpload] State set to NOT uploading for ${docInfo.id}`);
         }
     };
 
@@ -122,7 +105,6 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
         if (!confirm) return;
         
         setIsUploading(true);
-
         try {
             const fileRef = ref(storage, fileToDelete.path);
             await deleteObject(fileRef);
@@ -135,9 +117,8 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
                 if (currentDoc.files.length === 0) {
                     currentDoc.status = 'Pending';
                 }
-                 await updateStepData('documents', newDocumentsData);
+                await updateStepData('documents', newDocumentsData);
             }
-
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.` });
         } catch (error: any) {
             console.error("Delete error:", error);
@@ -199,40 +180,26 @@ export function DocumentsForm() {
     const [isDropzoneUploading, setIsDropzoneUploading] = useState(false);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
-        console.log("[onDrop] Triggered.");
-        if (!user) {
-            console.error("[onDrop] Aborting: User is not available.");
-            return;
-        }
-
+        if (!user) return;
         setIsDropzoneUploading(true);
-        console.log("[onDrop] State set to uploading.");
-
+        
         let filesUploadedCount = 0;
         const newDocumentsData = structuredClone(applicationData.documents || {});
 
         for (const file of acceptedFiles) {
-            console.log(`[onDrop] Processing file: ${file.name}`);
             const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
             const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
 
             if (!matchingDoc) {
                 toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not categorize '${file.name}'. Please use individual upload buttons.` });
-                console.warn(`[onDrop] No matching document type found for ${file.name}`);
                 continue;
             }
 
             try {
                 const storagePath = `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`;
-                console.log(`[onDrop] Determined storage path: ${storagePath}`);
-
                 const storageRef = ref(storage, storagePath);
                 await uploadBytes(storageRef, file);
-                console.log(`[onDrop] uploadBytes successful for ${file.name}.`);
-
                 const downloadURL = await getDownloadURL(storageRef);
-                console.log(`[onDrop] getDownloadURL successful for ${file.name}.`);
-
                 const newFile: UploadedFile = { fileName: file.name, url: downloadURL, date: new Date().toISOString(), path: storagePath };
 
                 const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
@@ -242,20 +209,17 @@ export function DocumentsForm() {
 
                 filesUploadedCount++;
             } catch (error: any) {
-                console.error(`[onDrop] An error occurred while uploading ${file.name}:`, error);
+                console.error("Upload error:", error);
                 toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.` });
             }
         }
 
         if (filesUploadedCount > 0) {
-            console.log(`[onDrop] Preparing to update Firestore with ${filesUploadedCount} new file(s).`, newDocumentsData);
             await updateStepData('documents', newDocumentsData);
-            console.log("[onDrop] updateStepData successful.");
             toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.` });
         }
 
         setIsDropzoneUploading(false);
-        console.log("[onDrop] State set to NOT uploading.");
     }, [user, applicationData.documents, toast, updateStepData]);
 
     const coreDocs = documentList.filter(d => d.category === 'Core');
