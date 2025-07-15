@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useApplication } from "@/context/application-context";
+import { useEffect } from "react";
 
 const backgroundSchema = z.object({
   visaRefusal: z.enum(["yes", "no"], { required_error: "This field is required." }),
@@ -65,12 +66,49 @@ interface BackgroundFormProps {
 }
 
 export function BackgroundForm({ onSave }: BackgroundFormProps) {
-  const { applicationData, updateStepData } = useApplication();
+  const { applicationData, updateStepData, isLoaded } = useApplication();
   
   const form = useForm<BackgroundFormValues>({
     resolver: zodResolver(backgroundSchema),
-    defaultValues: applicationData.background,
+    defaultValues: {
+      visaRefusal: 'no',
+      visaRefusalDetails: '',
+      criminalRecord: 'no',
+      criminalRecordDetails: '',
+      medicalConditions: 'no',
+      medicalConditionsDetails: '',
+      refugeeClaim: 'no',
+      refugeeClaimDetails: '',
+      deportation: 'no',
+      deportationDetails: '',
+      overstay: 'no',
+      overstayDetails: '',
+      certification: false,
+      ...applicationData.background,
+    },
   });
+
+  useEffect(() => {
+    if (isLoaded) {
+        form.reset({
+            visaRefusal: 'no',
+            visaRefusalDetails: '',
+            criminalRecord: 'no',
+            criminalRecordDetails: '',
+            medicalConditions: 'no',
+            medicalConditionsDetails: '',
+            refugeeClaim: 'no',
+            refugeeClaimDetails: '',
+            deportation: 'no',
+            deportationDetails: '',
+            overstay: 'no',
+            overstayDetails: '',
+            certification: false,
+            ...applicationData.background
+        });
+    }
+  }, [isLoaded, applicationData.background, form]);
+
 
   const watchFields = form.watch();
 
@@ -100,7 +138,7 @@ export function BackgroundForm({ onSave }: BackgroundFormProps) {
                             <FormItem className="space-y-3">
                             <FormLabel>{q.label}</FormLabel>
                             <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                                 </RadioGroup>

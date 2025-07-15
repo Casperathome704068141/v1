@@ -16,6 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useApplication } from "@/context/application-context";
+import { useEffect } from "react";
 
 const twoYearsAgo = new Date();
 twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
@@ -56,15 +57,38 @@ interface LanguageFormProps {
 }
 
 export function LanguageForm({ onSave }: LanguageFormProps) {
-  const { applicationData, updateStepData } = useApplication();
+  const { applicationData, updateStepData, isLoaded } = useApplication();
 
   const form = useForm<LanguageFormValues>({
     resolver: zodResolver(languageSchema),
     defaultValues: {
+      testTaken: 'none',
+      testPlanning: '',
+      overallScore: '',
+      listening: '',
+      reading: '',
+      writing: '',
+      speaking: '',
       ...applicationData.language,
-      testDate: applicationData.language?.testDate ? new Date(applicationData.language.testDate) : undefined,
     }
   });
+  
+  useEffect(() => {
+    if (isLoaded) {
+      const langData = applicationData.language;
+      form.reset({
+        testTaken: 'none',
+        testPlanning: '',
+        overallScore: '',
+        listening: '',
+        reading: '',
+        writing: '',
+        speaking: '',
+        ...langData,
+        testDate: langData?.testDate ? new Date(langData.testDate) : undefined,
+      });
+    }
+  }, [isLoaded, applicationData.language, form]);
 
   const watchTestTaken = form.watch("testTaken");
 
@@ -91,7 +115,7 @@ export function LanguageForm({ onSave }: LanguageFormProps) {
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Test Taken</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a test" />
@@ -116,7 +140,7 @@ export function LanguageForm({ onSave }: LanguageFormProps) {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Which test do you plan to take?</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a test" />

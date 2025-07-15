@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useApplication } from "@/context/application-context";
+import { useEffect } from "react";
 
 const fundingSources = [
   { id: "self", label: "Self" },
@@ -62,12 +63,37 @@ interface FinancesFormProps {
 }
 
 export function FinancesForm({ onSave }: FinancesFormProps) {
-  const { applicationData, updateStepData } = useApplication();
+  const { applicationData, updateStepData, isLoaded } = useApplication();
   
   const form = useForm<FinancesFormValues>({
     resolver: zodResolver(financesSchema),
-    defaultValues: applicationData.finances,
+    defaultValues: {
+      totalFunds: 0,
+      fundingSources: [],
+      primarySponsorName: '',
+      sponsorRelationship: '',
+      proofType: [],
+      tuitionPrepaid: 'no',
+      gicPurchased: 'no',
+      ...applicationData.finances,
+    },
   });
+
+  useEffect(() => {
+    if (isLoaded) {
+      form.reset({
+        totalFunds: 0,
+        fundingSources: [],
+        primarySponsorName: '',
+        sponsorRelationship: '',
+        proofType: [],
+        tuitionPrepaid: 'no',
+        gicPurchased: 'no',
+        ...applicationData.finances,
+      });
+    }
+  }, [isLoaded, applicationData.finances, form]);
+
   
   const watchFundingSources = form.watch("fundingSources");
   const isSponsorSelected = watchFundingSources?.includes("family") || watchFundingSources?.includes("sponsor");
@@ -237,7 +263,7 @@ export function FinancesForm({ onSave }: FinancesFormProps) {
                 <FormField control={form.control} name="tuitionPrepaid" render={({ field }) => (
                     <FormItem className="space-y-3"><FormLabel>Have you pre-paid your first year's tuition?</FormLabel>
                     <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
                             <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                         </RadioGroup>
@@ -247,7 +273,7 @@ export function FinancesForm({ onSave }: FinancesFormProps) {
                  <FormField control={form.control} name="gicPurchased" render={({ field }) => (
                     <FormItem className="space-y-3"><FormLabel>Have you purchased a GIC of $10,000+?</FormLabel>
                     <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
                             <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                         </RadioGroup>

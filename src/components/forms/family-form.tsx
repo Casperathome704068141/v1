@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useApplication } from "@/context/application-context";
+import { useEffect } from "react";
 
 const childSchema = z.object({
   name: z.string().min(1, "Child's name is required."),
@@ -55,21 +57,51 @@ interface FamilyFormProps {
 }
 
 export function FamilyForm({ onSave }: FamilyFormProps) {
-  const { applicationData, updateStepData } = useApplication();
+  const { applicationData, updateStepData, isLoaded } = useApplication();
 
   const form = useForm<FamilyFormValues>({
     resolver: zodResolver(familySchema),
     defaultValues: {
+      parent1Name: '',
+      parent2Name: '',
+      parentAddresses: '',
+      maritalStatus: '',
+      spouseName: '',
+      spouseAccompanying: 'no',
+      children: [],
+      emergencyContactName: '',
+      emergencyContactPhone: '',
       ...applicationData.family,
       // Pre-fill marital status from personal info form if available
-      maritalStatus: applicationData.personalInfo?.maritalStatus || applicationData.family?.maritalStatus,
-      // Ensure date objects are properly instantiated
-      parent1Dob: applicationData.family?.parent1Dob ? new Date(applicationData.family.parent1Dob) : undefined,
-      parent2Dob: applicationData.family?.parent2Dob ? new Date(applicationData.family.parent2Dob) : undefined,
-      spouseDob: applicationData.family?.spouseDob ? new Date(applicationData.family.spouseDob) : undefined,
-      children: applicationData.family?.children?.map(c => ({...c, dob: c.dob ? new Date(c.dob) : new Date() })) || [],
+      maritalStatus: applicationData.personalInfo?.maritalStatus || applicationData.family?.maritalStatus || '',
     },
   });
+
+  useEffect(() => {
+    if (isLoaded) {
+      const familyData = applicationData.family;
+      form.reset({
+        parent1Name: '',
+        parent2Name: '',
+        parentAddresses: '',
+        maritalStatus: '',
+        spouseName: '',
+        spouseAccompanying: 'no',
+        children: [],
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        ...familyData,
+        // Pre-fill marital status from personal info form if available
+        maritalStatus: applicationData.personalInfo?.maritalStatus || familyData?.maritalStatus || '',
+        // Ensure date objects are properly instantiated
+        parent1Dob: familyData?.parent1Dob ? new Date(familyData.parent1Dob) : undefined,
+        parent2Dob: familyData?.parent2Dob ? new Date(familyData.parent2Dob) : undefined,
+        spouseDob: familyData?.spouseDob ? new Date(familyData.spouseDob) : undefined,
+        children: familyData?.children?.map(c => ({...c, dob: c.dob ? new Date(c.dob) : new Date() })) || [],
+      });
+    }
+  }, [isLoaded, applicationData.family, applicationData.personalInfo, form]);
+
 
   const { fields: childrenFields, append: appendChild, remove: removeChild } = useFieldArray({
     control: form.control,
@@ -125,7 +157,7 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
                 <Separator className="my-4" />
                  <FormField control={form.control} name="maritalStatus" render={({ field }) => (
                     <FormItem><FormLabel>Marital Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger></FormControl>
                             <SelectContent>
                                 <SelectItem value="single">Single</SelectItem><SelectItem value="married">Married</SelectItem><SelectItem value="common-law">Common-Law</SelectItem><SelectItem value="divorced">Divorced</SelectItem><SelectItem value="widowed">Widowed</SelectItem>
@@ -146,7 +178,7 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
                      <FormField control={form.control} name="spouseAccompanying" render={({ field }) => (
                         <FormItem className="space-y-3 mt-6"><FormLabel>Will your spouse accompany you to Canada?</FormLabel>
                         <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                             </RadioGroup>
@@ -176,7 +208,7 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
                     <FormField control={form.control} name={`children.${index}.accompanying`} render={({ field }) => (
                         <FormItem className="space-y-3"><FormLabel>Will this child accompany you to Canada?</FormLabel>
                         <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                             </RadioGroup>

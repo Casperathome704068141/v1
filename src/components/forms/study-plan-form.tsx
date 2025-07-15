@@ -26,29 +26,39 @@ interface StudyPlanFormProps {
 }
 
 export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
-  const { applicationData, updateStepData } = useApplication();
+  const { applicationData, updateStepData, isLoaded } = useApplication();
 
   const form = useForm<StudyPlanFormValues>({
     resolver: zodResolver(studyPlanSchema),
     defaultValues: {
+      programChoice: 'Please select a college first',
+      whyInstitution: '',
+      howProgramFitsCareer: '',
+      longTermGoals: '',
       ...applicationData.studyPlan,
-      programChoice: applicationData.studyPlan?.programChoice
-        ? `${applicationData.studyPlan.programChoice} - ${applicationData.selectedCollege?.name}`
-        : 'Please select a college first'
     },
   });
 
   useEffect(() => {
-    const program = applicationData.studyPlan?.programChoice;
-    const college = applicationData.selectedCollege?.name;
-    if (program && college) {
-      form.setValue('programChoice', `${program} - ${college}`);
+    if(isLoaded) {
+      const program = applicationData.studyPlan?.programChoice;
+      const college = applicationData.selectedCollege?.name;
+      let programChoiceText = 'Please select a college first';
+      if (program && college) {
+        programChoiceText = `${program} - ${college}`;
+      }
+      form.reset({
+        ...applicationData.studyPlan,
+        programChoice: programChoiceText,
+        whyInstitution: applicationData.studyPlan?.whyInstitution || '',
+        howProgramFitsCareer: applicationData.studyPlan?.howProgramFitsCareer || '',
+        longTermGoals: applicationData.studyPlan?.longTermGoals || '',
+      });
     }
-  }, [applicationData.studyPlan?.programChoice, applicationData.selectedCollege?.name, form]);
+  }, [isLoaded, applicationData.studyPlan, applicationData.selectedCollege, form]);
 
 
   function onSubmit(data: StudyPlanFormValues) {
-    // We only need to save the fields from this form, not the programChoice which is managed elsewhere.
     const { programChoice, ...formDataToSave } = data;
     const existingStudyPlan = applicationData.studyPlan || {};
 

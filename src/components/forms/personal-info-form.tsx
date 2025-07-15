@@ -45,25 +45,52 @@ interface PersonalInfoFormProps {
 }
 
 export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
-  const { applicationData, updateStepData } = useApplication();
+  const { applicationData, updateStepData, isLoaded } = useApplication();
   const { user } = useAuth();
 
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
-      ...applicationData.personalInfo,
-      dob: applicationData.personalInfo?.dob ? new Date(applicationData.personalInfo.dob) : undefined,
-      passportIssueDate: applicationData.personalInfo?.passportIssueDate ? new Date(applicationData.personalInfo.passportIssueDate) : undefined,
-      passportExpiryDate: applicationData.personalInfo?.passportExpiryDate ? new Date(applicationData.personalInfo.passportExpiryDate) : undefined,
+        surname: '',
+        givenNames: '',
+        gender: '',
+        countryOfBirth: '',
+        countryOfCitizenship: '',
+        countryOfResidence: '',
+        maritalStatus: '',
+        passportNumber: '',
+        passportIssuingCountry: '',
+        homeAddress: '',
+        email: '',
+        phoneNumber: '',
+        ...applicationData.personalInfo,
     },
   });
 
   useEffect(() => {
-    // Pre-fill email from user auth if it's not already set
-    if (user?.email && !form.getValues('email')) {
-      form.setValue('email', user.email);
+    if (isLoaded) {
+      const personalInfo = applicationData.personalInfo;
+      const valuesToReset = {
+        surname: '',
+        givenNames: '',
+        gender: '',
+        countryOfBirth: '',
+        countryOfCitizenship: '',
+        countryOfResidence: '',
+        maritalStatus: '',
+        passportNumber: '',
+        passportIssuingCountry: '',
+        homeAddress: '',
+        email: user?.email || '', // Default to auth user email
+        phoneNumber: '',
+        ...personalInfo,
+        dob: personalInfo?.dob ? new Date(personalInfo.dob) : undefined,
+        passportIssueDate: personalInfo?.passportIssueDate ? new Date(personalInfo.passportIssueDate) : undefined,
+        passportExpiryDate: personalInfo?.passportExpiryDate ? new Date(personalInfo.passportExpiryDate) : undefined,
+      };
+      form.reset(valuesToReset);
     }
-  }, [user, form]);
+  }, [isLoaded, applicationData.personalInfo, user, form]);
 
   function onSubmit(data: PersonalInfoFormValues) {
     updateStepData('personalInfo', data);
@@ -118,7 +145,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Gender</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
@@ -184,7 +211,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Marital Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -415,7 +442,6 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
             />
           </div>
         </CardContent>
-        {/* The footer with buttons is now in the parent page.tsx */}
       </form>
     </Form>
   );

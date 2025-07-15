@@ -14,6 +14,7 @@ import { Separator } from "../ui/separator";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useApplication } from "@/context/application-context";
+import { useEffect } from "react";
 
 const educationHistorySchema = z.object({
   institutionName: z.string().min(1, "Institution name is required."),
@@ -47,11 +48,15 @@ interface AcademicsFormProps {
 }
 
 export function AcademicsForm({ onSave }: AcademicsFormProps) {
-  const { applicationData, updateStepData } = useApplication();
+  const { applicationData, updateStepData, isLoaded } = useApplication();
   
   const form = useForm<AcademicsFormValues>({
     resolver: zodResolver(academicsSchema),
-    defaultValues: applicationData.academics,
+    defaultValues: {
+      educationHistory: [],
+      employmentHistory: [],
+      ...applicationData.academics,
+    },
   });
 
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
@@ -65,6 +70,17 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
   });
 
   const watchEducationHistory = form.watch("educationHistory");
+  
+  useEffect(() => {
+    if (isLoaded) {
+      form.reset({
+        educationHistory: [],
+        employmentHistory: [],
+        ...applicationData.academics,
+      });
+    }
+  }, [isLoaded, applicationData.academics, form]);
+
 
   function onSubmit(data: AcademicsFormValues) {
     updateStepData('academics', data);
@@ -106,7 +122,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                     )} />
                     <FormField control={form.control} name={`educationHistory.${index}.credential`} render={({ field }) => (
                         <FormItem><FormLabel>Credential Earned</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select credential" /></SelectTrigger></FormControl>
                             <SelectContent>
                                 <SelectItem value="diploma">Diploma</SelectItem>
@@ -131,7 +147,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                     <FormField control={form.control} name={`educationHistory.${index}.graduated`} render={({ field }) => (
                         <FormItem><FormLabel>Graduated?</FormLabel>
                         <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-2">
+                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 pt-2">
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                             </RadioGroup>
@@ -142,7 +158,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         <FormField control={form.control} name={`educationHistory.${index}.ecaCompleted`} render={({ field }) => (
                             <FormItem><FormLabel>Have you completed an ECA for this credential?</FormLabel>
                             <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-2">
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 pt-2">
                                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                                 </RadioGroup>
@@ -181,7 +197,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                     )} />
                     <FormField control={form.control} name={`employmentHistory.${index}.time`} render={({ field }) => (
                         <FormItem><FormLabel>Full-time or Part-time</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
                             <SelectContent>
                                 <SelectItem value="full-time">Full-time</SelectItem>
@@ -206,7 +222,6 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
             </Button>
           </div>
         </CardContent>
-        {/* The footer with buttons is in the parent page.tsx */}
       </form>
     </Form>
   );
