@@ -18,18 +18,17 @@ import { useToast } from "@/hooks/use-toast";
 
 const getStatusInfo = (files?: UploadedFile[]) => {
     if (files && files.length > 0) {
-        return { icon: CheckCircle2, color: 'text-green-500', badgeVariant: 'secondary' as const, label: 'Uploaded' };
+        return { icon: CheckCircle2, color: 'text-green-500', badgeVariant: 'default' as const, label: 'Uploaded' };
     }
-    return { icon: FileText, color: 'text-muted-foreground', badgeVariant: 'outline' as const, label: 'Pending' };
+    return { icon: FileText, color: 'text-muted-foreground', badgeVariant: 'secondary' as const, label: 'Pending' };
 }
 
 export function DocumentsForm() {
-    const { applicationData, updateStepData } = useApplication();
-    const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
+    const { applicationData } = useApplication();
+    const [processingDocId, setProcessingDocId] = useState<string | null>(null);
 
-    const handleUploadComplete = () => {
-        setUploadingDocId(null);
-    }
+    const handleProcessStart = (docId: string) => setProcessingDocId(docId);
+    const handleProcessEnd = () => setProcessingDocId(null);
     
     const coreDocs = documentList.filter(d => d.category === 'Core');
     const situationalDocs = documentList.filter(d => d.category === 'Situational');
@@ -44,8 +43,9 @@ export function DocumentsForm() {
             </CardHeader>
             <CardContent className="space-y-8">
                 <FileUploadDropzone 
-                    onUploadStart={setUploadingDocId}
-                    onUploadComplete={handleUploadComplete}
+                    onUploadStart={handleProcessStart}
+                    onUploadComplete={handleProcessEnd}
+                    isUploading={!!processingDocId}
                 />
 
                 <div className="space-y-6">
@@ -57,7 +57,9 @@ export function DocumentsForm() {
                                     <DocumentItem 
                                         docInfo={doc}
                                         statusData={applicationData.documents?.[doc.id]}
-                                        isUploading={uploadingDocId === doc.id}
+                                        isProcessing={processingDocId === doc.id}
+                                        onProcessStart={() => handleProcessStart(doc.id)}
+                                        onProcessEnd={handleProcessEnd}
                                     />
                                     {index < arr.length - 1 && <Separator />}
                                 </div>
@@ -74,7 +76,9 @@ export function DocumentsForm() {
                                         <DocumentItem 
                                             docInfo={doc}
                                             statusData={applicationData.documents?.[doc.id]}
-                                            isUploading={uploadingDocId === doc.id}
+                                            isProcessing={processingDocId === doc.id}
+                                            onProcessStart={() => handleProcessStart(doc.id)}
+                                            onProcessEnd={handleProcessEnd}
                                         />
                                         {index < arr.length - 1 && <Separator />}
                                     </div>
@@ -88,7 +92,11 @@ export function DocumentsForm() {
     );
 }
 
-function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart: (docId: string) => void, onUploadComplete: () => void }) {
+function FileUploadDropzone({ onUploadStart, onUploadComplete, isUploading }: { 
+    onUploadStart: (docId: string) => void, 
+    onUploadComplete: () => void,
+    isUploading: boolean 
+}) {
     const { user } = useAuth();
     const { applicationData, updateStepData } = useApplication();
     const { toast } = useToast();
@@ -117,7 +125,7 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart
                     };
 
                     const newDocData = structuredClone(applicationData.documents);
-                    const currentDoc = newDocData[matchingDoc.id] || { files: [] };
+                    const currentDoc = newDocData[matchingDoc.id] || { status: 'Pending', files: [] };
                     
                     currentDoc.files.push(newFile);
                     currentDoc.status = 'Uploaded';
@@ -138,39 +146,54 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart
         }
     }, [user, applicationData.documents, toast, onUploadStart, onUploadComplete, updateStepData]);
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: {'application/pdf':[], 'image/jpeg':[], 'image/png':[]} });
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+        onDrop, 
+        accept: {'application/pdf':[], 'image/jpeg':[], 'image/png':[]},
+        disabled: isUploading 
+    });
 
     return (
-        <div {...getRootProps()} className={cn("border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+        <div {...getRootProps()} className={cn("border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+            isUploading ? "cursor-not-allowed bg-muted/50" : "cursor-pointer",
             isDragActive ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
         )}>
             <input {...getInputProps()} />
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <UploadCloud className="h-10 w-10" />
-                <p className="font-semibold">
-                    {isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select"}
-                </p>
-                <p className="text-xs">PDF, JPG, PNG (Max 5MB per file)</p>
+                {isUploading ? (
+                    <>
+                        <Loader2 className="h-10 w-10 animate-spin" />
+                        <p className="font-semibold">Uploading...</p>
+                    </>
+                ) : (
+                    <>
+                        <UploadCloud className="h-10 w-10" />
+                        <p className="font-semibold">
+                            {isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select"}
+                        </p>
+                        <p className="text-xs">PDF, JPG, PNG (Max 5MB per file)</p>
+                    </>
+                )}
             </div>
         </div>
     )
 }
 
-function DocumentItem({ docInfo, statusData, isUploading }: { 
+function DocumentItem({ docInfo, statusData, isProcessing, onProcessStart, onProcessEnd }: { 
     docInfo: typeof documentList[0];
     statusData: any; 
-    isUploading: boolean;
+    isProcessing: boolean;
+    onProcessStart: () => void;
+    onProcessEnd: () => void;
 }) {
     const { user } = useAuth();
     const { applicationData, updateStepData } = useApplication();
     const { toast } = useToast();
-    const [isProcessing, setIsProcessing] = useState(false);
     const statusInfo = getStatusInfo(statusData?.files);
 
     const handleFileUpload = async (file: File | null) => {
         if (!file || !user) return;
         
-        setIsProcessing(true);
+        onProcessStart();
 
         try {
             const storageRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${file.name}`);
@@ -179,7 +202,7 @@ function DocumentItem({ docInfo, statusData, isUploading }: {
 
             const newFile: UploadedFile = { fileName: file.name, url: downloadURL, date: new Date().toISOString() };
             const newDocData = structuredClone(applicationData.documents);
-            const currentDoc = newDocData[docInfo.id] || { files: [] };
+            const currentDoc = newDocData[docInfo.id] || { status: 'Pending', files: [] };
             
             currentDoc.files.push(newFile);
             currentDoc.status = 'Uploaded';
@@ -192,7 +215,7 @@ function DocumentItem({ docInfo, statusData, isUploading }: {
             console.error("Upload error:", error);
             toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
         } finally {
-            setIsProcessing(false);
+            onProcessEnd();
         }
     };
     
@@ -202,7 +225,7 @@ function DocumentItem({ docInfo, statusData, isUploading }: {
         const confirm = window.confirm(`Are you sure you want to delete ${fileToDelete.fileName}?`);
         if (!confirm) return;
         
-        setIsProcessing(true);
+        onProcessStart();
         try {
             const fileRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${fileToDelete.fileName}`);
             await deleteObject(fileRef);
@@ -223,11 +246,9 @@ function DocumentItem({ docInfo, statusData, isUploading }: {
             console.error("Delete error:", error);
             toast({ variant: 'destructive', title: 'Delete Failed', description: `Could not delete ${fileToDelete.fileName}.`});
         } finally {
-             setIsProcessing(false);
+             onProcessEnd();
         }
     };
-
-    const isLoading = isUploading || isProcessing;
 
     return (
         <div className="p-4">
@@ -241,12 +262,12 @@ function DocumentItem({ docInfo, statusData, isUploading }: {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-                     <Badge variant={statusInfo.badgeVariant} className="hidden md:inline-flex w-28 justify-center">{statusInfo.label}</Badge>
-                     <Button variant="secondary" size="sm" asChild disabled={isLoading}>
+                     <Badge variant={statusInfo.badgeVariant} className={cn("hidden md:inline-flex w-28 justify-center", statusInfo.badgeVariant === 'default' && 'bg-green-100 text-green-800')}>{statusInfo.label}</Badge>
+                     <Button variant="secondary" size="sm" asChild disabled={isProcessing}>
                         <label className="cursor-pointer">
-                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                           {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                             Upload
-                            <input type="file" className="sr-only" onChange={(e) => handleFileUpload(e.target.files ? e.target.files[0] : null)} />
+                            <input type="file" className="sr-only" disabled={isProcessing} onChange={(e) => handleFileUpload(e.target.files ? e.target.files[0] : null)} />
                         </label>
                     </Button>
                 </div>
@@ -259,7 +280,7 @@ function DocumentItem({ docInfo, statusData, isUploading }: {
                                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <span className="font-mono text-xs truncate" title={file.fileName}>{file.fileName}</span>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(file)} disabled={isLoading}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(file)} disabled={isProcessing}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
                                 <span className="sr-only">Delete file</span>
                             </Button>
