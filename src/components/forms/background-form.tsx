@@ -68,43 +68,32 @@ interface BackgroundFormProps {
 export function BackgroundForm({ onSave }: BackgroundFormProps) {
   const { applicationData, updateStepData, isLoaded } = useApplication();
   
-  const form = useForm<BackgroundFormValues>({
-    resolver: zodResolver(backgroundSchema),
-    defaultValues: {
-      visaRefusal: 'no',
+  const defaultValues = {
+      visaRefusal: 'no' as 'no' | 'yes',
       visaRefusalDetails: '',
-      criminalRecord: 'no',
+      criminalRecord: 'no' as 'no' | 'yes',
       criminalRecordDetails: '',
-      medicalConditions: 'no',
+      medicalConditions: 'no' as 'no' | 'yes',
       medicalConditionsDetails: '',
-      refugeeClaim: 'no',
+      refugeeClaim: 'no' as 'no' | 'yes',
       refugeeClaimDetails: '',
-      deportation: 'no',
+      deportation: 'no' as 'no' | 'yes',
       deportationDetails: '',
-      overstay: 'no',
+      overstay: 'no' as 'no' | 'yes',
       overstayDetails: '',
       certification: false,
-      ...applicationData.background,
-    },
+  };
+
+  const form = useForm<BackgroundFormValues>({
+    resolver: zodResolver(backgroundSchema),
+    defaultValues: defaultValues,
   });
 
   useEffect(() => {
     if (isLoaded) {
         form.reset({
-            visaRefusal: 'no',
-            visaRefusalDetails: '',
-            criminalRecord: 'no',
-            criminalRecordDetails: '',
-            medicalConditions: 'no',
-            medicalConditionsDetails: '',
-            refugeeClaim: 'no',
-            refugeeClaimDetails: '',
-            deportation: 'no',
-            deportationDetails: '',
-            overstay: 'no',
-            overstayDetails: '',
-            certification: false,
-            ...applicationData.background
+            ...defaultValues,
+            ...(applicationData.background || {}),
         });
     }
   }, [isLoaded, applicationData.background, form]);

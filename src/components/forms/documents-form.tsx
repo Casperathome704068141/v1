@@ -94,54 +94,48 @@ function FileUploadDropzone() {
         }
 
         let filesUploadedCount = 0;
-
-        try {
-            for (const file of acceptedFiles) {
-                const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-                const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
-                
-                if (matchingDoc) {
-                    try {
-                        const storageRef = ref(storage, `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`);
-                        await uploadBytes(storageRef, file);
-                        const downloadURL = await getDownloadURL(storageRef);
-
-                        const newFile: UploadedFile = {
-                            fileName: file.name,
-                            url: downloadURL,
-                            date: new Date().toISOString()
-                        };
-
-                        const newDocumentsData = structuredClone(applicationData.documents || {});
-                        const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
-                        
-                        currentDoc.files.push(newFile);
-                        currentDoc.status = 'Uploaded';
-                        newDocumentsData[matchingDoc.id] = currentDoc;
-                        
-                        // Fire-and-forget: Let the onSnapshot listener handle the final UI update.
-                        updateStepData('documents', newDocumentsData);
-                        filesUploadedCount++;
-
-                    } catch (error: any) {
-                        console.error("Upload error:", error);
-                         let description = `Could not upload ${file.name}.`;
-                        if (error.code === 'storage/unauthorized') {
-                            description = 'You do not have permission to upload files. Please contact support.';
-                        }
-                        toast({ variant: 'destructive', title: 'Upload Failed', description });
-                    }
-                } else {
-                    toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not automatically categorize '${file.name}'. Please use the individual upload buttons.` });
-                }
-            }
+        const uploadPromises = acceptedFiles.map(async (file) => {
+            const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+            const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
             
-            if (filesUploadedCount > 0) {
-               toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.`});
+            if (matchingDoc) {
+                try {
+                    const storageRef = ref(storage, `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`);
+                    await uploadBytes(storageRef, file);
+                    const downloadURL = await getDownloadURL(storageRef);
+
+                    const newFile: UploadedFile = {
+                        fileName: file.name,
+                        url: downloadURL,
+                        date: new Date().toISOString()
+                    };
+
+                    const newDocumentsData = structuredClone(applicationData.documents || {});
+                    const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
+                    
+                    currentDoc.files.push(newFile);
+                    currentDoc.status = 'Uploaded';
+                    newDocumentsData[matchingDoc.id] = currentDoc;
+                    
+                    await updateStepData('documents', newDocumentsData);
+                    filesUploadedCount++;
+
+                } catch (error: any) {
+                    console.error("Upload error:", error);
+                     let description = `Could not upload ${file.name}. Check permissions and try again.`;
+                    toast({ variant: 'destructive', title: 'Upload Failed', description });
+                }
+            } else {
+                toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not automatically categorize '${file.name}'. Please use the individual upload buttons.` });
             }
-        } finally {
-            setIsUploading(false);
+        });
+
+        await Promise.all(uploadPromises);
+        
+        if (filesUploadedCount > 0) {
+           toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.`});
         }
+        setIsUploading(false);
     }, [user, applicationData.documents, toast, updateStepData]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -205,16 +199,12 @@ function DocumentItem({ docInfo, statusData }: {
             currentDoc.status = 'Uploaded';
             newDocumentsData[docInfo.id] = currentDoc;
 
-            // Fire-and-forget: Let the onSnapshot listener handle the final UI update.
-            updateStepData('documents', newDocumentsData);
+            await updateStepData('documents', newDocumentsData);
 
             toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.`});
         } catch (error: any) {
             console.error("Upload error:", error);
-            let description = `Could not upload ${file.name}.`;
-            if (error.code === 'storage/unauthorized') {
-                description = 'You do not have permission to upload files. Please contact support.';
-            }
+            let description = `Could not upload ${file.name}. Check permissions and try again.`;
             toast({ variant: 'destructive', title: 'Upload Failed', description });
         } finally {
             setIsUploading(false);
@@ -229,10 +219,10 @@ function DocumentItem({ docInfo, statusData }: {
         
         setIsUploading(true);
         try {
-            const fileRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${fileToDelete.fileName}`);
+            const fileRef = ref(storage, fileToDelete.url);
             await deleteObject(fileRef);
 
-            const newDocumentsData = structuredClone(applicationData.documents);
+            const newDocumentsData = structuredClone(applicationData.documents || {});
             const currentDoc = newDocumentsData[docInfo.id];
             if (!currentDoc) return;
 
@@ -241,16 +231,12 @@ function DocumentItem({ docInfo, statusData }: {
                 currentDoc.status = 'Pending';
             }
             
-            // Fire-and-forget
-            updateStepData('documents', newDocumentsData);
+            await updateStepData('documents', newDocumentsData);
 
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.`});
         } catch (error: any) {
             console.error("Delete error:", error);
-            let description = `Could not delete ${fileToDelete.fileName}.`;
-            if (error.code === 'storage/unauthorized') {
-                description = 'You do not have permission to delete files. Please contact support.';
-            }
+            let description = `Could not delete ${fileToDelete.fileName}. Check permissions and try again.`;
             toast({ variant: 'destructive', title: 'Delete Failed', description });
         } finally {
              setIsUploading(false);

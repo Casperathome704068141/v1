@@ -65,31 +65,26 @@ interface FinancesFormProps {
 export function FinancesForm({ onSave }: FinancesFormProps) {
   const { applicationData, updateStepData, isLoaded } = useApplication();
   
-  const form = useForm<FinancesFormValues>({
-    resolver: zodResolver(financesSchema),
-    defaultValues: {
+  const defaultValues = {
       totalFunds: 0,
       fundingSources: [],
       primarySponsorName: '',
       sponsorRelationship: '',
       proofType: [],
-      tuitionPrepaid: 'no',
-      gicPurchased: 'no',
-      ...applicationData.finances,
-    },
+      tuitionPrepaid: 'no' as 'no' | 'yes',
+      gicPurchased: 'no' as 'no' | 'yes',
+  };
+
+  const form = useForm<FinancesFormValues>({
+    resolver: zodResolver(financesSchema),
+    defaultValues: defaultValues,
   });
 
   useEffect(() => {
     if (isLoaded) {
       form.reset({
-        totalFunds: 0,
-        fundingSources: [],
-        primarySponsorName: '',
-        sponsorRelationship: '',
-        proofType: [],
-        tuitionPrepaid: 'no',
-        gicPurchased: 'no',
-        ...applicationData.finances,
+        ...defaultValues,
+        ...(applicationData.finances || {}),
       });
     }
   }, [isLoaded, applicationData.finances, form]);

@@ -24,7 +24,7 @@ const educationHistorySchema = z.object({
   startDate: z.string().min(1, "Start date is required."), // Using string for month/year picker simplicity
   endDate: z.string().min(1, "End date is required."),
   graduated: z.enum(["yes", "no"], { required_error: "Please select an option." }),
-  ecaCompleted: z.enum(["yes", "no"]).optional(),
+  ecaCompleted: z.enum(["yes", "no", ""]).optional(),
 });
 
 const employmentHistorySchema = z.object({
@@ -37,8 +37,8 @@ const employmentHistorySchema = z.object({
 });
 
 const academicsSchema = z.object({
-  educationHistory: z.array(educationHistorySchema),
-  employmentHistory: z.array(employmentHistorySchema),
+  educationHistory: z.array(educationHistorySchema).optional(),
+  employmentHistory: z.array(employmentHistorySchema).optional(),
 });
 
 export type AcademicsFormValues = z.infer<typeof academicsSchema>;
@@ -50,13 +50,14 @@ interface AcademicsFormProps {
 export function AcademicsForm({ onSave }: AcademicsFormProps) {
   const { applicationData, updateStepData, isLoaded } = useApplication();
   
+  const defaultValues = {
+    educationHistory: [],
+    employmentHistory: [],
+  };
+
   const form = useForm<AcademicsFormValues>({
     resolver: zodResolver(academicsSchema),
-    defaultValues: {
-      educationHistory: [],
-      employmentHistory: [],
-      ...applicationData.academics,
-    },
+    defaultValues: defaultValues,
   });
 
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
@@ -74,8 +75,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
   useEffect(() => {
     if (isLoaded) {
       form.reset({
-        educationHistory: [],
-        employmentHistory: [],
+        ...defaultValues,
         ...applicationData.academics,
       });
     }
@@ -154,11 +154,11 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                         </FormControl>
                         <FormMessage /></FormItem>
                     )} />
-                    {watchEducationHistory[index]?.graduated === 'yes' && (
+                    {watchEducationHistory?.[index]?.graduated === 'yes' && (
                         <FormField control={form.control} name={`educationHistory.${index}.ecaCompleted`} render={({ field }) => (
                             <FormItem><FormLabel>Have you completed an ECA for this credential?</FormLabel>
                             <FormControl>
-                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4 pt-2">
+                                <RadioGroup onValueChange={field.onChange} value={field.value || ""} className="flex gap-4 pt-2">
                                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="yes" /></FormControl><FormLabel className="font-normal">Yes</FormLabel></FormItem>
                                     <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No</FormLabel></FormItem>
                                 </RadioGroup>
@@ -169,7 +169,7 @@ export function AcademicsForm({ onSave }: AcademicsFormProps) {
                 </div>
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => appendEducation({ institutionName: '', cityCountry: '', program: '', credential: '', startDate: '', endDate: '', graduated: 'no' })}>
+            <Button type="button" variant="outline" size="sm" onClick={() => appendEducation({ institutionName: '', cityCountry: '', program: '', credential: '', startDate: '', endDate: '', graduated: 'no', ecaCompleted: '' })}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Education
             </Button>
           </div>

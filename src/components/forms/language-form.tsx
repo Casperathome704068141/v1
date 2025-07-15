@@ -58,34 +58,30 @@ interface LanguageFormProps {
 
 export function LanguageForm({ onSave }: LanguageFormProps) {
   const { applicationData, updateStepData, isLoaded } = useApplication();
-
-  const form = useForm<LanguageFormValues>({
-    resolver: zodResolver(languageSchema),
-    defaultValues: {
+  
+  const defaultValues = {
       testTaken: 'none',
       testPlanning: '',
+      testDate: undefined,
       overallScore: '',
       listening: '',
       reading: '',
       writing: '',
       speaking: '',
-      ...applicationData.language,
-    }
+  };
+
+  const form = useForm<LanguageFormValues>({
+    resolver: zodResolver(languageSchema),
+    defaultValues: defaultValues
   });
   
   useEffect(() => {
     if (isLoaded) {
-      const langData = applicationData.language;
+      const langData = applicationData.language || {};
       form.reset({
-        testTaken: 'none',
-        testPlanning: '',
-        overallScore: '',
-        listening: '',
-        reading: '',
-        writing: '',
-        speaking: '',
+        ...defaultValues,
         ...langData,
-        testDate: langData?.testDate ? new Date(langData.testDate) : undefined,
+        testDate: langData.testDate ? new Date(langData.testDate) : undefined,
       });
     }
   }, [isLoaded, applicationData.language, form]);

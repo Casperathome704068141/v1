@@ -23,18 +23,18 @@ import { useEffect } from "react";
 const personalInfoSchema = z.object({
   surname: z.string().min(1, "Surname is required."),
   givenNames: z.string().min(1, "Given names are required."),
-  gender: z.string({ required_error: "Please select a gender." }),
+  gender: z.string({ required_error: "Please select a gender." }).min(1, "Please select a gender."),
   dob: z.date({ required_error: "Date of birth is required." }),
   countryOfBirth: z.string().min(1, "Country of birth is required."),
   countryOfCitizenship: z.string().min(1, "Country of citizenship is required."),
   countryOfResidence: z.string().min(1, "Country of residence is required."),
-  maritalStatus: z.string({ required_error: "Please select a marital status." }),
+  maritalStatus: z.string({ required_error: "Please select a marital status." }).min(1, "Please select a marital status."),
   passportNumber: z.string().min(1, "Passport number is required."),
   passportIssueDate: z.date({ required_error: "Passport issue date is required." }),
   passportExpiryDate: z.date({ required_error: "Passport expiry date is required." }),
   passportIssuingCountry: z.string().min(1, "Passport issuing country is required."),
   homeAddress: z.string().min(1, "Home address is required."),
-  email: z.string().email("Invalid email address."),
+  email: z.string().email("Invalid email address.").min(1, "Email is required."),
   phoneNumber: z.string().min(1, "Phone number is required."),
 });
 
@@ -47,46 +47,39 @@ interface PersonalInfoFormProps {
 export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
   const { applicationData, updateStepData, isLoaded } = useApplication();
   const { user } = useAuth();
+  
+  const defaultValues = {
+    surname: '',
+    givenNames: '',
+    gender: '',
+    countryOfBirth: '',
+    countryOfCitizenship: '',
+    countryOfResidence: '',
+    maritalStatus: '',
+    passportNumber: '',
+    passportIssuingCountry: '',
+    homeAddress: '',
+    email: user?.email || '',
+    phoneNumber: '',
+    dob: undefined,
+    passportIssueDate: undefined,
+    passportExpiryDate: undefined,
+  };
 
   const form = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
-    defaultValues: {
-        surname: '',
-        givenNames: '',
-        gender: '',
-        countryOfBirth: '',
-        countryOfCitizenship: '',
-        countryOfResidence: '',
-        maritalStatus: '',
-        passportNumber: '',
-        passportIssuingCountry: '',
-        homeAddress: '',
-        email: '',
-        phoneNumber: '',
-        ...applicationData.personalInfo,
-    },
+    defaultValues: defaultValues,
   });
 
   useEffect(() => {
     if (isLoaded) {
-      const personalInfo = applicationData.personalInfo;
+      const contextData = applicationData.personalInfo || {};
       const valuesToReset = {
-        surname: '',
-        givenNames: '',
-        gender: '',
-        countryOfBirth: '',
-        countryOfCitizenship: '',
-        countryOfResidence: '',
-        maritalStatus: '',
-        passportNumber: '',
-        passportIssuingCountry: '',
-        homeAddress: '',
-        email: user?.email || '', // Default to auth user email
-        phoneNumber: '',
-        ...personalInfo,
-        dob: personalInfo?.dob ? new Date(personalInfo.dob) : undefined,
-        passportIssueDate: personalInfo?.passportIssueDate ? new Date(personalInfo.passportIssueDate) : undefined,
-        passportExpiryDate: personalInfo?.passportExpiryDate ? new Date(personalInfo.passportExpiryDate) : undefined,
+        ...defaultValues,
+        ...contextData,
+        dob: contextData.dob ? new Date(contextData.dob) : undefined,
+        passportIssueDate: contextData.passportIssueDate ? new Date(contextData.passportIssueDate) : undefined,
+        passportExpiryDate: contextData.passportExpiryDate ? new Date(contextData.passportExpiryDate) : undefined,
       };
       form.reset(valuesToReset);
     }

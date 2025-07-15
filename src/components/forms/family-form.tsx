@@ -33,11 +33,11 @@ const familySchema = z.object({
   parent2Name: z.string().optional(),
   parent2Dob: z.date().optional(),
   parentAddresses: z.string().min(1, "Parent addresses are required."),
-  maritalStatus: z.string({ required_error: "Marital status is required." }),
+  maritalStatus: z.string({ required_error: "Marital status is required." }).min(1, "Marital status is required."),
   spouseName: z.string().optional(),
   spouseDob: z.date().optional(),
   spouseAccompanying: z.enum(["yes", "no"]).optional(),
-  children: z.array(childSchema),
+  children: z.array(childSchema).optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
 }).refine(data => {
@@ -58,46 +58,39 @@ interface FamilyFormProps {
 
 export function FamilyForm({ onSave }: FamilyFormProps) {
   const { applicationData, updateStepData, isLoaded } = useApplication();
-
-  const form = useForm<FamilyFormValues>({
-    resolver: zodResolver(familySchema),
-    defaultValues: {
+  
+  const defaultValues = {
       parent1Name: '',
       parent2Name: '',
       parentAddresses: '',
       maritalStatus: '',
       spouseName: '',
-      spouseAccompanying: 'no',
+      spouseAccompanying: 'no' as 'no' | 'yes',
       children: [],
       emergencyContactName: '',
       emergencyContactPhone: '',
-      ...applicationData.family,
-      // Pre-fill marital status from personal info form if available
-      maritalStatus: applicationData.personalInfo?.maritalStatus || applicationData.family?.maritalStatus || '',
-    },
+      parent1Dob: undefined,
+      parent2Dob: undefined,
+      spouseDob: undefined,
+  };
+
+  const form = useForm<FamilyFormValues>({
+    resolver: zodResolver(familySchema),
+    defaultValues: defaultValues,
   });
 
   useEffect(() => {
     if (isLoaded) {
-      const familyData = applicationData.family;
+      const familyData = applicationData.family || {};
+      const personalInfoData = applicationData.personalInfo || {};
       form.reset({
-        parent1Name: '',
-        parent2Name: '',
-        parentAddresses: '',
-        maritalStatus: '',
-        spouseName: '',
-        spouseAccompanying: 'no',
-        children: [],
-        emergencyContactName: '',
-        emergencyContactPhone: '',
+        ...defaultValues,
         ...familyData,
-        // Pre-fill marital status from personal info form if available
-        maritalStatus: applicationData.personalInfo?.maritalStatus || familyData?.maritalStatus || '',
-        // Ensure date objects are properly instantiated
-        parent1Dob: familyData?.parent1Dob ? new Date(familyData.parent1Dob) : undefined,
-        parent2Dob: familyData?.parent2Dob ? new Date(familyData.parent2Dob) : undefined,
-        spouseDob: familyData?.spouseDob ? new Date(familyData.spouseDob) : undefined,
-        children: familyData?.children?.map(c => ({...c, dob: c.dob ? new Date(c.dob) : new Date() })) || [],
+        maritalStatus: personalInfoData.maritalStatus || familyData.maritalStatus || '',
+        parent1Dob: familyData.parent1Dob ? new Date(familyData.parent1Dob) : undefined,
+        parent2Dob: familyData.parent2Dob ? new Date(familyData.parent2Dob) : undefined,
+        spouseDob: familyData.spouseDob ? new Date(familyData.spouseDob) : undefined,
+        children: familyData.children?.map(c => ({...c, dob: c.dob ? new Date(c.dob) : new Date() })) || [],
       });
     }
   }, [isLoaded, applicationData.family, applicationData.personalInfo, form]);

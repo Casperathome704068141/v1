@@ -28,31 +28,35 @@ interface StudyPlanFormProps {
 export function StudyPlanForm({ onSave }: StudyPlanFormProps) {
   const { applicationData, updateStepData, isLoaded } = useApplication();
 
-  const form = useForm<StudyPlanFormValues>({
-    resolver: zodResolver(studyPlanSchema),
-    defaultValues: {
+  const defaultValues = {
       programChoice: 'Please select a college first',
       whyInstitution: '',
       howProgramFitsCareer: '',
       longTermGoals: '',
-      ...applicationData.studyPlan,
-    },
+  };
+
+  const form = useForm<StudyPlanFormValues>({
+    resolver: zodResolver(studyPlanSchema),
+    defaultValues: defaultValues,
   });
 
   useEffect(() => {
     if(isLoaded) {
-      const program = applicationData.studyPlan?.programChoice;
+      const studyPlanData = applicationData.studyPlan || {};
+      const program = studyPlanData.programChoice;
       const college = applicationData.selectedCollege?.name;
+      
       let programChoiceText = 'Please select a college first';
       if (program && college) {
         programChoiceText = `${program} - ${college}`;
+      } else if (program) {
+        programChoiceText = program;
       }
+      
       form.reset({
-        ...applicationData.studyPlan,
-        programChoice: programChoiceText,
-        whyInstitution: applicationData.studyPlan?.whyInstitution || '',
-        howProgramFitsCareer: applicationData.studyPlan?.howProgramFitsCareer || '',
-        longTermGoals: applicationData.studyPlan?.longTermGoals || '',
+        ...defaultValues,
+        ...studyPlanData,
+        programChoice: programChoiceText
       });
     }
   }, [isLoaded, applicationData.studyPlan, applicationData.selectedCollege, form]);
