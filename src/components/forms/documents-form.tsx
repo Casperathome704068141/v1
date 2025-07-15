@@ -85,54 +85,63 @@ function FileUploadDropzone() {
     const [isUploading, setIsUploading] = useState(false);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        setIsUploading(true);
+
         if (!user) {
             toast({ variant: 'destructive', title: 'Not logged in', description: 'You must be logged in to upload files.' });
+            setIsUploading(false);
             return;
         }
 
-        setIsUploading(true);
         let filesUploadedCount = 0;
 
-        for (const file of acceptedFiles) {
-            const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-            const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
-            
-            if (matchingDoc) {
-                try {
-                    const storageRef = ref(storage, `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`);
-                    await uploadBytes(storageRef, file);
-                    const downloadURL = await getDownloadURL(storageRef);
+        try {
+            for (const file of acceptedFiles) {
+                const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+                const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
+                
+                if (matchingDoc) {
+                    try {
+                        const storageRef = ref(storage, `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`);
+                        await uploadBytes(storageRef, file);
+                        const downloadURL = await getDownloadURL(storageRef);
 
-                    const newFile: UploadedFile = {
-                        fileName: file.name,
-                        url: downloadURL,
-                        date: new Date().toISOString()
-                    };
+                        const newFile: UploadedFile = {
+                            fileName: file.name,
+                            url: downloadURL,
+                            date: new Date().toISOString()
+                        };
 
-                    const newDocumentsData = structuredClone(applicationData.documents || {});
-                    const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
-                    
-                    currentDoc.files.push(newFile);
-                    currentDoc.status = 'Uploaded';
-                    newDocumentsData[matchingDoc.id] = currentDoc;
+                        const newDocumentsData = structuredClone(applicationData.documents || {});
+                        const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
+                        
+                        currentDoc.files.push(newFile);
+                        currentDoc.status = 'Uploaded';
+                        newDocumentsData[matchingDoc.id] = currentDoc;
+                        
+                        // Fire-and-forget: Let the onSnapshot listener handle the final UI update.
+                        updateStepData('documents', newDocumentsData);
+                        filesUploadedCount++;
 
-                    await updateStepData('documents', newDocumentsData);
-                    filesUploadedCount++;
-
-                } catch (error) {
-                    console.error("Upload error:", error);
-                    toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
+                    } catch (error: any) {
+                        console.error("Upload error:", error);
+                         let description = `Could not upload ${file.name}.`;
+                        if (error.code === 'storage/unauthorized') {
+                            description = 'You do not have permission to upload files. Please contact support.';
+                        }
+                        toast({ variant: 'destructive', title: 'Upload Failed', description });
+                    }
+                } else {
+                    toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not automatically categorize '${file.name}'. Please use the individual upload buttons.` });
                 }
-            } else {
-                toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not automatically categorize '${file.name}'. Please use the individual upload buttons.` });
             }
+            
+            if (filesUploadedCount > 0) {
+               toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.`});
+            }
+        } finally {
+            setIsUploading(false);
         }
-        
-        if (filesUploadedCount > 0) {
-           toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.`});
-        }
-        
-        setIsUploading(false);
     }, [user, applicationData.documents, toast, updateStepData]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -151,7 +160,7 @@ function FileUploadDropzone() {
                 {isUploading ? (
                     <>
                         <Loader2 className="h-10 w-10 animate-spin" />
-                        <p className="font-semibold">Uploading...</p>
+                        <p className="font-semibold">Processing uploads...</p>
                     </>
                 ) : (
                     <>
@@ -196,12 +205,17 @@ function DocumentItem({ docInfo, statusData }: {
             currentDoc.status = 'Uploaded';
             newDocumentsData[docInfo.id] = currentDoc;
 
-            await updateStepData('documents', newDocumentsData);
+            // Fire-and-forget: Let the onSnapshot listener handle the final UI update.
+            updateStepData('documents', newDocumentsData);
 
             toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.`});
-        } catch (error) {
+        } catch (error: any) {
             console.error("Upload error:", error);
-            toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
+            let description = `Could not upload ${file.name}.`;
+            if (error.code === 'storage/unauthorized') {
+                description = 'You do not have permission to upload files. Please contact support.';
+            }
+            toast({ variant: 'destructive', title: 'Upload Failed', description });
         } finally {
             setIsUploading(false);
         }
@@ -227,12 +241,17 @@ function DocumentItem({ docInfo, statusData }: {
                 currentDoc.status = 'Pending';
             }
             
-            await updateStepData('documents', newDocumentsData);
+            // Fire-and-forget
+            updateStepData('documents', newDocumentsData);
 
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.`});
-        } catch (error) {
+        } catch (error: any) {
             console.error("Delete error:", error);
-            toast({ variant: 'destructive', title: 'Delete Failed', description: `Could not delete ${fileToDelete.fileName}.`});
+            let description = `Could not delete ${fileToDelete.fileName}.`;
+            if (error.code === 'storage/unauthorized') {
+                description = 'You do not have permission to delete files. Please contact support.';
+            }
+            toast({ variant: 'destructive', title: 'Delete Failed', description });
         } finally {
              setIsUploading(false);
         }
@@ -269,7 +288,7 @@ function DocumentItem({ docInfo, statusData }: {
                                 <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-mono text-xs truncate hover:underline" title={file.fileName}>{file.fileName}</a>
                             </div>
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(file)} disabled={isUploading}>
-                                <Trash2 className="h-3 w-3 text-destructive" />
+                                {isUploading ? <Loader2 className="h-3 w-3 animate-spin"/> : <Trash2 className="h-3 w-3 text-destructive" />}
                                 <span className="sr-only">Delete file</span>
                             </Button>
                         </div>
