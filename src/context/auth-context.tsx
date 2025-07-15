@@ -27,7 +27,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const publicRoutes = ['/', '/signup', '/forgot-password', '/admin/login'];
+// Routes that are only for unauthenticated users
+const authRoutes = ['/login', '/signup', '/forgot-password'];
+// Routes that are public and accessible to everyone
+const publicRoutes = ['/', '/about', '/privacy', '/terms', '/pricing', '/support'];
+
 
 async function createUserDocument(user: User) {
   if (!db) return; // Do nothing if firebase is not configured
@@ -124,13 +128,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [pathname]);
 
   useEffect(() => {
-    if (!loading && !pathname.startsWith('/admin')) {
-      const isPublicRoute = publicRoutes.includes(pathname);
-      if (!user && !isPublicRoute) {
-        router.push('/');
-      } else if (user && isPublicRoute) {
-        router.push('/dashboard');
-      }
+    if (loading || pathname.startsWith('/admin')) {
+      return; // Don't perform redirects while loading or on admin pages
+    }
+
+    const isAuthRoute = authRoutes.includes(pathname);
+    const isPublicRoute = publicRoutes.includes(pathname);
+
+    // If user is logged in and tries to access an auth route (login/signup), redirect to dashboard
+    if (user && isAuthRoute) {
+      router.push('/dashboard');
+      return;
+    }
+
+    // If user is NOT logged in and tries to access a protected page, redirect to landing
+    if (!user && !isAuthRoute && !isPublicRoute) {
+      router.push('/');
+      return;
     }
   }, [user, loading, pathname, router]);
 
@@ -170,8 +184,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return <>{children}</>;
   }
 
-  const isPublicRoute = publicRoutes.includes(pathname);
-  if (loading && !isPublicRoute) {
+  const isPublicOrAuthRoute = publicRoutes.includes(pathname) || authRoutes.includes(pathname);
+
+  if (loading && !isPublicOrAuthRoute) {
      return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex flex-col items-center space-y-4">
