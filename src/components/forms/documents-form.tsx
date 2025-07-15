@@ -1,11 +1,11 @@
+
 'use client';
 
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, FileText, UploadCloud, Trash2, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle2, FileText, UploadCloud, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 import { useApplication, UploadedFile, documentList } from "@/context/application-context";
@@ -25,14 +25,12 @@ const getStatusInfo = (files?: UploadedFile[]) => {
 
 export function DocumentsForm() {
     const { applicationData, updateStepData } = useApplication();
-    
-    // We use a local state to manage loading status for specific files/docs
     const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
 
-    const updateAndPersist = (newDocData: any) => {
-        updateStepData('documents', newDocData);
-    };
-
+    const handleUploadComplete = () => {
+        setUploadingDocId(null);
+    }
+    
     const coreDocs = documentList.filter(d => d.category === 'Core');
     const situationalDocs = documentList.filter(d => d.category === 'Situational');
 
@@ -46,11 +44,8 @@ export function DocumentsForm() {
             </CardHeader>
             <CardContent className="space-y-8">
                 <FileUploadDropzone 
-                    onUploadStart={(docId) => setUploadingDocId(docId)} 
-                    onUploadComplete={(newDocData) => {
-                        updateAndPersist(newDocData);
-                        setUploadingDocId(null);
-                    }}
+                    onUploadStart={setUploadingDocId}
+                    onUploadComplete={handleUploadComplete}
                 />
 
                 <div className="space-y-6">
@@ -63,7 +58,6 @@ export function DocumentsForm() {
                                         docInfo={doc}
                                         statusData={applicationData.documents?.[doc.id]}
                                         isUploading={uploadingDocId === doc.id}
-                                        onDataChange={updateAndPersist}
                                     />
                                     {index < arr.length - 1 && <Separator />}
                                 </div>
@@ -81,7 +75,6 @@ export function DocumentsForm() {
                                             docInfo={doc}
                                             statusData={applicationData.documents?.[doc.id]}
                                             isUploading={uploadingDocId === doc.id}
-                                            onDataChange={updateAndPersist}
                                         />
                                         {index < arr.length - 1 && <Separator />}
                                     </div>
@@ -95,9 +88,9 @@ export function DocumentsForm() {
     );
 }
 
-function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart: (docId: string) => void, onUploadComplete: (newDocData: any) => void }) {
+function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart: (docId: string) => void, onUploadComplete: () => void }) {
     const { user } = useAuth();
-    const { applicationData } = useApplication();
+    const { applicationData, updateStepData } = useApplication();
     const { toast } = useToast();
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -107,7 +100,6 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart
         }
 
         for (const file of acceptedFiles) {
-            // Find a matching document type based on filename. This is a best-effort guess.
             const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
             const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
             
@@ -124,27 +116,27 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart
                         date: new Date().toISOString()
                     };
 
-                    const newDocData = { ...applicationData.documents };
+                    const newDocData = structuredClone(applicationData.documents);
                     const currentDoc = newDocData[matchingDoc.id] || { files: [] };
                     
-                    newDocData[matchingDoc.id] = {
-                        ...currentDoc,
-                        status: 'Uploaded',
-                        files: [...currentDoc.files, newFile]
-                    };
-                    onUploadComplete(newDocData);
+                    currentDoc.files.push(newFile);
+                    currentDoc.status = 'Uploaded';
+                    newDocData[matchingDoc.id] = currentDoc;
+
+                    await updateStepData('documents', newDocData);
 
                     toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.`});
                 } catch (error) {
                     console.error("Upload error:", error);
                     toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
-                    onUploadComplete(applicationData.documents); // Resets loading state
+                } finally {
+                    onUploadComplete();
                 }
             } else {
                 toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not automatically categorize '${file.name}'. Please use the individual upload buttons.` });
             }
         }
-    }, [user, applicationData.documents, toast, onUploadStart, onUploadComplete]);
+    }, [user, applicationData.documents, toast, onUploadStart, onUploadComplete, updateStepData]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: {'application/pdf':[], 'image/jpeg':[], 'image/png':[]} });
 
@@ -164,21 +156,21 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete }: { onUploadStart
     )
 }
 
-function DocumentItem({ docInfo, statusData, isUploading, onDataChange }: { 
+function DocumentItem({ docInfo, statusData, isUploading }: { 
     docInfo: typeof documentList[0];
     statusData: any; 
     isUploading: boolean;
-    onDataChange: (newDocData: any) => void;
 }) {
     const { user } = useAuth();
-    const { applicationData } = useApplication();
+    const { applicationData, updateStepData } = useApplication();
     const { toast } = useToast();
+    const [isProcessing, setIsProcessing] = useState(false);
     const statusInfo = getStatusInfo(statusData?.files);
 
     const handleFileUpload = async (file: File | null) => {
         if (!file || !user) return;
         
-        onDataChange({ ...applicationData.documents, [docInfo.id]: { ...(statusData || { files:[] }), isUploading: true }});
+        setIsProcessing(true);
 
         try {
             const storageRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${file.name}`);
@@ -186,15 +178,21 @@ function DocumentItem({ docInfo, statusData, isUploading, onDataChange }: {
             const downloadURL = await getDownloadURL(storageRef);
 
             const newFile: UploadedFile = { fileName: file.name, url: downloadURL, date: new Date().toISOString() };
-            const currentDoc = applicationData.documents?.[docInfo.id] || { files: [] };
-            const newDocData = { ...applicationData.documents, [docInfo.id]: { ...currentDoc, status: 'Uploaded', files: [...currentDoc.files, newFile] }};
+            const newDocData = structuredClone(applicationData.documents);
+            const currentDoc = newDocData[docInfo.id] || { files: [] };
             
-            onDataChange(newDocData);
+            currentDoc.files.push(newFile);
+            currentDoc.status = 'Uploaded';
+            newDocData[docInfo.id] = currentDoc;
+
+            await updateStepData('documents', newDocData);
+
             toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.`});
         } catch (error) {
             console.error("Upload error:", error);
             toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
-            onDataChange(applicationData.documents); // Reset state on failure
+        } finally {
+            setIsProcessing(false);
         }
     };
     
@@ -203,26 +201,33 @@ function DocumentItem({ docInfo, statusData, isUploading, onDataChange }: {
         
         const confirm = window.confirm(`Are you sure you want to delete ${fileToDelete.fileName}?`);
         if (!confirm) return;
-
+        
+        setIsProcessing(true);
         try {
             const fileRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${fileToDelete.fileName}`);
             await deleteObject(fileRef);
 
-            const newDocData = { ...applicationData.documents };
+            const newDocData = structuredClone(applicationData.documents);
             const currentDoc = newDocData[docInfo.id];
             if (!currentDoc) return;
 
-            currentDoc.files = currentDoc.files.filter((f: UploadedFile) => f.fileName !== fileToDelete.fileName || f.date !== fileToDelete.date);
+            currentDoc.files = currentDoc.files.filter((f: UploadedFile) => f.url !== fileToDelete.url);
             if (currentDoc.files.length === 0) {
                 currentDoc.status = 'Pending';
             }
-            onDataChange(newDocData);
+            
+            await updateStepData('documents', newDocData);
+
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.`});
         } catch (error) {
             console.error("Delete error:", error);
             toast({ variant: 'destructive', title: 'Delete Failed', description: `Could not delete ${fileToDelete.fileName}.`});
+        } finally {
+             setIsProcessing(false);
         }
     };
+
+    const isLoading = isUploading || isProcessing;
 
     return (
         <div className="p-4">
@@ -237,9 +242,9 @@ function DocumentItem({ docInfo, statusData, isUploading, onDataChange }: {
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
                      <Badge variant={statusInfo.badgeVariant} className="hidden md:inline-flex w-28 justify-center">{statusInfo.label}</Badge>
-                     <Button variant="secondary" size="sm" asChild disabled={isUploading}>
+                     <Button variant="secondary" size="sm" asChild disabled={isLoading}>
                         <label className="cursor-pointer">
-                           {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                             Upload
                             <input type="file" className="sr-only" onChange={(e) => handleFileUpload(e.target.files ? e.target.files[0] : null)} />
                         </label>
@@ -249,12 +254,12 @@ function DocumentItem({ docInfo, statusData, isUploading, onDataChange }: {
              {statusData?.files?.length > 0 && (
                 <div className="mt-4 pl-10 space-y-2">
                     {statusData.files.map((file: UploadedFile) => (
-                        <div key={file.date} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded-md">
+                        <div key={file.url} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded-md">
                             <div className="flex items-center gap-2 truncate">
                                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <span className="font-mono text-xs truncate" title={file.fileName}>{file.fileName}</span>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(file)}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(file)} disabled={isLoading}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
                                 <span className="sr-only">Delete file</span>
                             </Button>
