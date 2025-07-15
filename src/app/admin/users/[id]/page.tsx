@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -18,8 +17,10 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { UserProfile } from '@/context/auth-context';
+import type { UploadedFile } from '@/context/application-context';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 type Application = {
     id: string;
@@ -38,8 +39,10 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const [user, setUser] = useState<UserProfile | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
+    const [userDocuments, setUserDocuments] = useState<any>({});
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -47,7 +50,6 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     const router = useRouter();
 
     useEffect(() => {
-        const id = params.id;
         if (!id) return;
         
         async function getUserData() {
@@ -82,7 +84,6 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                     };
                 });
 
-                // Sort applications client-side to avoid needing a composite index
                 appsList.sort((a, b) => {
                     if (!a.submittedAtTimestamp) return 1;
                     if (!b.submittedAtTimestamp) return -1;
@@ -90,6 +91,13 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 });
 
                 setApplications(appsList);
+
+                // Fetch user's draft documents
+                const draftSnap = await getDoc(doc(db, 'users', id, 'application', 'draft'));
+                if (draftSnap.exists()) {
+                    setUserDocuments(draftSnap.data()?.documents || {});
+                }
+
 
             } catch (err: any) {
                 console.error("Firebase error getting document:", err);
@@ -103,7 +111,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             }
         }
         getUserData();
-    }, [params]);
+    }, [id]);
     
     const handlePlanUpdate = async (newPlan: string) => {
         if (!user) return;
@@ -126,6 +134,25 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
         } finally {
             setIsUpdating(false);
         }
+    };
+    
+    const documentCategoryMap: { [key: string]: string } = {
+        passport: 'Passport Bio Page',
+        loa: 'Letter of Acceptance (LOA)',
+        proofOfFunds: 'Proof of Funds',
+        languageTest: 'Language Test Results',
+        sop: 'Statement of Purpose (SOP/LOE)',
+        photo: 'Digital Photo',
+        educationDocs: 'Previous Education Documents',
+        custodian: 'Custodian Declaration (for minors)',
+        tiesToHome: 'Ties to Home Country',
+        resume: 'Resume / CV',
+        travelHistory: 'Travel History',
+        explanationLetter: 'Letter of Explanation for Gaps/Refusals',
+        sponsorship: 'Sponsorship Letter & Documents',
+        medical: 'Medical Exam (eMedical Sheet)',
+        pcc: 'Police Clearance Certificate (PCC)',
+        marriageCert: 'Marriage Certificate',
     };
 
     if (loading) {
@@ -220,7 +247,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                             </CardContent>
                         </Card>
                      </div>
-                     <div className="lg:col-span-2">
+                     <div className="lg:col-span-2 space-y-8">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -256,12 +283,43 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                                 </Table>
                             </CardContent>
                         </Card>
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Uploaded Documents</CardTitle>
+                                <CardDescription>All files this user has uploaded to their draft application.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {Object.keys(userDocuments).length > 0 ? Object.entries(userDocuments).map(([docId, docData]: [string, any]) => (
+                                <div key={docId}>
+                                    <h3 className="font-semibold">{documentCategoryMap[docId] || docId}</h3>
+                                    {docData.files.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No files uploaded for this category.</p>
+                                    ) : (
+                                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                                        {docData.files.map((file: UploadedFile) => (
+                                        <li key={file.path} className="flex items-center gap-2 text-sm">
+                                            <FileText className="h-4 w-4 text-muted-foreground" />
+                                            <Link href={file.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate" title={file.fileName}>
+                                                {file.fileName}
+                                            </Link>
+                                            <span className="ml-auto text-xs text-muted-foreground">
+                                                {format(new Date(file.date), 'yyyy-MM-dd')}
+                                            </span>
+                                        </li>
+                                        ))}
+                                    </ul>
+                                    )}
+                                    <Separator className="my-4" />
+                                </div>
+                                )) : (
+                                    <p className="text-sm text-muted-foreground text-center">No documents have been uploaded by this user yet.</p>
+                                )}
+                            </CardContent>
+                        </Card>
                      </div>
                 </div>
-
             </main>
         </AdminLayout>
     )
 }
-
-    

@@ -17,6 +17,7 @@ export interface UploadedFile {
     url: string;
     fileName: string;
     date: string; // ISO date string
+    path: string;
 }
 
 export interface DocumentStatus {
