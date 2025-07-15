@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -39,7 +40,7 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+    const { id } = React.use(params);
     const [user, setUser] = useState<UserProfile | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
     const [userDocuments, setUserDocuments] = useState<any>({});

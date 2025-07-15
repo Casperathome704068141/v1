@@ -14,9 +14,8 @@ service cloud.firestore {
       // Allow users to read their own application, and admins to read any.
       allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
 
-      // Only allow admins to update or delete submitted applications.
-      // This is a secure approach. Users should not modify submitted applications.
-      allow update, delete: if request.auth.token.admin == true;
+      // Allow users to update or delete their own application, and admins to do so for any.
+      allow update, delete: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
     }
 
     // Admins can read/write settings and news

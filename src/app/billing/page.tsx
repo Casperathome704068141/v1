@@ -16,12 +16,14 @@ function getPlanFeatures(plan: string) {
             'Auto-filled IMM Forms',
             'Dynamic Document Checklist',
             'AI SOP Template Generator',
+            '1 x 30-min RCIC Video Call'
         ],
         advantage: [
             'Everything in Starter',
-            '45-min RCIC Consultation',
-            'Expert SOP Review & Edit',
-            'Final Application QA Check',
+            'Full SOP/LOE Ghost-Writing',
+            'Proof-of-Funds Verification',
+            '2 x 45-min RCIC Sessions',
+            'Final Pre-Submission QA Check'
         ],
         elite: [
             'All Advantage features',
