@@ -4,7 +4,7 @@
 import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, FileText, UploadCloud, Trash2, Loader2 } from "lucide-react";
+import { CheckCircle2, FileText, UploadCloud, Trash2, Loader2, Circle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
@@ -20,7 +20,7 @@ const getStatusInfo = (files?: UploadedFile[]) => {
     if (files && files.length > 0) {
         return { icon: CheckCircle2, color: 'text-green-500', badgeVariant: 'default' as const, label: 'Uploaded' };
     }
-    return { icon: FileText, color: 'text-muted-foreground', badgeVariant: 'secondary' as const, label: 'Pending' };
+    return { icon: Circle, color: 'text-muted-foreground', badgeVariant: 'secondary' as const, label: 'Pending' };
 }
 
 export function DocumentsForm() {
@@ -109,15 +109,14 @@ function FileUploadDropzone() {
                         date: new Date().toISOString()
                     };
 
-                    const newDocData = structuredClone(applicationData.documents);
-                    const currentDoc = newDocData[matchingDoc.id] || { status: 'Pending', files: [] };
+                    const newDocumentsData = structuredClone(applicationData.documents || {});
+                    const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
                     
                     currentDoc.files.push(newFile);
                     currentDoc.status = 'Uploaded';
-                    newDocData[matchingDoc.id] = currentDoc;
+                    newDocumentsData[matchingDoc.id] = currentDoc;
 
-                    // Update the context immediately without waiting for all files
-                    await updateStepData('documents', newDocData);
+                    await updateStepData('documents', newDocumentsData);
                     filesUploadedCount++;
 
                 } catch (error) {
@@ -175,13 +174,13 @@ function DocumentItem({ docInfo, statusData }: {
     const { user } = useAuth();
     const { applicationData, updateStepData } = useApplication();
     const { toast } = useToast();
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const statusInfo = getStatusInfo(statusData?.files);
 
     const handleFileUpload = async (file: File | null) => {
         if (!file || !user) return;
         
-        setIsProcessing(true);
+        setIsUploading(true);
 
         try {
             const storageRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${file.name}`);
@@ -189,21 +188,22 @@ function DocumentItem({ docInfo, statusData }: {
             const downloadURL = await getDownloadURL(storageRef);
 
             const newFile: UploadedFile = { fileName: file.name, url: downloadURL, date: new Date().toISOString() };
-            const newDocData = structuredClone(applicationData.documents);
-            const currentDoc = newDocData[docInfo.id] || { status: 'Pending', files: [] };
+            
+            const newDocumentsData = structuredClone(applicationData.documents || {});
+            const currentDoc = newDocumentsData[docInfo.id] || { status: 'Pending', files: [] };
             
             currentDoc.files.push(newFile);
             currentDoc.status = 'Uploaded';
-            newDocData[docInfo.id] = currentDoc;
+            newDocumentsData[docInfo.id] = currentDoc;
 
-            await updateStepData('documents', newDocData);
+            await updateStepData('documents', newDocumentsData);
 
             toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.`});
         } catch (error) {
             console.error("Upload error:", error);
             toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
         } finally {
-            setIsProcessing(false);
+            setIsUploading(false);
         }
     };
     
@@ -213,13 +213,13 @@ function DocumentItem({ docInfo, statusData }: {
         const confirm = window.confirm(`Are you sure you want to delete ${fileToDelete.fileName}?`);
         if (!confirm) return;
         
-        setIsProcessing(true);
+        setIsUploading(true);
         try {
             const fileRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${fileToDelete.fileName}`);
             await deleteObject(fileRef);
 
-            const newDocData = structuredClone(applicationData.documents);
-            const currentDoc = newDocData[docInfo.id];
+            const newDocumentsData = structuredClone(applicationData.documents);
+            const currentDoc = newDocumentsData[docInfo.id];
             if (!currentDoc) return;
 
             currentDoc.files = currentDoc.files.filter((f: UploadedFile) => f.url !== fileToDelete.url);
@@ -227,14 +227,14 @@ function DocumentItem({ docInfo, statusData }: {
                 currentDoc.status = 'Pending';
             }
             
-            await updateStepData('documents', newDocData);
+            await updateStepData('documents', newDocumentsData);
 
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.`});
         } catch (error) {
             console.error("Delete error:", error);
             toast({ variant: 'destructive', title: 'Delete Failed', description: `Could not delete ${fileToDelete.fileName}.`});
         } finally {
-             setIsProcessing(false);
+             setIsUploading(false);
         }
     };
 
@@ -251,11 +251,11 @@ function DocumentItem({ docInfo, statusData }: {
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
                      <Badge variant={statusInfo.badgeVariant} className={cn("hidden md:inline-flex w-28 justify-center", statusInfo.badgeVariant === 'default' && 'bg-green-100 text-green-800')}>{statusInfo.label}</Badge>
-                     <Button variant="secondary" size="sm" asChild disabled={isProcessing}>
+                     <Button variant="secondary" size="sm" asChild disabled={isUploading}>
                         <label className="cursor-pointer">
-                           {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                           {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                             Upload
-                            <input type="file" className="sr-only" disabled={isProcessing} onChange={(e) => handleFileUpload(e.target.files ? e.target.files[0] : null)} />
+                            <input type="file" className="sr-only" disabled={isUploading} onChange={(e) => handleFileUpload(e.target.files ? e.target.files[0] : null)} />
                         </label>
                     </Button>
                 </div>
@@ -266,9 +266,9 @@ function DocumentItem({ docInfo, statusData }: {
                         <div key={file.url} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded-md">
                             <div className="flex items-center gap-2 truncate">
                                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="font-mono text-xs truncate" title={file.fileName}>{file.fileName}</span>
+                                <a href={file.url} target="_blank" rel="noopener noreferrer" className="font-mono text-xs truncate hover:underline" title={file.fileName}>{file.fileName}</a>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(file)} disabled={isProcessing}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(file)} disabled={isUploading}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
                                 <span className="sr-only">Delete file</span>
                             </Button>
