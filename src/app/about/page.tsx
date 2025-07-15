@@ -124,7 +124,6 @@ export default function AboutPage() {
               <nav className="flex flex-col gap-1 text-sm text-muted-foreground">
                 <Link href="/#how-it-works" className="hover:text-primary hover:underline">How It Works</Link>
                 <Link href="/#testimonials" className="hover:text-primary hover:underline">Testimonials</Link>
-                <Link href="/pricing" className="hover:text-primary hover:underline">Pricing</Link>
               </nav>
             </div>
             <div>

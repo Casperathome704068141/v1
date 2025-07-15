@@ -9,28 +9,110 @@ export default function TermsOfServicePage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl font-bold font-headline mb-4">Terms of Service</h1>
             <p className="text-muted-foreground mb-8">Last updated: July 29, 2024</p>
             
-            <div className="prose lg:prose-lg max-w-none text-muted-foreground">
-                <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the https://mapleleafseducation.ca website (the "Service") operated by Maple Leafs Education ("us", "we", or "our").</p>
-                <p>Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users, and others who access or use the Service.</p>
-                <p>By accessing or using the Service you agree to be bound by these Terms. If you disagree with any part of the terms then you may not access the Service.</p>
+            <div className="space-y-6 text-muted-foreground leading-relaxed">
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.1 Acceptance</h2>
+                    <p>By creating an account or using any MLE services, you agree to these Terms, our Privacy Policy, and any product-specific agreements.</p>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.2 Scope of Service</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>MLE provides <strong>software tools</strong> for study-permit preparation, college search, and immigration document automation.</li>
+                        <li><strong>Not legal advice:</strong> Unless explicitly stated, information is general. Representation before IRCC is provided <strong>only</strong> when you purchase a package that includes an RCIC retainer and sign <strong>Form IMM5476</strong>.</li>
+                    </ul>
+                </section>
 
-                <h2>Accounts</h2>
-                <p>When you create an account with us, you must provide us with information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.</p>
-                <p>You are responsible for safeguarding the password that you use to access the Service and for any activities or actions under your password, whether your password is with our Service or a third-party service.</p>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.3 User Obligations</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>Provide accurate, lawful information; keep credentials secure.</li>
+                        <li>Upload documents you have the right to share; no malware or copyrighted material you do not own.</li>
+                        <li>Make timely payments; non-payment may suspend services.</li>
+                    </ul>
+                </section>
 
-                <h2>Intellectual Property</h2>
-                <p>The Service and its original content, features, and functionality are and will remain the exclusive property of Maple Leafs Education and its licensors. The Service is protected by copyright, trademark, and other laws of both Canada and foreign countries.</p>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.4 Packages, Add-Ons & Refunds</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>Package descriptions and prices are shown on the Pricing page.</li>
+                        <li>Work begins after payment confirmation.</li>
+                        <li><strong>Refunds:</strong>
+                            <ul className="list-circle pl-6 mt-2 space-y-1">
+                                <li>100% if you cancel within 24 hours and no work has begun.</li>
+                                <li>70% for cancellations before document drafting.</li>
+                                <li>0% once final documents are delivered or filing completed.</li>
+                            </ul>
+                        </li>
+                        <li>Government fees (IRCC, VAC, courier) are non-refundable.</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.5 No Outcome Guarantee</h2>
+                    <p>Visa issuance is at the sole discretion of IRCC. MLE cannot and does not guarantee approval. Any timelines are estimates.</p>
+                </section>
 
-                <h2>Disclaimer</h2>
-                <p>Your use of the Service is at your sole risk. The Service is provided on an "AS IS" and "AS AVAILABLE" basis. The Service is provided without warranties of any kind, whether express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, non-infringement, or course of performance.</p>
-                <p>Maple Leafs Education does not guarantee any specific outcome for your study permit application. Our services are for guidance and preparation purposes only. The final decision rests with Immigration, Refugees and Citizenship Canada (IRCC).</p>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.6 Intellectual Property</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>Platform code, text, graphics: © 2024–2025 MLE. All rights reserved.</li>
+                        <li>You are granted a revocable, non-exclusive license to use generated forms for your personal application only.</li>
+                    </ul>
+                </section>
 
-                <h2>Governing Law</h2>
-                <p>These Terms shall be governed and construed in accordance with the laws of the province of Ontario, Canada, without regard to its conflict of law provisions.</p>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.7 Limitation of Liability</h2>
+                    <p>To the maximum extent permitted by law, MLE’s aggregate liability shall not exceed the total fees paid by you in the <strong>12 months</strong> preceding the claim. MLE is not liable for indirect, incidental, or consequential damages, including lost opportunity or migration delays.</p>
+                </section>
+
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.8 Indemnity</h2>
+                    <p>You agree to indemnify and hold MLE, its officers, employees, and RCIC contractors harmless from any claims arising from your breach of these Terms or misuse of the Platform.</p>
+                </section>
+
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.9 Termination</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>You may close your account at any time; data retention rules apply.</li>
+                        <li>MLE may suspend or terminate access for violation of Terms, fraud, or non-payment.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.10 Dispute Resolution</h2>
+                     <ul className="list-disc pl-6 space-y-2">
+                        <li><strong>Step 1:</strong> Good-faith negotiation (30 days).</li>
+                        <li><strong>Step 2:</strong> If unresolved, binding arbitration under the <strong>Arbitration Act (Ontario)</strong>; venue Toronto; language English.</li>
+                        <li><strong>Step 3:</strong> Either party may seek injunctive relief in Superior Court for IP or confidentiality breaches.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.11 Governing Law</h2>
+                    <p>These Terms are governed by the laws of the Province of Ontario and the federal laws of Canada, without regard to conflict of law provisions.</p>
+                </section>
+
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.12 Force Majeure</h2>
+                    <p>MLE is not liable for failures due to events beyond reasonable control: cyber-attacks, outages, strikes, pandemics, or government actions.</p>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.13 Changes to Terms</h2>
+                    <p>MLE may modify these Terms; updated version posted 30 days before taking effect. Continued use = acceptance.</p>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.14 Contact</h2>
+                    <p>
+                        <a href="mailto:legal@mapleleafseducation.ca" className="text-primary hover:underline">legal@mapleleafseducation.ca</a> | <a href="tel:+14165551234" className="text-primary hover:underline">+1 (416) 555-1234</a>
+                    </p>
+                </section>
             </div>
           </div>
         </div>
@@ -50,7 +132,6 @@ export default function TermsOfServicePage() {
               <nav className="flex flex-col gap-1 text-sm text-muted-foreground">
                 <Link href="/#how-it-works" className="hover:text-primary hover:underline">How It Works</Link>
                 <Link href="/#testimonials" className="hover:text-primary hover:underline">Testimonials</Link>
-                <Link href="/pricing" className="hover:text-primary hover:underline">Pricing</Link>
               </nav>
             </div>
             <div>

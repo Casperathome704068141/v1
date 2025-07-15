@@ -9,44 +9,134 @@ export default function PrivacyPolicyPage() {
       <SiteHeader />
       <main className="flex-1">
         <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl font-bold font-headline mb-4">Privacy Policy</h1>
             <p className="text-muted-foreground mb-8">Last updated: July 29, 2024</p>
             
-            <div className="prose lg:prose-lg max-w-none text-muted-foreground">
-                <p>Welcome to Maple Leafs Education ("us", "we", or "our"). We operate the https://mapleleafseducation.ca website (the "Service").</p>
-                <p>This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data. We use your data to provide and improve the Service. By using the Service, you agree to the collection and use of information in accordance with this policy.</p>
+            <div className="space-y-6 text-muted-foreground leading-relaxed">
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.1 Introduction</h2>
+                    <p>This Privacy Policy explains how MLE collects, uses, discloses, and protects the personal information of users (“you”) who access our web and mobile applications (the “Platform”).</p>
+                    <p>By using the Platform, you consent to the practices described below.</p>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.2 What We Collect</h2>
+                    <div className="overflow-x-auto rounded-lg border">
+                        <table className="min-w-full text-sm">
+                            <thead className="bg-muted/50">
+                                <tr>
+                                    <th className="p-3 font-semibold text-left">Category</th>
+                                    <th className="p-3 font-semibold text-left">Examples</th>
+                                    <th className="p-3 font-semibold text-left">Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="border-t">
+                                    <td className="p-3 align-top"><strong>Account Data</strong></td>
+                                    <td className="p-3 align-top">Name, email, password hash, phone, address, country</td>
+                                    <td className="p-3 align-top">Account creation, authentication, communication</td>
+                                </tr>
+                                <tr className="border-t">
+                                    <td className="p-3 align-top"><strong>Immigration Data</strong></td>
+                                    <td className="p-3 align-top">Date of birth, passport details, education/work history, finances, LOA, family info, uploaded documents</td>
+                                    <td className="p-3 align-top">Generating IRCC forms, SOP drafts, eligibility scoring</td>
+                                </tr>
+                                <tr className="border-t">
+                                    <td className="p-3 align-top"><strong>Payment Data</strong></td>
+                                    <td className="p-3 align-top">Last four digits of card, transaction ID (via Stripe), billing address</td>
+                                    <td className="p-3 align-top">Processing fees, refunds, tax records</td>
+                                </tr>
+                                <tr className="border-t">
+                                    <td className="p-3 align-top"><strong>Usage Data</strong></td>
+                                    <td className="p-3 align-top">IP address, device type, pages visited, quiz scores</td>
+                                    <td className="p-3 align-top">Analytics, fraud prevention, product improvement</td>
+                                </tr>
+                                <tr className="border-t">
+                                    <td className="p-3 align-top"><strong>Cookies & Similar Tech</strong></td>
+                                    <td className="p-3 align-top">Session cookie, analytics cookie, CSRF token</td>
+                                    <td className="p-3 align-top">Maintain login state, measure traffic</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.3 Legal Basis & Use</h2>
+                    <p>We process data under at least one of the following grounds:</p>
+                    <ul className="list-disc pl-6 space-y-2 mt-2">
+                        <li><strong>Contractual necessity</strong> – to deliver purchased services.</li>
+                        <li><strong>Legitimate interest</strong> – to improve features, prevent abuse.</li>
+                        <li><strong>Consent</strong> – when you voluntarily provide sensitive data (e.g., medical info).</li>
+                        <li><strong>Legal obligation</strong> – compliance with Canadian tax/law‐society rules.</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.4 Sharing & Disclosure</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li><strong>Internal Staff & RCICs</strong> bound by confidentiality agreements.</li>
+                        <li><strong>Service Providers</strong> (Stripe, AWS, Google Cloud, Algolia, Twilio) – data shared only to the extent necessary and under DPA.</li>
+                        <li><strong>Educational Institutions (DLIs)</strong> – only with your explicit instruction for LOA applications.</li>
+                        <li><strong>Government Agencies</strong> – if you ask us to submit forms on your behalf or when legally compelled (court order, subpoena).</li>
+                        <li><strong>Business Transfers</strong> – data may be transferred in M&A events; you will be notified.</li>
+                    </ul>
+                </section>
 
-                <h2>Information Collection and Use</h2>
-                <p>We collect several different types of information for various purposes to provide and improve our Service to you.</p>
-                <h3>Types of Data Collected</h3>
-                <h4>Personal Data</h4>
-                <p>While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you ("Personal Data"). Personally identifiable information may include, but is not limited to:</p>
-                <ul>
-                    <li>Email address</li>
-                    <li>First name and last name</li>
-                    <li>Phone number</li>
-                    <li>Address, State, Province, ZIP/Postal code, City</li>
-                    <li>Cookies and Usage Data</li>
-                </ul>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.5 International Transfers</h2>
+                    <p>MLE servers are in Canada (East) with backups in the U.S. Where data leaves Canada, we rely on SCCs or equivalent safeguards.</p>
+                </section>
 
-                <h2>Use of Data</h2>
-                <p>Maple Leafs Education uses the collected data for various purposes:</p>
-                <ul>
-                    <li>To provide and maintain the Service</li>
-                    <li>To notify you about changes to our Service</li>
-                    <li>To allow you to participate in interactive features of our Service when you choose to do so</li>
-                    <li>To provide customer care and support</li>
-                    <li>To provide analysis or valuable information so that we can improve the Service</li>
-                    <li>To monitor the usage of the Service</li>
-                    <li>To detect, prevent and address technical issues</li>
-                </ul>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.6 Retention</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>Account & immigration files: <strong>7 years</strong> after last transaction (CRA & ICCRC compliance).</li>
+                        <li>Payment logs: 10 years under FINTRAC rules.</li>
+                        <li>Quiz/analytics logs: 24 months, then anonymized.</li>
+                    </ul>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.7 Your Rights</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>Access / download a copy of your data.</li>
+                        <li>Correct inaccuracies.</li>
+                        <li>Delete (subject to legal retention).</li>
+                        <li>Withdraw consent (future processing).</li>
+                        <li>Object to direct marketing.</li>
+                    </ul>
+                    <p className="mt-2">Contact <a href="mailto:privacy@mapleleafseducation.ca" className="text-primary hover:underline">privacy@mapleleafseducation.ca</a>. We respond within 30 days.</p>
+                </section>
+                
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.8 Security</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li>AES-256 at rest; TLS 1.3 in transit.</li>
+                        <li>Role-based access; MFA for staff.</li>
+                        <li>Annual penetration tests; SOC 2 report available on NDA.</li>
+                    </ul>
+                </section>
 
-                <h2>Security of Data</h2>
-                <p>The security of your data is important to us, but remember that no method of transmission over the Internet, or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.</p>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.9 Children</h2>
+                    <p>Platform not directed to persons under <strong>16</strong>. We do not knowingly collect data from minors without parental consent.</p>
+                </section>
 
-                <h2>Changes to This Privacy Policy</h2>
-                <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. We will let you know via email and/or a prominent notice on our Service, prior to the change becoming effective and update the "effective date" at the top of this Privacy Policy.</p>
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.10 Changes</h2>
+                    <p>We may update this Policy; material changes will be emailed 30 days in advance.</p>
+                </section>
+
+                <section>
+                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">1.11 Contact</h2>
+                    <p>
+                        Maple Leafs Education Inc.<br/>
+                        123 Front St W, Suite 456, Toronto ON M5J 2M2<br/>
+                        <a href="mailto:privacy@mapleleafseducation.ca" className="text-primary hover:underline">privacy@mapleleafseducation.ca</a>
+                    </p>
+                </section>
             </div>
           </div>
         </div>
@@ -66,7 +156,6 @@ export default function PrivacyPolicyPage() {
               <nav className="flex flex-col gap-1 text-sm text-muted-foreground">
                 <Link href="/#how-it-works" className="hover:text-primary hover:underline">How It Works</Link>
                 <Link href="/#testimonials" className="hover:text-primary hover:underline">Testimonials</Link>
-                <Link href="/pricing" className="hover:text-primary hover:underline">Pricing</Link>
               </nav>
             </div>
             <div>
