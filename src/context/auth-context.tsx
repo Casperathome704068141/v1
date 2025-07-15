@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, signOut as firebaseSignOut, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
-import { auth, googleProvider, db } from '@/lib/firebase';
+import { googleProvider, db, isFirebaseConfigured, auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const publicRoutes = ['/', '/signup', '/forgot-password', '/admin/login'];
 
 async function createUserDocument(user: User) {
+  if (!db) return; // Do nothing if firebase is not configured
   const userRef = doc(db, 'users', user.uid);
   const docSnap = await getDoc(userRef);
 
@@ -55,11 +57,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const { toast } = useToast();
 
+  if (!isFirebaseConfigured && !pathname.startsWith('/admin')) {
+      return (
+        <div className="flex h-screen w-full items-center justify-center bg-background p-4">
+            <div className="max-w-lg rounded-lg border border-destructive bg-card p-8 text-center shadow-2xl">
+              <h1 className="text-xl font-bold text-destructive">Firebase Configuration Error</h1>
+              <p className="mt-2 text-muted-foreground">
+                Your Firebase environment variables seem to be missing. Please create a <code>.env.local</code> file in your project root and add your Firebase project configuration to it.
+              </p>
+              <div className="mt-4 text-left bg-muted p-4 rounded-md text-xs overflow-x-auto">
+                <pre>
+                  <code>
+                    NEXT_PUBLIC_FIREBASE_API_KEY=...<br/>
+                    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...<br/>
+                    NEXT_PUBLIC_FIREBASE_PROJECT_ID=...<br/>
+                    {/* Add other Firebase keys here */}
+                  </code>
+                </pre>
+              </div>
+              <a href="https://firebase.google.com/docs/web/setup#add-sdks-initialize" target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-sm text-primary underline">
+                Click here to find your Firebase config keys.
+              </a>
+            </div>
+          </div>
+      )
+  }
+
   useEffect(() => {
+    if (!auth || !db) {
+        setLoading(false);
+        return;
+    };
+    
     const isStudentRoute = !pathname.startsWith('/admin');
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setLoading(true); // Start loading whenever auth state might change
+        setLoading(true);
         if (currentUser && isStudentRoute) {
             setUser(currentUser);
             const userRef = doc(db, 'users', currentUser.uid);
@@ -102,9 +135,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [user, loading, pathname, router]);
 
   const signOut = async () => {
+    if (!auth) return;
     try {
       await firebaseSignOut(auth);
-      router.replace('/'); // Use replace instead of push
+      router.replace('/');
     } catch (error) {
       console.error("Error signing out: ", error);
        toast({
@@ -116,6 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const signInWithGoogle = async () => {
+    if (!auth || !googleProvider) return;
     try {
       setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
