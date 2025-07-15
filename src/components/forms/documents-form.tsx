@@ -25,10 +25,6 @@ const getStatusInfo = (files?: UploadedFile[]) => {
 
 export function DocumentsForm() {
     const { applicationData } = useApplication();
-    const [processingDocId, setProcessingDocId] = useState<string | null>(null);
-
-    const handleProcessStart = (docId: string) => setProcessingDocId(docId);
-    const handleProcessEnd = () => setProcessingDocId(null);
     
     const coreDocs = documentList.filter(d => d.category === 'Core');
     const situationalDocs = documentList.filter(d => d.category === 'Situational');
@@ -42,11 +38,7 @@ export function DocumentsForm() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
-                <FileUploadDropzone 
-                    onUploadStart={handleProcessStart}
-                    onUploadComplete={handleProcessEnd}
-                    isUploading={!!processingDocId}
-                />
+                <FileUploadDropzone />
 
                 <div className="space-y-6">
                     <div>
@@ -57,9 +49,6 @@ export function DocumentsForm() {
                                     <DocumentItem 
                                         docInfo={doc}
                                         statusData={applicationData.documents?.[doc.id]}
-                                        isProcessing={processingDocId === doc.id}
-                                        onProcessStart={() => handleProcessStart(doc.id)}
-                                        onProcessEnd={handleProcessEnd}
                                     />
                                     {index < arr.length - 1 && <Separator />}
                                 </div>
@@ -76,9 +65,6 @@ export function DocumentsForm() {
                                         <DocumentItem 
                                             docInfo={doc}
                                             statusData={applicationData.documents?.[doc.id]}
-                                            isProcessing={processingDocId === doc.id}
-                                            onProcessStart={() => handleProcessStart(doc.id)}
-                                            onProcessEnd={handleProcessEnd}
                                         />
                                         {index < arr.length - 1 && <Separator />}
                                     </div>
@@ -92,14 +78,11 @@ export function DocumentsForm() {
     );
 }
 
-function FileUploadDropzone({ onUploadStart, onUploadComplete, isUploading }: { 
-    onUploadStart: (docId: string) => void, 
-    onUploadComplete: () => void,
-    isUploading: boolean 
-}) {
+function FileUploadDropzone() {
     const { user } = useAuth();
     const { applicationData, updateStepData } = useApplication();
     const { toast } = useToast();
+    const [isUploading, setIsUploading] = useState(false);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         if (!user) {
@@ -107,12 +90,14 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete, isUploading }: {
             return;
         }
 
+        setIsUploading(true);
+        let filesUploadedCount = 0;
+
         for (const file of acceptedFiles) {
             const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
             const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
             
             if (matchingDoc) {
-                onUploadStart(matchingDoc.id);
                 try {
                     const storageRef = ref(storage, `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`);
                     await uploadBytes(storageRef, file);
@@ -131,20 +116,25 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete, isUploading }: {
                     currentDoc.status = 'Uploaded';
                     newDocData[matchingDoc.id] = currentDoc;
 
+                    // Update the context immediately without waiting for all files
                     await updateStepData('documents', newDocData);
+                    filesUploadedCount++;
 
-                    toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.`});
                 } catch (error) {
                     console.error("Upload error:", error);
                     toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
-                } finally {
-                    onUploadComplete();
                 }
             } else {
                 toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not automatically categorize '${file.name}'. Please use the individual upload buttons.` });
             }
         }
-    }, [user, applicationData.documents, toast, onUploadStart, onUploadComplete, updateStepData]);
+        
+        if (filesUploadedCount > 0) {
+           toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.`});
+        }
+        
+        setIsUploading(false);
+    }, [user, applicationData.documents, toast, updateStepData]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
         onDrop, 
@@ -178,22 +168,20 @@ function FileUploadDropzone({ onUploadStart, onUploadComplete, isUploading }: {
     )
 }
 
-function DocumentItem({ docInfo, statusData, isProcessing, onProcessStart, onProcessEnd }: { 
+function DocumentItem({ docInfo, statusData }: { 
     docInfo: typeof documentList[0];
-    statusData: any; 
-    isProcessing: boolean;
-    onProcessStart: () => void;
-    onProcessEnd: () => void;
+    statusData: any;
 }) {
     const { user } = useAuth();
     const { applicationData, updateStepData } = useApplication();
     const { toast } = useToast();
+    const [isProcessing, setIsProcessing] = useState(false);
     const statusInfo = getStatusInfo(statusData?.files);
 
     const handleFileUpload = async (file: File | null) => {
         if (!file || !user) return;
         
-        onProcessStart();
+        setIsProcessing(true);
 
         try {
             const storageRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${file.name}`);
@@ -215,7 +203,7 @@ function DocumentItem({ docInfo, statusData, isProcessing, onProcessStart, onPro
             console.error("Upload error:", error);
             toast({ variant: 'destructive', title: 'Upload Failed', description: `Could not upload ${file.name}.`});
         } finally {
-            onProcessEnd();
+            setIsProcessing(false);
         }
     };
     
@@ -225,7 +213,7 @@ function DocumentItem({ docInfo, statusData, isProcessing, onProcessStart, onPro
         const confirm = window.confirm(`Are you sure you want to delete ${fileToDelete.fileName}?`);
         if (!confirm) return;
         
-        onProcessStart();
+        setIsProcessing(true);
         try {
             const fileRef = ref(storage, `users/${user.uid}/documents/${docInfo.id}/${fileToDelete.fileName}`);
             await deleteObject(fileRef);
@@ -246,7 +234,7 @@ function DocumentItem({ docInfo, statusData, isProcessing, onProcessStart, onPro
             console.error("Delete error:", error);
             toast({ variant: 'destructive', title: 'Delete Failed', description: `Could not delete ${fileToDelete.fileName}.`});
         } finally {
-             onProcessEnd();
+             setIsProcessing(false);
         }
     };
 
