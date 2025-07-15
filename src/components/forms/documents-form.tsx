@@ -79,7 +79,10 @@ function DocumentItem({ docInfo, statusData }: { docInfo: typeof documentList[0]
                 path: storagePath,
             };
             
-            const newDocumentsData = structuredClone(applicationData.documents || {});
+            // Critical fix: Fetch the latest application data from the context at the moment of update
+            const freshApplicationData = applicationData;
+            const newDocumentsData = structuredClone(freshApplicationData.documents || {});
+            
             const currentDoc = newDocumentsData[docInfo.id] || { status: 'Pending', files: [] };
             
             currentDoc.files.push(newFile);
@@ -108,16 +111,17 @@ function DocumentItem({ docInfo, statusData }: { docInfo: typeof documentList[0]
             const fileRef = ref(storage, fileToDelete.path);
             await deleteObject(fileRef);
 
-            const newDocumentsData = structuredClone(applicationData.documents || {});
+            const freshApplicationData = applicationData;
+            const newDocumentsData = structuredClone(freshApplicationData.documents || {});
             const currentDoc = newDocumentsData[docInfo.id];
-            if (!currentDoc) return;
-
-            currentDoc.files = currentDoc.files.filter((f: UploadedFile) => f.path !== fileToDelete.path);
-            if (currentDoc.files.length === 0) {
-                currentDoc.status = 'Pending';
-            }
             
-            await updateStepData('documents', newDocumentsData);
+            if (currentDoc?.files) {
+                currentDoc.files = currentDoc.files.filter((f: UploadedFile) => f.path !== fileToDelete.path);
+                if (currentDoc.files.length === 0) {
+                    currentDoc.status = 'Pending';
+                }
+                 await updateStepData('documents', newDocumentsData);
+            }
 
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.` });
         } catch (error: any) {
