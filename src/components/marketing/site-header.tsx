@@ -13,8 +13,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={32} height={32} />
-          <span className="font-bold sm:inline-block">Maple Leafs Education</span>
+          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} />
+          <span className="font-bold text-xl sm:text-2xl">Maple Leafs Education</span>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-2">
