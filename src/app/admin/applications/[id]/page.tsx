@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, AlertTriangle, FileText, Download } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
@@ -32,8 +32,10 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
 function getStatusBadgeVariant(status: string) {
     switch (status) {
         case 'Approved': return 'default';
+        case 'submitted': return 'default';
         case 'Pending Review': return 'secondary';
         case 'Action Required': return 'destructive';
+        case 'draft': return 'outline';
         default: return 'outline';
     }
 }
@@ -58,19 +60,29 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const userId = searchParams.get('userId');
 
     useEffect(() => {
         async function getApplication() {
             setLoading(true);
             setError(null);
             try {
-                const docRef = doc(db, 'applications', id);
+                let docRef;
+                if (userId) {
+                    // This is a draft or other user-specific application document
+                    docRef = doc(db, 'users', userId, 'application', id);
+                } else {
+                    // This is a submitted application in the top-level collection
+                    docRef = doc(db, 'applications', id);
+                }
+
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
                     const appData = docSnap.data();
                     setApplication(appData);
-                    setStatus(appData.status);
+                    setStatus(appData.status || 'draft');
                 } else {
                     setError("No application found with this ID.");
                 }
@@ -84,27 +96,51 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
         if (id) {
           getApplication();
         }
-    }, [id]);
+    }, [id, userId]);
 
     const handleStatusUpdate = async () => {
-        setIsUpdating(true);
-        const docRef = doc(db, 'applications', id);
-        try {
-            await updateDoc(docRef, { status: status });
-            toast({
-                title: 'Status Updated',
-                description: `Application status changed to ${status}.`,
-            });
-            setApplication((prev: any) => ({ ...prev, status }));
-        } catch (error) {
-            console.error("Error updating status: ", error);
-            toast({
-                variant: 'destructive',
-                title: 'Update Failed',
-                description: 'Could not update the application status.',
-            });
-        } finally {
-            setIsUpdating(false);
+        if (!userId) {
+            // This logic is for submitted applications in the top-level collection
+            setIsUpdating(true);
+            const docRef = doc(db, 'applications', id);
+            try {
+                await updateDoc(docRef, { status: status });
+                toast({
+                    title: 'Status Updated',
+                    description: `Application status changed to ${status}.`,
+                });
+                setApplication((prev: any) => ({ ...prev, status }));
+            } catch (error) {
+                console.error("Error updating status: ", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Update Failed',
+                    description: 'Could not update the application status.',
+                });
+            } finally {
+                setIsUpdating(false);
+            }
+        } else {
+            // This logic is for user-specific drafts
+             setIsUpdating(true);
+            const docRef = doc(db, 'users', userId, 'application', id);
+             try {
+                await updateDoc(docRef, { status: status });
+                toast({
+                    title: 'Status Updated',
+                    description: `Draft status changed to ${status}.`,
+                });
+                setApplication((prev: any) => ({ ...prev, status }));
+            } catch (error) {
+                console.error("Error updating status: ", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Update Failed',
+                    description: 'Could not update the draft status.',
+                });
+            } finally {
+                setIsUpdating(false);
+            }
         }
     };
 
@@ -150,7 +186,8 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
     }
 
 
-    const { personalInfo, academics, finances, submittedAt, documents } = application;
+    const { personalInfo, academics, finances, submittedAt, documents, status: appStatus } = application;
+    const currentStatus = appStatus || 'draft';
     
     const allUploadedFiles = documentDisplayList.flatMap(docDef => {
         const docData = documents?.[docDef.id];
@@ -192,7 +229,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                                         <DataRow label="Date of Birth" value={personalInfo.dob ? format(new Date(personalInfo.dob), 'PPP') : ''} />
                                         <DataRow label="Citizenship" value={personalInfo.countryOfCitizenship} />
                                         <DataRow label="Passport" value={personalInfo.passportNumber} />
-                                        <DataRow label="Email" value={application.studentEmail} />
+                                        <DataRow label="Email" value={application.studentEmail || personalInfo.email} />
                                     </dl>
                                 </CardContent>
                             </Card>
@@ -258,7 +295,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                             <CardContent className="space-y-4">
                                 <dl>
                                     <DataRow label="Submitted At" value={submittedAt?.toDate() ? format(submittedAt.toDate(), 'PPP') : 'N/A'} />
-                                    <DataRow label="Current Status" value={<Badge variant={getStatusBadgeVariant(application.status)}>{application.status}</Badge>} />
+                                    <DataRow label="Current Status" value={<Badge variant={getStatusBadgeVariant(currentStatus)}>{currentStatus}</Badge>} />
                                 </dl>
                                 <Separator />
                                 <div className="space-y-2">
@@ -268,6 +305,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                                             <SelectValue placeholder="Set new status" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="draft">Draft</SelectItem>
                                             <SelectItem value="Pending Review">Pending Review</SelectItem>
                                             <SelectItem value="Approved">Approved</SelectItem>
                                             <SelectItem value="Action Required">Action Required</SelectItem>
@@ -275,7 +313,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <Button className="w-full" onClick={handleStatusUpdate} disabled={isUpdating || status === application.status}>
+                                <Button className="w-full" onClick={handleStatusUpdate} disabled={isUpdating || status === currentStatus}>
                                     {isUpdating ? 'Updating...' : 'Update Status'}
                                 </Button>
                             </CardContent>

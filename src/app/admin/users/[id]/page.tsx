@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, AlertTriangle, User, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -18,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { UserProfile } from '@/context/auth-context';
-import type { UploadedFile } from '@/context/application-context';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
@@ -42,7 +41,7 @@ function getStatusBadgeVariant(status: string) {
 }
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
-    const { id } = React.use(params);
+    const { id } = params;
     const [user, setUser] = useState<UserProfile | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
@@ -70,15 +69,17 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                 }
 
                 // Fetch all applications (drafts and submitted)
-                const appsQuery = collection(db, 'users', id, 'application');
+                const appsCollectionRef = collection(db, 'users', id, 'application');
+                const appsQuery = query(appsCollectionRef);
                 const appsSnapshot = await getDocs(appsQuery);
+
                 const appsList = appsSnapshot.docs.map(doc => {
                     const data = doc.data();
                     return {
                         id: doc.id,
                         status: data.status || 'draft', // Default to draft if no status
                         submittedAtTimestamp: data.submittedAt || null,
-                        submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'yyyy-MM-dd') : 'N/A',
+                        submittedAt: data.submittedAt?.toDate() ? formatDistanceToNow(data.submittedAt.toDate(), { addSuffix: true }) : 'Draft',
                     };
                 });
                 
@@ -243,7 +244,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                                                     <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                  <Link href={`/admin/applications/${app.id}`}>
+                                                  <Link href={`/admin/applications/${app.id}?userId=${id}`}>
                                                     <Button variant="outline" size="sm">View Details</Button>
                                                   </Link>
                                                 </TableCell>
