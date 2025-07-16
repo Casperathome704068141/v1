@@ -33,8 +33,10 @@ type Application = {
 function getStatusBadgeVariant(status: string) {
     switch (status) {
         case 'Approved': return 'default';
+        case 'submitted': return 'default';
         case 'Pending Review': return 'secondary';
         case 'Action Required': return 'destructive';
+        case 'draft': return 'outline';
         default: return 'outline';
     }
 }
@@ -43,7 +45,6 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     const { id } = React.use(params);
     const [user, setUser] = useState<UserProfile | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
-    const [userDocuments, setUserDocuments] = useState<any>({});
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -57,7 +58,6 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             setLoading(true);
             setError(null);
             try {
-                // Fetch user document
                 const userDocRef = doc(db, 'users', id);
                 const userDocSnap = await getDoc(userDocRef);
 
@@ -69,22 +69,19 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                     return;
                 }
 
-                // Fetch user's applications
-                const appsQuery = query(
-                    collection(db, 'applications'),
-                    where('userId', '==', id)
-                );
+                // Fetch all applications (drafts and submitted)
+                const appsQuery = collection(db, 'users', id, 'application');
                 const appsSnapshot = await getDocs(appsQuery);
                 const appsList = appsSnapshot.docs.map(doc => {
                     const data = doc.data();
                     return {
                         id: doc.id,
-                        status: data.status,
+                        status: data.status || 'draft', // Default to draft if no status
                         submittedAtTimestamp: data.submittedAt || null,
                         submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'yyyy-MM-dd') : 'N/A',
                     };
                 });
-
+                
                 appsList.sort((a, b) => {
                     if (!a.submittedAtTimestamp) return 1;
                     if (!b.submittedAtTimestamp) return -1;
@@ -93,20 +90,9 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
 
                 setApplications(appsList);
 
-                // Fetch user's draft documents
-                const draftSnap = await getDoc(doc(db, 'users', id, 'application', 'draft'));
-                if (draftSnap.exists()) {
-                    setUserDocuments(draftSnap.data()?.documents || {});
-                }
-
-
             } catch (err: any) {
                 console.error("Firebase error getting document:", err);
-                if (err.code === 'failed-precondition') {
-                     setError("This query requires a Firestore index. Please check the browser console for a link to create it, or contact support.");
-                } else {
-                    setError("An error occurred while fetching the user's data.");
-                }
+                setError("An error occurred while fetching the user's data.");
             } finally {
                 setLoading(false);
             }
@@ -137,25 +123,6 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
         }
     };
     
-    const documentCategoryMap: { [key: string]: string } = {
-        passport: 'Passport Bio Page',
-        loa: 'Letter of Acceptance (LOA)',
-        proofOfFunds: 'Proof of Funds',
-        languageTest: 'Language Test Results',
-        sop: 'Statement of Purpose (SOP/LOE)',
-        photo: 'Digital Photo',
-        educationDocs: 'Previous Education Documents',
-        custodian: 'Custodian Declaration (for minors)',
-        tiesToHome: 'Ties to Home Country',
-        resume: 'Resume / CV',
-        travelHistory: 'Travel History',
-        explanationLetter: 'Letter of Explanation for Gaps/Refusals',
-        sponsorship: 'Sponsorship Letter & Documents',
-        medical: 'Medical Exam (eMedical Sheet)',
-        pcc: 'Police Clearance Certificate (PCC)',
-        marriageCert: 'Marriage Certificate',
-    };
-
     if (loading) {
         return (
              <AdminLayout>
@@ -253,69 +220,41 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <FileText className="h-5 w-5 text-primary" />
-                                    Submitted Applications
+                                    User Applications
                                 </CardTitle>
-                                <CardDescription>All applications submitted by this user.</CardDescription>
+                                <CardDescription>All applications (drafts and submitted) by this user.</CardDescription>
                             </CardHeader>
                              <CardContent>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>App ID</TableHead>
-                                            <TableHead>Submitted On</TableHead>
+                                            <TableHead>Last Updated</TableHead>
                                             <TableHead>Status</TableHead>
+                                            <TableHead>Action</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {applications.length > 0 ? applications.map(app => (
-                                            <TableRow key={app.id} onClick={() => router.push(`/admin/applications/${app.id}`)} className="cursor-pointer">
+                                            <TableRow key={app.id}>
                                                 <TableCell className="font-mono">{app.id.substring(0, 7).toUpperCase()}</TableCell>
                                                 <TableCell>{app.submittedAt}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
                                                 </TableCell>
+                                                <TableCell>
+                                                  <Link href={`/admin/applications/${app.id}`}>
+                                                    <Button variant="outline" size="sm">View Details</Button>
+                                                  </Link>
+                                                </TableCell>
                                             </TableRow>
                                         )) : (
                                             <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground">No applications found.</TableCell>
+                                                <TableCell colSpan={4} className="text-center text-muted-foreground">No applications found.</TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
                                 </Table>
-                            </CardContent>
-                        </Card>
-                        
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Uploaded Documents</CardTitle>
-                                <CardDescription>All files this user has uploaded to their draft application.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {Object.keys(userDocuments).length > 0 ? Object.entries(userDocuments).map(([docId, docData]: [string, any]) => (
-                                <div key={docId}>
-                                    <h3 className="font-semibold">{documentCategoryMap[docId] || docId}</h3>
-                                    {docData.files.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground">No files uploaded for this category.</p>
-                                    ) : (
-                                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                                        {docData.files.map((file: UploadedFile) => (
-                                        <li key={file.path} className="flex items-center gap-2 text-sm">
-                                            <FileText className="h-4 w-4 text-muted-foreground" />
-                                            <Link href={file.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate" title={file.fileName}>
-                                                {file.fileName}
-                                            </Link>
-                                            <span className="ml-auto text-xs text-muted-foreground">
-                                                {format(new Date(file.date), 'yyyy-MM-dd')}
-                                            </span>
-                                        </li>
-                                        ))}
-                                    </ul>
-                                    )}
-                                    <Separator className="my-4" />
-                                </div>
-                                )) : (
-                                    <p className="text-sm text-muted-foreground text-center">No documents have been uploaded by this user yet.</p>
-                                )}
                             </CardContent>
                         </Card>
                      </div>

@@ -34,7 +34,7 @@ const getResultDetails = (score: number) => {
       description: '🎉 You’re in great shape! Start assembling docs and get ready to apply.',
       ctaText: 'Create Your Application',
       ctaLink: '/application',
-      ctaVariant: 'default',
+      ctaVariant: 'default' as const,
     };
   }
   if (score >= 50) {
@@ -43,7 +43,7 @@ const getResultDetails = (score: number) => {
       description: '🔧 A few gaps to close before you apply. Let\'s generate a personalized action plan for you.',
       ctaText: 'View Your AI-Generated Action Plan',
       ctaLink: '/action-plan',
-      ctaVariant: 'secondary',
+      ctaVariant: 'secondary' as const,
     };
   }
   return {
@@ -51,7 +51,7 @@ const getResultDetails = (score: number) => {
     description: '⚠️ There may be a high refusal risk if you apply now. We recommend a consultation.',
     ctaText: 'Book a 1-on-1 Consultation',
     ctaLink: '/pricing',
-    ctaVariant: 'destructive',
+    ctaVariant: 'destructive' as const,
   };
 };
 

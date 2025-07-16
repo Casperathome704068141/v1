@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const timeSlots = [
   '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
@@ -33,21 +33,17 @@ function AppointmentsContent() {
     if (!user || !date || !selectedTime) return;
     setIsConfirming(true);
 
-    // In a real application, you would get a specific appointment ID.
-    // For this example, we'll create a mock ID based on the date and time.
     const mockApptId = `${date.toISOString().split('T')[0]}-${selectedTime.replace(' ', '')}`;
 
     try {
-      // This is an example path. You'd adjust it to your data model.
       const apptRef = doc(db, 'users', user.uid, 'appointments', mockApptId);
       
-      // Using setDoc with merge:true is safer for creating/updating
-      await updateDoc(apptRef, {
+      await setDoc(apptRef, {
         status: 'confirmed',
         confirmedAt: serverTimestamp(),
         date: date,
         time: selectedTime,
-      });
+      }, { merge: true });
 
       toast({
         title: "Appointment Confirmed!",
@@ -157,7 +153,7 @@ function AppointmentsContent() {
             disabled={!date || !selectedTime || isConfirming}
             onClick={handleConfirm}
           >
-            {isConfirming ? "Confirming..." : `Confirm for ${date?.toLocaleDateString()} at ${selectedTime}`}
+            {isConfirming ? "Confirming..." : `Confirm for ${date?.toLocaleDateString()} at ${selectedTime || ''}`}
           </Button>
         </div>
       </CardContent>

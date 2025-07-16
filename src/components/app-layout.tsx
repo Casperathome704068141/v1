@@ -130,7 +130,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <ApplicationProvider>
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
-                <SidebarTrigger className="h-10 w-10 p-2 sm:hidden" />
+                 <SidebarTrigger className="p-3 text-2xl hover:bg-gray-100 rounded-lg sm:hidden" />
                 <UserMenu />
               </header>
               {children}

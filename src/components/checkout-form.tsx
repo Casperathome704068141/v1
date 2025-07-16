@@ -47,7 +47,7 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
 
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      redirect: "if_required", // Handle success manually instead of redirecting
+      redirect: "if_required",
     });
 
     if (error) {
@@ -58,18 +58,16 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
     
     if (paymentIntent && paymentIntent.status === 'succeeded') {
         try {
-            // Write payment record to Firestore
             const paymentRef = doc(db, 'users', user.uid, 'payments', paymentIntent.id);
             await setDoc(paymentRef, {
                 amount: paymentIntent.amount,
                 currency: paymentIntent.currency,
                 paidAt: serverTimestamp(),
-                planDetails: cartItems, // Save the items purchased
+                planDetails: cartItems,
             });
 
             toast({ title: 'Payment Successful!', description: 'Your purchase is complete.' });
             
-            // Redirect to dashboard on success
             window.location.href = '/dashboard?payment_success=true';
 
         } catch (dbError) {

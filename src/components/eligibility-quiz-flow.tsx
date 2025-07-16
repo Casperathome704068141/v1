@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -9,6 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QuizResults } from './quiz-results';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 type Answer = string | null;
 type Answers = Record<string, Answer>;
@@ -64,7 +67,7 @@ const questions = [
     section: 'Finances',
     options: [
       { value: 'yes_ready', label: 'Yes, and I have a $10k+ GIC and tuition paid receipt', points: 5 },
-      { value: 'yes_not_ready', label: 'Yes, but I\'m missing the GIC or tuition receipt', points: 2 },
+      { value: 'yes_not_ready', label: "Yes, but I'm missing the GIC or tuition receipt", points: 2 },
       { value: 'no', label: 'No, my country is not on the SDS list', points: 0 },
     ],
   },
@@ -175,6 +178,7 @@ const sectionMaxPoints: Record<string, number> = {
 export function EligibilityQuizFlow() {
   const [answers, setAnswers] = useState<Answers>({});
   const [finished, setFinished] = useState(false);
+  const { user } = useAuth();
 
   const visibleQuestions = useMemo(() => {
     const visible = [];
@@ -243,8 +247,27 @@ export function EligibilityQuizFlow() {
     return { totalScore, sectionScores };
   }
   
+  const { totalScore, sectionScores } = calculateScores();
+
+  useEffect(() => {
+    if (finished && user?.uid) {
+      const saveResults = async () => {
+        try {
+          await setDoc(doc(db, 'users', user.uid, 'quizResults', 'eligibility'), {
+            score: totalScore,
+            sectionScores,
+            answers,
+            takenAt: serverTimestamp(),
+          });
+        } catch (error) {
+          console.error("Error saving quiz results: ", error);
+        }
+      };
+      saveResults();
+    }
+  }, [finished, user, totalScore, sectionScores, answers]);
+  
   if (finished) {
-    const { totalScore, sectionScores } = calculateScores();
     return <QuizResults totalScore={totalScore} sectionScores={sectionScores} onReset={handleReset} sectionMaxPoints={sectionMaxPoints} answers={answers} />;
   }
 
@@ -288,7 +311,7 @@ export function EligibilityQuizFlow() {
                     {currentQuestion.options.map(opt => (
                         <div key={opt.value} className="flex items-center space-x-2">
                             <RadioGroupItem value={opt.value} id={`${currentQuestion.id}-${opt.value}`} />
-                            <Label htmlFor={`${currentQuestion.id}-${opt.vealue}`} className="text-base font-normal">
+                            <Label htmlFor={`${currentQuestion.id}-${opt.value}`} className="text-base font-normal">
                                 {opt.label}
                             </Label>
                         </div>

@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useApplication, UploadedFile } from '@/context/application-context';
+import { useApplication } from '@/context/application-context';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, FileText, AlertTriangle, Send } from 'lucide-react';
 import { format } from 'date-fns';
@@ -45,7 +45,7 @@ function ApplicationReviewContent() {
     }
 
     try {
-        // 1. Create a new document in the top-level 'applications' collection
+        // 1. Create a new document in the top-level 'applications' collection for admin review
         await addDoc(collection(db, 'applications'), {
             ...applicationData,
             userId: user.uid,
@@ -67,8 +67,6 @@ function ApplicationReviewContent() {
             description: 'Your application has been sent for processing. We will be in touch.',
         });
         
-        // No longer resetting application data, so user can see their submission.
-        // resetApplicationData(); 
         router.push('/dashboard');
 
     } catch (error: any) {
@@ -161,7 +159,7 @@ function ApplicationReviewContent() {
                 <CardTitle className="flex items-center gap-2">
                     {allDocsUploaded ? <CheckCircle className="text-green-600" /> : <AlertTriangle className="text-red-600" />}
                     Document Check
-                </CardTitle>
+                </Title>
               </CardHeader>
               <CardContent>
                 <p className="text-sm">

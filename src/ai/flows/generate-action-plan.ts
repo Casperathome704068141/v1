@@ -30,15 +30,16 @@ const prompt = ai.definePrompt({
   name: 'generateActionPlanPrompt',
   input: { schema: ActionPlanInputSchema },
   output: { schema: ActionPlanOutputSchema },
-  prompt: `You are an admissions coach. Based on these quiz answers:
+  prompt: `
+You are an admissions coach. Based on these quiz answers:
 {{{quizAnswers}}}
 
-Produce a concise action plan (under 200 words), formatted as 4 bullet points in Markdown:
-1.  **Strengths:**
-2.  **Areas for Improvement:**
-3.  **Next Step #1:**
-4.  **Next Step #2:**
-  `,
+Produce a concise action plan (under 200 words), formatted as 4 bullet points:
+1. Strengths
+2. Areas for Improvement
+3. Next Step #1
+4. Next Step #2
+`,
 });
 
 const generateActionPlanFlow = ai.defineFlow(
