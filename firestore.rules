@@ -1,47 +1,26 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --- User Data Rules ---
-
-    // Rule for the main user document itself (/users/{userId})
-    match /users/{userId} {
-      // User can read/write their own document.
-      // Admin can read any user's document.
-      allow read: if request.auth.uid == userId || request.auth.token.admin == true;
-      allow write: if request.auth.uid == userId;
+    // This single rule allows a logged-in user to read and write to their own
+    // user document and any documents in any subcollections (e.g., quizResults, application).
+    match /users/{userId}/{documents=**} {
+      allow read, write: if request.auth.uid == userId;
     }
 
-    // Rule for any subcollection under a user document.
-    // This covers quizResults, application drafts, payments, etc.
-    // e.g., /users/{userId}/quizResults/eligibility
-    match /users/{userId}/{subcollection}/{docId} {
-      // User can read/write documents in their own subcollections.
-      // Admin can read documents in any user's subcollections.
-      allow read: if request.auth.uid == userId || request.auth.token.admin == true;
-      allow write: if request.auth.uid == userId;
-    }
-
-    // --- Admin & Public Collection Rules ---
-
-    // The top-level 'applications' collection is for final submissions
+    // Rules for the top-level applications collection, accessible by admins
+    // and the user who created it.
     match /applications/{appId} {
-      // A user can create their own application submission
       allow create: if request.auth.uid == request.resource.data.userId;
-
-      // A user can read their own submission; an admin can read any submission
       allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
-
-      // An admin can update or delete any submission
       allow update, delete: if request.auth.token.admin == true;
     }
 
-    // Rules for other collections that only admins can access
+    // Admins can manage settings and news content.
     match /settings/{docId} {
-        allow read, write: if request.auth.token.admin == true;
+      allow read, write: if request.auth.token.admin == true;
     }
     match /news/{docId} {
-        allow read, write: if request.auth.token.admin == true;
+      allow read, write: if request.auth.token.admin == true;
     }
   }
 }
