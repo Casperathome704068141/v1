@@ -64,19 +64,17 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
     const userId = searchParams.get('userId');
 
     useEffect(() => {
+        if (!id || !userId) {
+            setError("Application or User ID is missing.");
+            setLoading(false);
+            return;
+        }
+
         async function getApplication() {
             setLoading(true);
             setError(null);
             try {
-                let docRef;
-                if (userId) {
-                    // This is a draft or other user-specific application document
-                    docRef = doc(db, 'users', userId, 'application', id);
-                } else {
-                    // This is a submitted application in the top-level collection
-                    docRef = doc(db, 'applications', id);
-                }
-
+                const docRef = doc(db, 'users', userId as string, 'application', id);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -84,7 +82,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                     setApplication(appData);
                     setStatus(appData.status || 'draft');
                 } else {
-                    setError("No application found with this ID.");
+                    setError("No application found with this ID for the specified user.");
                 }
             } catch (err) {
                 console.error("Firebase error getting document:", err);
@@ -93,54 +91,33 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                 setLoading(false);
             }
         }
-        if (id) {
-          getApplication();
-        }
+        getApplication();
     }, [id, userId]);
 
     const handleStatusUpdate = async () => {
         if (!userId) {
-            // This logic is for submitted applications in the top-level collection
-            setIsUpdating(true);
-            const docRef = doc(db, 'applications', id);
-            try {
-                await updateDoc(docRef, { status: status });
-                toast({
-                    title: 'Status Updated',
-                    description: `Application status changed to ${status}.`,
-                });
-                setApplication((prev: any) => ({ ...prev, status }));
-            } catch (error) {
-                console.error("Error updating status: ", error);
-                toast({
-                    variant: 'destructive',
-                    title: 'Update Failed',
-                    description: 'Could not update the application status.',
-                });
-            } finally {
-                setIsUpdating(false);
-            }
-        } else {
-            // This logic is for user-specific drafts
-             setIsUpdating(true);
-            const docRef = doc(db, 'users', userId, 'application', id);
-             try {
-                await updateDoc(docRef, { status: status });
-                toast({
-                    title: 'Status Updated',
-                    description: `Draft status changed to ${status}.`,
-                });
-                setApplication((prev: any) => ({ ...prev, status }));
-            } catch (error) {
-                console.error("Error updating status: ", error);
-                toast({
-                    variant: 'destructive',
-                    title: 'Update Failed',
-                    description: 'Could not update the draft status.',
-                });
-            } finally {
-                setIsUpdating(false);
-            }
+           toast({ variant: 'destructive', title: 'Error', description: 'User ID is missing.' });
+           return;
+        }
+
+        setIsUpdating(true);
+        const docRef = doc(db, 'users', userId, 'application', id);
+        try {
+            await updateDoc(docRef, { status: status });
+            toast({
+                title: 'Status Updated',
+                description: `Application status changed to ${status}.`,
+            });
+            setApplication((prev: any) => ({ ...prev, status }));
+        } catch (error) {
+            console.error("Error updating status: ", error);
+            toast({
+                variant: 'destructive',
+                title: 'Update Failed',
+                description: 'Could not update the application status.',
+            });
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -209,7 +186,7 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                         Back to Applications
                     </Button>
                     <h1 className="font-headline text-3xl font-bold">Application: {personalInfo?.givenNames} {personalInfo?.surname}</h1>
-                    <p className="text-muted-foreground">ID: {id}</p>
+                    <p className="text-muted-foreground">App ID: {id} / User ID: {userId}</p>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
