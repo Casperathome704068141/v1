@@ -11,8 +11,9 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, limit, orderBy, query, where, getCountFromServer } from 'firebase/firestore';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { ArrowRight, UserPlus, Hourglass, CheckCircle, FileText } from 'lucide-react';
+import { ArrowRight, UserPlus, Hourglass, CheckCircle, FileText, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 type Application = {
     id: string;
@@ -39,8 +40,10 @@ function getStatusBadgeVariant(status: string) {
 
 export default function AdminDashboardPage() {
   const [recentApplications, setRecentApplications] = useState<Application[]>([]);
+  const [pendingApplications, setPendingApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<Stats>({ totalApplications: 0, pendingReview: 0, approvedVisas: 0, newUsers: 0 });
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function getDashboardData() {
@@ -49,6 +52,7 @@ export default function AdminDashboardPage() {
             const usersCollection = collection(db, 'users');
 
             const recentApplicationsQuery = query(applicationsCollection, orderBy('submittedAt', 'desc'), limit(5));
+            const pendingApplicationsQuery = query(applicationsCollection, where('status', '==', 'Pending Review'), orderBy('submittedAt', 'asc'), limit(5));
             
             const totalAppsQuery = query(applicationsCollection);
             const pendingAppsQuery = query(applicationsCollection, where('status', '==', 'Pending Review'));
@@ -57,12 +61,14 @@ export default function AdminDashboardPage() {
 
             const [
                 appSnapshot,
+                pendingSnapshot,
                 totalAppsSnapshot,
-                pendingAppsSnapshot,
+                pendingAppsCountSnapshot,
                 approvedAppsSnapshot,
                 totalUsersSnapshot
             ] = await Promise.all([
                 getDocs(recentApplicationsQuery),
+                getDocs(pendingApplicationsQuery),
                 getCountFromServer(totalAppsQuery),
                 getCountFromServer(pendingAppsQuery),
                 getCountFromServer(approvedAppsQuery),
@@ -78,19 +84,29 @@ export default function AdminDashboardPage() {
                     submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'PPP') : 'N/A',
                 };
             });
+            
+            const fetchedPendingApplications = pendingSnapshot.docs.map(doc => {
+                 const data = doc.data();
+                return {
+                    id: doc.id,
+                    studentName: data.studentName,
+                    status: data.status,
+                    submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'PPP') : 'N/A',
+                };
+            });
 
             const fetchedStats = {
                 totalApplications: totalAppsSnapshot.data().count,
-                pendingReview: pendingAppsSnapshot.data().count,
+                pendingReview: pendingAppsCountSnapshot.data().count,
                 approvedVisas: approvedAppsSnapshot.data().count,
                 newUsers: totalUsersSnapshot.data().count,
             };
 
             setRecentApplications(fetchedRecentApplications);
+            setPendingApplications(fetchedPendingApplications);
             setStats(fetchedStats);
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
-            // Optionally, set an error state here to show a message to the user
         } finally {
             setLoading(false);
         }
@@ -149,55 +165,99 @@ export default function AdminDashboardPage() {
             </Card>
         </div>
 
-        <Card>
-            <CardHeader className="flex items-center justify-between">
-                <div>
-                    <CardTitle>Recent Applications</CardTitle>
-                    <CardDescription>The last 5 applications submitted by students.</CardDescription>
-                </div>
-                <Button asChild variant="outline" size="sm">
-                    <Link href="/admin/applications">
-                        View All
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                </Button>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Student Name</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Submitted On</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
-                             Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-[120px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-[100px] float-right" /></TableCell>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+                 <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
+                        Pending Review Queue
+                    </CardTitle>
+                    <CardDescription>The oldest applications needing your attention.</CardDescription>
+                </CardHeader>
+                 <CardContent>
+                    <Table>
+                        <TableBody>
+                             {loading ? (
+                                Array.from({ length: 3 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-[100px] float-right" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : pendingApplications.length > 0 ? (
+                                pendingApplications.map(app => (
+                                    <TableRow key={app.id} onClick={() => router.push(`/admin/applications/${app.id}`)} className="cursor-pointer">
+                                        <TableCell>
+                                            <div className="font-medium">{app.studentName}</div>
+                                            <div className="text-xs text-muted-foreground md:hidden">{app.id.substring(0, 7).toUpperCase()}</div>
+                                        </TableCell>
+                                        <TableCell className="text-right">{app.submittedAt}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell className="text-center text-muted-foreground" colSpan={2}>No applications pending review.</TableCell>
                                 </TableRow>
-                            ))
-                        ) : (
-                            recentApplications.map(app => (
-                                 <TableRow key={app.id}>
-                                    <TableCell>
-                                        <div className="font-medium">{app.studentName}</div>
-                                        <div className="text-xs text-muted-foreground md:hidden">{app.id.substring(0, 7).toUpperCase()}</div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">{app.submittedAt}</TableCell>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Recent Applications</CardTitle>
+                        <CardDescription>The last 5 applications submitted.</CardDescription>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href="/admin/applications">
+                            View All
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Student Name</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Submitted On</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-[120px]" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-[100px] float-right" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : recentApplications.length > 0 ? (
+                                recentApplications.map(app => (
+                                    <TableRow key={app.id} onClick={() => router.push(`/admin/applications/${app.id}`)} className="cursor-pointer">
+                                        <TableCell>
+                                            <div className="font-medium">{app.studentName}</div>
+                                            <div className="text-xs text-muted-foreground md:hidden">{app.id.substring(0, 7).toUpperCase()}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">{app.submittedAt}</TableCell>
+                                    </TableRow>
+                                ))
+                             ) : (
+                                <TableRow>
+                                    <TableCell className="text-center text-muted-foreground" colSpan={3}>No applications found.</TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
       </main>
     </AdminLayout>
   );

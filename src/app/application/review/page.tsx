@@ -13,6 +13,7 @@ import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useAuth } from '@/context/auth-context';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
@@ -26,6 +27,7 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function ApplicationReviewContent() {
   const { applicationData } = useApplication();
+  const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +35,6 @@ function ApplicationReviewContent() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const user = auth.currentUser;
     if (!user) {
         toast({
             variant: 'destructive',
@@ -45,17 +46,19 @@ function ApplicationReviewContent() {
     }
 
     try {
+        const studentFullName = (`${personalInfo?.givenNames || ''} ${personalInfo?.surname || ''}`).trim() || user.displayName;
+        
         // 1. Create a new document in the top-level 'applications' collection for admin review
         await addDoc(collection(db, 'applications'), {
             ...applicationData,
             userId: user.uid,
-            studentName: `${personalInfo?.givenNames} ${personalInfo?.surname}`,
+            studentName: studentFullName,
             studentEmail: user.email,
-            status: 'Submitted', // Set initial status
+            status: 'Pending Review',
             submittedAt: serverTimestamp(),
         });
         
-        // 2. Update the user's draft document to mark it as submitted, rather than deleting it.
+        // 2. Update the user's draft document to mark it as submitted.
         const draftRef = doc(db, 'users', user.uid, 'application', 'draft');
         await updateDoc(draftRef, {
             status: 'submitted',

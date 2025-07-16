@@ -1,17 +1,25 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows a user to read and write their own main user document
+    // --- User Data Rules ---
+
+    // Rule for the main user document itself (/users/{userId})
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      // User can read/write their own document.
+      // Admin can read any user's document.
+      allow read: if request.auth.uid == userId || request.auth.token.admin == true;
+      allow write: if request.auth.uid == userId;
     }
 
-    // This rule allows a user to read and write any document in any subcollection
-    // under their own user document (e.g., quizResults, application drafts)
-    match /users/{userId}/{documents=**} {
-      allow read, write: if request.auth.uid == userId;
+    // Rule for any subcollection under a user document.
+    // This covers quizResults, application drafts, payments, etc.
+    // e.g., /users/{userId}/quizResults/eligibility
+    match /users/{userId}/{subcollection}/{docId} {
+      // User can read/write documents in their own subcollections.
+      // Admin can read documents in any user's subcollections.
+      allow read: if request.auth.uid == userId || request.auth.token.admin == true;
+      allow write: if request.auth.uid == userId;
     }
 
     // --- Admin & Public Collection Rules ---
@@ -24,16 +32,16 @@ service cloud.firestore {
       // A user can read their own submission; an admin can read any submission
       allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
 
-      // Only admins can update or delete final submissions
+      // An admin can update or delete any submission
       allow update, delete: if request.auth.token.admin == true;
     }
 
-    // Admins have full access to settings and news
+    // Rules for other collections that only admins can access
     match /settings/{docId} {
-      allow read, write: if request.auth.token.admin == true;
+        allow read, write: if request.auth.token.admin == true;
     }
     match /news/{docId} {
-       allow read, write: if request.auth.token.admin == true;
+        allow read, write: if request.auth.token.admin == true;
     }
   }
 }
