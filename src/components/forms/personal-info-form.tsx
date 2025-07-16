@@ -77,6 +77,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
       const valuesToReset = {
         ...defaultValues,
         ...contextData,
+        // FIX: Safely create date objects only if the source value exists
         dob: contextData.dob ? new Date(contextData.dob) : undefined,
         passportIssueDate: contextData.passportIssueDate ? new Date(contextData.passportIssueDate) : undefined,
         passportExpiryDate: contextData.passportExpiryDate ? new Date(contextData.passportExpiryDate) : undefined,

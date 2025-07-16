@@ -87,6 +87,7 @@ export function FamilyForm({ onSave }: FamilyFormProps) {
         ...defaultValues,
         ...familyData,
         maritalStatus: personalInfoData.maritalStatus || familyData.maritalStatus || '',
+        // FIX: Safely create date objects
         parent1Dob: familyData.parent1Dob ? new Date(familyData.parent1Dob) : undefined,
         parent2Dob: familyData.parent2Dob ? new Date(familyData.parent2Dob) : undefined,
         spouseDob: familyData.spouseDob ? new Date(familyData.spouseDob) : undefined,

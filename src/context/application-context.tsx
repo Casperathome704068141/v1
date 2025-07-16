@@ -147,7 +147,8 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
 
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
-      await setDoc(docRef, { [step]: data }, { merge: true });
+      // Add updatedAt timestamp to track changes for drafts
+      await setDoc(docRef, { [step]: data, updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
       console.error("Error updating application step data:", error);
       // Optional: Revert state on failure by refetching or storing old state.
@@ -174,7 +175,8 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
     try {
       await setDoc(docRef, {
         selectedCollege: college,
-        studyPlan: newStudyPlanForDb!
+        studyPlan: newStudyPlanForDb!,
+        updatedAt: serverTimestamp()
       }, { merge: true });
     } catch (error) {
       console.error("Error updating college/program:", error);
@@ -189,7 +191,7 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
 
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
-      await setDoc(docRef, initialApplicationData);
+      await setDoc(docRef, { ...initialApplicationData, updatedAt: serverTimestamp() });
     } catch (error) {
       console.error("Error resetting application data:", error);
     }
