@@ -120,7 +120,7 @@ export const CheckoutForm = () => {
     
     const cartItems: CartItem[] = useMemo(() => {
         const cartQuery = searchParams.get('cart');
-        if (!cartQuery) return [];
+        if (!cartQuery || cartQuery.trim() === '') return [];
         try {
             return JSON.parse(decodeURIComponent(cartQuery));
         } catch (e) {

@@ -1,6 +1,5 @@
-
 'use client';
-
+import React from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +48,7 @@ function ApplicationReviewContent() {
         const studentFullName = (`${personalInfo?.givenNames || ''} ${personalInfo?.surname || ''}`).trim() || user.displayName;
         
         // 1. Create a new document in the top-level 'applications' collection for admin review
-        await addDoc(collection(db, 'applications'), {
+        const submittedAppRef = await addDoc(collection(db, 'applications'), {
             ...applicationData,
             userId: user.uid,
             studentName: studentFullName,
@@ -62,7 +61,8 @@ function ApplicationReviewContent() {
         const draftRef = doc(db, 'users', user.uid, 'application', 'draft');
         await updateDoc(draftRef, {
             status: 'submitted',
-            submittedAt: serverTimestamp()
+            submittedAt: serverTimestamp(),
+            submittedAppId: submittedAppRef.id
         });
 
         toast({
@@ -99,7 +99,7 @@ function ApplicationReviewContent() {
   const allDocsUploaded = documentList.every(doc => documents?.[doc.id]?.files?.length > 0);
 
   return (
-    <main className="flex-1 space-y-6 p-4 md:p-8">
+    <div role="main" className="flex-1 space-y-6 p-4 md:p-8">
       <div className="space-y-2">
         <h1 className="font-headline text-3xl font-bold">Review Your Application</h1>
         <p className="text-muted-foreground">Please carefully review all the information below before final submission.</p>
@@ -115,7 +115,7 @@ function ApplicationReviewContent() {
                   <DataRow label="Full Name" value={`${personalInfo.givenNames} ${personalInfo.surname}`} />
                   <DataRow label="Date of Birth" value={personalInfo.dob ? format(new Date(personalInfo.dob), 'PPP') : ''} />
                   <DataRow label="Gender" value={personalInfo.gender} />
-                  <DataRow label="Marital Status" value={personalInfo.maritalStatus} />
+                  <DataRow label="Marital Status" value={applicationData?.family?.maritalStatus || personalInfo.maritalStatus} />
                   <DataRow label="Country of Birth" value={personalInfo.countryOfBirth} />
                   <DataRow label="Citizenship" value={personalInfo.countryOfCitizenship} />
                   <DataRow label="Passport" value={personalInfo.passportNumber} />
@@ -162,7 +162,7 @@ function ApplicationReviewContent() {
                 <CardTitle className="flex items-center gap-2">
                     {allDocsUploaded ? <CheckCircle className="text-green-600" /> : <AlertTriangle className="text-red-600" />}
                     Document Check
-                </Title>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm">
@@ -199,7 +199,7 @@ function ApplicationReviewContent() {
             </Card>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
