@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format, isValid } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, AlertTriangle, FileText, Download } from 'lucide-react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
@@ -67,17 +67,17 @@ const documentDisplayList = [
 ];
 
 export default function ApplicationDetailPage() {
-    const params = useParams();
-    const id = params.id as string;
+    const params = useSearchParams();
+    const router = useRouter();
+    const id = router.query.id as string;
+    const userId = params.get('userId');
+
     const [application, setApplication] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const userId = searchParams.get('userId');
 
     useEffect(() => {
         if (!id || !userId) {
@@ -90,21 +90,23 @@ export default function ApplicationDetailPage() {
             setLoading(true);
             setError(null);
             try {
-                let docSnap;
-                const userAppRef = doc(db, 'users', userId as string, 'application', id);
-                docSnap = await getDoc(userAppRef);
-
-                if (!docSnap.exists()) {
-                    const submittedAppRef = doc(db, 'applications', id);
-                    docSnap = await getDoc(submittedAppRef);
-                }
+                const appRef = doc(db, 'users', userId as string, 'application', id);
+                const docSnap = await getDoc(appRef);
 
                 if (docSnap.exists()) {
                     const appData = docSnap.data();
                     setApplication(appData);
                     setStatus(appData.status || 'draft');
                 } else {
-                    setError("No application found with this ID.");
+                     const submittedAppRef = doc(db, 'applications', id);
+                     const submittedDocSnap = await getDoc(submittedAppRef);
+                     if (submittedDocSnap.exists()) {
+                         const appData = submittedDocSnap.data();
+                         setApplication(appData);
+                         setStatus(appData.status || 'submitted');
+                     } else {
+                        setError("No application found with this ID.");
+                     }
                 }
             } catch (err) {
                 console.error("Firebase error getting document:", err);

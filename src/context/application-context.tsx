@@ -12,7 +12,7 @@ import type { BackgroundFormValues } from '@/components/forms/background-form';
 import { useAuth } from './auth-context';
 import type { College } from '@/lib/college-data';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export interface UploadedFile {
     url: string;
@@ -88,14 +88,16 @@ const initialApplicationData: ApplicationData = {
    documents: {},
 };
 
+// FIX: Add a recursive function to convert Firestore Timestamps to JS Dates
 function convertTimestampsToDates(data: any): any {
-    if (data?.toDate && typeof data.toDate === 'function') {
+    if (!data) return data;
+    if (data.toDate && typeof data.toDate === 'function') {
         return data.toDate();
     }
     if (Array.isArray(data)) {
         return data.map(item => convertTimestampsToDates(item));
     }
-    if (typeof data === 'object' && data !== null) {
+    if (typeof data === 'object') {
         const res: { [key: string]: any } = {};
         for (const key in data) {
             res[key] = convertTimestampsToDates(data[key]);
@@ -121,6 +123,7 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
       const unsubscribe = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           const dataFromDb = docSnap.data();
+          // FIX: Use the conversion function here
           const convertedData = convertTimestampsToDates(dataFromDb);
           setApplicationData(convertedData as ApplicationData);
         } else {

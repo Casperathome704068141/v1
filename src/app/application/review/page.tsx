@@ -56,6 +56,7 @@ function ApplicationReviewContent() {
             studentEmail: user.email,
             status: 'Pending Review',
             submittedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         });
         
         // 2. Update the user's draft document to mark it as submitted.
@@ -63,6 +64,7 @@ function ApplicationReviewContent() {
         await updateDoc(draftRef, {
             status: 'submitted',
             submittedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
             submittedAppId: submittedAppRef.id
         });
 
