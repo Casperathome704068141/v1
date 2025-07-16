@@ -87,7 +87,7 @@ const navItems = [
   { href: '/application', icon: GraduationCap, label: 'Application' },
   { href: '/documents', icon: FileText, label: 'Documents' },
   { href: '/appointments', icon: Calendar, label: 'Appointments' },
-  { href: '/pricing', icon: DollarSign, label: 'Pricing' },
+  { href: '/billing', icon: CreditCard, label: 'Billing & Plan' },
   { href: '/support', icon: LifeBuoy, label: 'Support' },
 ];
 
@@ -130,7 +130,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <ApplicationProvider>
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
-                <SidebarTrigger className="sm:hidden" />
+                <SidebarTrigger className="h-10 w-10 p-2 sm:hidden" />
                 <UserMenu />
               </header>
               {children}

@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, FileText, AlertTriangle, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -25,7 +25,7 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function ApplicationReviewContent() {
-  const { applicationData, resetApplicationData } = useApplication();
+  const { applicationData } = useApplication();
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,13 +45,21 @@ function ApplicationReviewContent() {
     }
 
     try {
+        // 1. Create a new document in the top-level 'applications' collection
         await addDoc(collection(db, 'applications'), {
             ...applicationData,
             userId: user.uid,
             studentName: `${personalInfo?.givenNames} ${personalInfo?.surname}`,
             studentEmail: user.email,
-            status: 'Pending Review',
+            status: 'Submitted', // Set initial status
             submittedAt: serverTimestamp(),
+        });
+        
+        // 2. Update the user's draft document to mark it as submitted, rather than deleting it.
+        const draftRef = doc(db, 'users', user.uid, 'application', 'draft');
+        await updateDoc(draftRef, {
+            status: 'submitted',
+            submittedAt: serverTimestamp()
         });
 
         toast({
@@ -59,7 +67,8 @@ function ApplicationReviewContent() {
             description: 'Your application has been sent for processing. We will be in touch.',
         });
         
-        resetApplicationData();
+        // No longer resetting application data, so user can see their submission.
+        // resetApplicationData(); 
         router.push('/dashboard');
 
     } catch (error: any) {

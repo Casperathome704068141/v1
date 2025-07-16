@@ -11,6 +11,9 @@ import { Clock, Star, Zap } from 'lucide-react';
 import { useUser } from '@/hooks/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 const timeSlots = [
   '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
@@ -20,9 +23,48 @@ const timeSlots = [
 
 
 function AppointmentsContent() {
-  const { profile, loading } = useUser();
+  const { profile, loading, user } = useUser();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const { toast } = useToast();
+
+  const handleConfirm = async () => {
+    if (!user || !date || !selectedTime) return;
+    setIsConfirming(true);
+
+    // In a real application, you would get a specific appointment ID.
+    // For this example, we'll create a mock ID based on the date and time.
+    const mockApptId = `${date.toISOString().split('T')[0]}-${selectedTime.replace(' ', '')}`;
+
+    try {
+      // This is an example path. You'd adjust it to your data model.
+      const apptRef = doc(db, 'users', user.uid, 'appointments', mockApptId);
+      
+      // Using setDoc with merge:true is safer for creating/updating
+      await updateDoc(apptRef, {
+        status: 'confirmed',
+        confirmedAt: serverTimestamp(),
+        date: date,
+        time: selectedTime,
+      });
+
+      toast({
+        title: "Appointment Confirmed!",
+        description: `Your meeting for ${date.toLocaleDateString()} at ${selectedTime} is booked.`,
+      });
+
+    } catch (error) {
+      console.error("Failed to confirm appointment:", error);
+      toast({
+        variant: "destructive",
+        title: "Booking Failed",
+        description: "Could not confirm your appointment. Please try again."
+      });
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -90,6 +132,7 @@ function AppointmentsContent() {
             captionLayout="dropdown-buttons"
             fromYear={new Date().getFullYear()}
             toYear={new Date().getFullYear() + 2}
+            disabled={(date) => date < new Date()}
           />
         </div>
         <div className="md:col-span-2">
@@ -108,8 +151,13 @@ function AppointmentsContent() {
               </Button>
             ))}
           </div>
-          <Button className="mt-8 w-full" size="lg" disabled={!date || !selectedTime}>
-            Confirm Appointment for {date?.toLocaleDateString()} at {selectedTime}
+          <Button 
+            className="mt-8 w-full" 
+            size="lg" 
+            disabled={!date || !selectedTime || isConfirming}
+            onClick={handleConfirm}
+          >
+            {isConfirming ? "Confirming..." : `Confirm for ${date?.toLocaleDateString()} at ${selectedTime}`}
           </Button>
         </div>
       </CardContent>

@@ -47,6 +47,7 @@ const languageTestOptions = [
     { value: 'ielts', label: 'IELTS' },
     { value: 'toefl', label: 'TOEFL' },
     { value: 'pte', label: 'PTE' },
+    { value: 'duolingo', label: 'Duolingo' },
     { value: 'tef', label: 'TEF' },
     { value: 'delf_dalf', label: 'DELF/DALF' },
     { value: 'none', label: 'None' },

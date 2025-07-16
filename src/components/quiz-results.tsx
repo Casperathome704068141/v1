@@ -10,19 +10,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  LabelList,
-  Tooltip,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList, Tooltip } from 'recharts';
 import { PieChart, Pie, Cell } from 'recharts';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface QuizResultsProps {
   totalScore: number;
@@ -69,6 +64,31 @@ export function QuizResults({
 }: QuizResultsProps) {
   const resultDetails = getResultDetails(totalScore);
   const router = useRouter();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const saveScore = async () => {
+      if (user?.uid) {
+        try {
+          const quizResultRef = doc(db, 'users', user.uid, 'quizResults', 'eligibility');
+          await setDoc(quizResultRef, {
+            score: totalScore,
+            takenAt: serverTimestamp(),
+          }, { merge: true });
+        } catch (error) {
+          console.error("Failed to save quiz score:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not save your quiz score."
+          });
+        }
+      }
+    };
+    saveScore();
+  }, [user, totalScore, toast]);
+
 
   const chartData = Object.keys(sectionScores).map(section => ({
     name: section,

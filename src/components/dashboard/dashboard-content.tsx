@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BrainCircuit, Check, Circle, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle, CalendarCheck, GraduationCap, FileText } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Check, Circle, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle, CalendarCheck, GraduationCap, FileText, BadgeHelp } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
 import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '../ui/skeleton';
 
 const applicationStepsConfig = [
     { id: 'personalInfo', name: 'Profile Information', href: '/application?step=profile', icon: UserCheck },
@@ -62,6 +66,23 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
 export function DashboardContent() {
   const { user } = useUser();
   const { applicationData } = useApplication();
+  const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [loadingQuiz, setLoadingQuiz] = useState(true);
+
+  useEffect(() => {
+    async function fetchQuizScore() {
+      if(user?.uid) {
+        setLoadingQuiz(true);
+        const quizDocRef = doc(db, 'users', user.uid, 'quizResults', 'eligibility');
+        const quizDocSnap = await getDoc(quizDocRef);
+        if (quizDocSnap.exists()) {
+          setQuizScore(quizDocSnap.data().score);
+        }
+        setLoadingQuiz(false);
+      }
+    }
+    fetchQuizScore();
+  }, [user]);
 
   const applicationSteps = applicationStepsConfig.map(step => ({
       ...step,
@@ -180,6 +201,27 @@ export function DashboardContent() {
               <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
+                          <BadgeHelp className="h-5 w-5 text-primary" />
+                          Eligibility Score
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      {loadingQuiz ? <Skeleton className="h-5 w-3/4" /> : (
+                        quizScore !== null ? (
+                          <p className="font-semibold text-muted-foreground">Last Score: <span className="font-bold text-foreground">{quizScore}/100</span></p>
+                        ) : (
+                          <p className="text-muted-foreground">Take the quiz to see your score.</p>
+                        )
+                      )}
+                      <Button asChild variant="secondary" className="w-full mt-4">
+                        <Link href="/eligibility-quiz">{quizScore !== null ? 'Retake Quiz' : 'Take Quiz'}</Link>
+                      </Button>
+                  </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
                           <GraduationCap className="h-5 w-5 text-primary" />
                           Your Study Plan
                       </CardTitle>
@@ -187,22 +229,8 @@ export function DashboardContent() {
                   <CardContent>
                       <p className="font-semibold text-primary">{chosenInstitution}</p>
                       <p className="text-sm text-muted-foreground">{programOfChoice}</p>
-                  </CardContent>
-              </Card>
-
-               <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                          <BrainCircuit className="h-5 w-5 text-primary" />
-                         College Match AI
-                      </CardTitle>
-                      <CardDescription>
-                          Find Designated Learning Institutions that fit your profile and goals.
-                      </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <Button asChild className="w-full">
-                          <Link href="/college-match">Find or Change College</Link>
+                       <Button asChild variant="secondary" className="w-full mt-4">
+                          <Link href="/college-match">Change College/Program</Link>
                       </Button>
                   </CardContent>
               </Card>

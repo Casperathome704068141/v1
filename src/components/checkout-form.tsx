@@ -16,7 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/auth-context';
-
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 type CartItem = {
     name: string;
@@ -27,6 +28,7 @@ type CartItem = {
 const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: CartItem[] }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,21 +38,46 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Stripe, Elements, or User not available.' });
+        return;
+    }
 
     setIsLoading(true);
 
-    const { error } = await stripe.confirmPayment({
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/dashboard?payment_success=true`,
-      },
+      redirect: "if_required", // Handle success manually instead of redirecting
     });
 
-    if (error.type === "card_error" || error.type === "validation_error") {
-      toast({ variant: 'destructive', title: 'Payment Failed', description: error.message });
-    } else if (error) {
-      toast({ variant: 'destructive', title: 'An unexpected error occurred.', description: 'Please try again.' });
+    if (error) {
+        toast({ variant: 'destructive', title: 'Payment Failed', description: error.message });
+        setIsLoading(false);
+        return;
+    }
+    
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+        try {
+            // Write payment record to Firestore
+            const paymentRef = doc(db, 'users', user.uid, 'payments', paymentIntent.id);
+            await setDoc(paymentRef, {
+                amount: paymentIntent.amount,
+                currency: paymentIntent.currency,
+                paidAt: serverTimestamp(),
+                planDetails: cartItems, // Save the items purchased
+            });
+
+            toast({ title: 'Payment Successful!', description: 'Your purchase is complete.' });
+            
+            // Redirect to dashboard on success
+            window.location.href = '/dashboard?payment_success=true';
+
+        } catch (dbError) {
+             toast({ variant: 'destructive', title: 'Payment Recorded, but DB Error', description: 'Your payment was successful but we failed to update your account. Please contact support.' });
+             console.error("Firestore write error:", dbError);
+        }
+    } else {
+        toast({ variant: 'destructive', title: 'Payment Failed', description: 'Payment was not successful. Please try again.' });
     }
 
     setIsLoading(false);
