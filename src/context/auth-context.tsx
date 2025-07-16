@@ -15,26 +15,27 @@ export interface UserProfile {
     name: string | null;
     plan: string;
     signedUp?: any;
+    // Add admin claim to profile for client-side checks
+    admin?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Routes that are only for unauthenticated users
-const authRoutes = ['/login', '/signup', '/forgot-password'];
-// Routes that are public and accessible to everyone
+const authRoutes = ['/login', '/signup', '/forgot-password', '/admin/login'];
 const publicRoutes = ['/', '/about', '/privacy', '/terms', '/pricing', '/support'];
 
 
 async function createUserDocument(user: User) {
-  if (!db) return; // Do nothing if firebase is not configured
+  if (!db) return;
   const userRef = doc(db, 'users', user.uid);
   const docSnap = await getDoc(userRef);
 
@@ -45,7 +46,7 @@ async function createUserDocument(user: User) {
             name: user.displayName,
             email: user.email,
             signedUp: serverTimestamp(),
-            plan: 'Free', // Default plan
+            plan: 'Free',
         });
     } catch (error) {
         console.error("Error creating user document:", error);
@@ -57,35 +58,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-
-  if (!isFirebaseConfigured && !pathname.startsWith('/admin')) {
-      return (
-        <div className="flex h-screen w-full items-center justify-center bg-background p-4">
-            <div className="max-w-lg rounded-lg border border-destructive bg-card p-8 text-center shadow-2xl">
-              <h1 className="text-xl font-bold text-destructive">Firebase Configuration Error</h1>
-              <p className="mt-2 text-muted-foreground">
-                Your Firebase environment variables seem to be missing. Please create a <code>.env.local</code> file in your project root and add your Firebase project configuration to it.
-              </p>
-              <div className="mt-4 text-left bg-muted p-4 rounded-md text-xs overflow-x-auto">
-                <pre>
-                  <code>
-                    NEXT_PUBLIC_FIREBASE_API_KEY=...<br/>
-                    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...<br/>
-                    NEXT_PUBLIC_FIREBASE_PROJECT_ID=...<br/>
-                    {/* Add other Firebase keys here */}
-                  </code>
-                </pre>
-              </div>
-              <a href="https://firebase.google.com/docs/web/setup#add-sdks-initialize" target="_blank" rel="noopener noreferrer" className="mt-4 inline-block text-sm text-primary underline">
-                Click here to find your Firebase config keys.
-              </a>
-            </div>
-          </div>
-      )
-  }
+  
+  // Warning for missing Firebase config can be simplified or removed if not needed.
+  // For this fix, we'll assume config is present.
 
   useEffect(() => {
     if (!auth || !db) {
@@ -93,16 +72,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
     };
     
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         setLoading(true);
         if (currentUser) {
+            // FIX: Force a token refresh to get custom claims immediately after login.
+            // This ensures the `admin` claim is available for Firestore security rules.
+            const tokenResult = await currentUser.getIdTokenResult(true);
+            const claims = tokenResult.claims;
+            setIsAdmin(!!claims.admin);
+
             setUser(currentUser);
             const userRef = doc(db, 'users', currentUser.uid);
             
             const unsubscribeProfile = onSnapshot(userRef, 
               (docSnap) => {
                 if (docSnap.exists()) {
-                    setProfile(docSnap.data() as UserProfile);
+                    setProfile({
+                        ...docSnap.data(),
+                        admin: !!claims.admin, // Also add admin status to the user profile object
+                    } as UserProfile);
                 } else {
                     createUserDocument(currentUser).catch(console.error);
                 }
@@ -111,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               (error) => {
                 console.error("Firestore snapshot error:", error);
                 setProfile(null);
+                setIsAdmin(false);
                 setLoading(false);
             });
 
@@ -118,6 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
             setUser(null);
             setProfile(null);
+            setIsAdmin(false);
             setLoading(false);
         }
     });
@@ -126,31 +116,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (loading || pathname.startsWith('/admin')) {
-      return; // Don't perform redirects while loading or on admin pages
-    }
+    if (loading) return; // Wait until auth state is confirmed
 
     const isAuthRoute = authRoutes.includes(pathname);
+    const isAdminLogin = pathname === '/admin/login';
+    const isAdminRoute = pathname.startsWith('/admin');
     const isPublicRoute = publicRoutes.includes(pathname);
 
-    // If user is logged in and tries to access an auth route (login/signup), redirect to dashboard
-    if (user && isAuthRoute) {
-      router.push('/dashboard');
-      return;
+    if (user) {
+        // User is logged in
+        if (isAdminRoute && !isAdmin) {
+            // Non-admin trying to access admin pages, redirect away
+            router.push('/dashboard');
+        } else if (isAuthRoute && !isAdminLogin) {
+             // Logged-in user on a regular login/signup page, redirect to dashboard
+            router.push('/dashboard');
+        }
+    } else {
+        // User is not logged in
+        if (isAdminRoute && !isAdminLogin) {
+            // Not logged in and trying to access admin pages (except login)
+            router.push('/admin/login');
+        } else if (!isPublicRoute && !isAuthRoute) {
+            // Not logged in and on a protected page
+            router.push('/');
+        }
     }
 
-    // If user is NOT logged in and tries to access a protected page, redirect to landing
-    if (!user && !isAuthRoute && !isPublicRoute) {
-      router.push('/');
-      return;
-    }
-  }, [user, loading, pathname, router]);
+  }, [user, profile, isAdmin, loading, pathname, router]);
+
 
   const signOut = async () => {
     if (!auth) return;
+    const wasAdmin = isAdmin;
     try {
       await firebaseSignOut(auth);
-      router.replace('/'); // Use replace to prevent back button from going to protected page
+      // Redirect to the appropriate login page
+      router.replace(wasAdmin ? '/admin/login' : '/');
     } catch (error) {
       console.error("Error signing out: ", error);
        toast({
@@ -167,6 +169,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       await createUserDocument(result.user);
+      // After sign-in, the onAuthStateChanged listener will handle the rest
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({
@@ -177,13 +180,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     }
   }
-
-  if (pathname.startsWith('/admin')) {
-    return <>{children}</>;
+  
+  // Simplified loading state for admin to avoid full-page skeleton
+  if (loading && pathname.startsWith('/admin')) {
+      return null; // Or a minimal loader
   }
 
   const isPublicOrAuthRoute = publicRoutes.includes(pathname) || authRoutes.includes(pathname);
-
   if (loading && !isPublicOrAuthRoute) {
      return (
         <div className="flex h-screen w-full items-center justify-center">
@@ -199,7 +202,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut, signInWithGoogle }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAdmin, signOut, signInWithGoogle }}>
         {children}
     </AuthContext.Provider>
   );
