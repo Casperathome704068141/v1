@@ -1,21 +1,36 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // This single rule allows a logged-in user to read and write to their own
-    // user document and any documents in any subcollections (e.g., quizResults, application).
+
+    // This rule allows an admin to read from any collection named 'application'.
+    // It is required for the collectionGroup query on the admin dashboard to work.
+    match /{path=**}/application/{appId} {
+      allow read: if request.auth.token.admin == true;
+    }
+
+    // This rule allows a user to read/write their own document.
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+    
+    // This rule allows a user to read/write any documents in any subcollection under their own user document.
     match /users/{userId}/{documents=**} {
       allow read, write: if request.auth.uid == userId;
     }
-
-    // Rules for the top-level applications collection, accessible by admins
-    // and the user who created it.
+    
+    // Rules for the top-level applications collection, which mirrors submitted user applications for admin use.
     match /applications/{appId} {
+      // Allow users to create their own application upon submission.
       allow create: if request.auth.uid == request.resource.data.userId;
+      
+      // Allow users to read their own application, and admins to read any.
       allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
+      
+      // Only allow admins to update or delete submitted applications.
       allow update, delete: if request.auth.token.admin == true;
     }
-
-    // Admins can manage settings and news content.
+    
+    // Admins can manage site-wide settings and news.
     match /settings/{docId} {
       allow read, write: if request.auth.token.admin == true;
     }

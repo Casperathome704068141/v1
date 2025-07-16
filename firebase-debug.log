@@ -1030,3 +1030,33 @@ INFO: Connected to new websocket client
 [debug] [2025-07-16T19:08:17.938Z] Jul 16, 2025 7:08:17 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
 INFO: Connected to new websocket client
  {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:08:17 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\nINFO: Connected to new websocket client\n"}}
+[debug] [2025-07-16T19:13:36.115Z] Jul 16, 2025 7:13:36 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
+INFO: Connected to new websocket client
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:13:36 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\nINFO: Connected to new websocket client\n"}}
+[debug] [2025-07-16T19:15:09.805Z] Jul 16, 2025 7:15:09 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed
+INFO: Websocket client disconnected
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:15:09 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed\nINFO: Websocket client disconnected\n"}}
+[debug] [2025-07-16T19:18:16.000Z] Jul 16, 2025 7:18:15 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
+INFO: Connected to new websocket client
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:18:15 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\nINFO: Connected to new websocket client\n"}}
+[debug] [2025-07-16T19:20:33.344Z] Jul 16, 2025 7:20:33 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed
+INFO: Websocket client disconnected
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:20:33 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed\nINFO: Websocket client disconnected\n"}}
+[debug] [2025-07-16T19:30:04.061Z] Jul 16, 2025 7:30:04 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
+INFO: Connected to new websocket client
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:30:04 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\nINFO: Connected to new websocket client\n"}}
+[debug] [2025-07-16T19:31:35.410Z] Jul 16, 2025 7:31:35 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed
+INFO: Websocket client disconnected
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:31:35 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed\nINFO: Websocket client disconnected\n"}}
+[info] i  firestore: Change detected, updating rules... 
+[debug] [2025-07-16T19:43:25.903Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules [none]
+[debug] [2025-07-16T19:43:25.903Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules {"ignore_errors":true,"rules":{"files":[{"name":"security.rules","content":"rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n\n    // This rule allows an admin to read from any collection named 'application'.\n    // It is required for the collectionGroup query on the admin dashboard to work.\n    match /{path=**}/application/{appId} {\n      allow read: if request.auth.token.admin == true;\n    }\n\n    // This rule allows a user to read/write their own document.\n    match /users/{userId} {\n      allow read, write: if request.auth.uid == userId;\n    }\n    \n    // This rule allows a user to read/write any documents in any subcollection under their own user document.\n    match /users/{userId}/{documents=**} {\n      allow read, write: if request.auth.uid == userId;\n    }\n    \n    // Rules for the top-level applications collection, which mirrors submitted user applications for admin use.\n    match /applications/{appId} {\n      // Allow users to create their own application upon submission.\n      allow create: if request.auth.uid == request.resource.data.userId;\n      \n      // Allow users to read their own application, and admins to read any.\n      allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;\n      \n      // Only allow admins to update or delete submitted applications.\n      allow update, delete: if request.auth.token.admin == true;\n    }\n    \n    // Admins can manage site-wide settings and news.\n    match /settings/{docId} {\n      allow read, write: if request.auth.token.admin == true;\n    }\n    match /news/{docId} {\n      allow read, write: if request.auth.token.admin == true;\n    }\n  }\n}\n"}]}}
+[debug] [2025-07-16T19:43:25.966Z] Jul 16, 2025 7:43:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:43:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-07-16T19:43:26.038Z] Jul 16, 2025 7:43:26 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 16, 2025 7:43:26 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2025-07-16T19:43:26.270Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules 200
+[debug] [2025-07-16T19:43:26.273Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules {}
+[info] ✔  firestore: Rules updated. 
