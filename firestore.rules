@@ -1,24 +1,34 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read/write to their own draft application data.
-    match /users/{userId}/{path=**} {
+
+    // This rule allows a user to read and write their own main user document
+    match /users/{userId} {
       allow read, write: if request.auth.uid == userId;
     }
 
-    // Rules for the top-level applications collection.
-    match /applications/{appId} {
-      // Allow users to create their own application.
-      allow create: if request.auth.uid == request.resource.data.userId;
-
-      // Allow users to read their own application, and admins to read any.
-      allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
-
-      // Allow users to update or delete their own application, and admins to do so for any.
-      allow update, delete: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
+    // This rule allows a user to read and write any document in any subcollection
+    // under their own user document (e.g., quizResults, application drafts)
+    match /users/{userId}/{documents=**} {
+      allow read, write: if request.auth.uid == userId;
     }
 
-    // Admins can read/write settings and news
+    // --- Admin & Public Collection Rules ---
+
+    // The top-level 'applications' collection is for final submissions
+    match /applications/{appId} {
+      // A user can create their own application submission
+      allow create: if request.auth.uid == request.resource.data.userId;
+
+      // A user can read their own submission; an admin can read any submission
+      allow read: if request.auth.uid == resource.data.userId || request.auth.token.admin == true;
+
+      // Only admins can update or delete final submissions
+      allow update, delete: if request.auth.token.admin == true;
+    }
+
+    // Admins have full access to settings and news
     match /settings/{docId} {
       allow read, write: if request.auth.token.admin == true;
     }

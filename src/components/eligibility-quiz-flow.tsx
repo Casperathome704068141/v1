@@ -7,178 +7,204 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { QuizResults } from './quiz-results';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
-type Answer = string | null;
+type Answer = string | string[] | null;
 type Answers = Record<string, Answer>;
 
 const questions = [
   // Section A: Admission
   {
     id: 'q1_loa_status',
+    section: 'A — Admission',
     text: 'Do you already have a Letter of Acceptance (LOA) from a Designated Learning Institution (DLI)?',
-    section: 'Admission',
     options: [
-      { value: 'yes', label: 'Yes', points: 20 },
-      { value: 'submitted', label: 'No, but my application is submitted', points: 10 },
-      { value: 'researching', label: 'No, I am still researching schools', points: 0 },
-    ],
-  },
-  {
-    id: 'q2_loa_timing',
-    text: 'When do you expect to secure an LOA?',
-    section: 'Admission',
-    condition: (answers: Answers) => answers.q1_loa_status !== 'yes',
-    options: [
-      { value: '4_weeks', label: 'Within 4 weeks', points: 5 },
-      { value: '3_months', label: 'Within 3 months', points: 3 },
-      { value: 'not_sure', label: 'Not sure', points: 0 },
-    ],
-  },
-  // Section B: Finances
-  {
-    id: 'q3_funding_amount',
-    text: 'How much liquid funding (cash, GIC, tuition paid) do you have available?',
-    section: 'Finances',
-    options: [
-      { value: '20k_plus', label: 'Tuition + $20,000 CAD or more', points: 15 },
-      { value: '10k_to_20k', label: 'Tuition + $10,000 to $19,999 CAD', points: 10 },
-      { value: 'less_10k', label: 'Less than tuition + $10,000 CAD, or unsure', points: 0 },
-    ],
-  },
-  {
-    id: 'q4_funding_source',
-    text: 'What is the primary source of your funds?',
-    section: 'Finances',
-    options: [
-      { value: 'self', label: 'Personal savings / GIC', points: 5 },
-      { value: 'family', label: 'Family sponsor with bank proof', points: 3 },
-      { value: 'loan', label: 'Loan / scholarship (pending)', points: 2 },
-      { value: 'unclear', label: 'No clear source yet', points: 0 },
-    ],
-  },
-  {
-    id: 'q5_sds_status',
-    text: 'Are you applying from a country eligible for the Student Direct Stream (SDS)?',
-    section: 'Finances',
-    options: [
-      { value: 'yes_ready', label: 'Yes, and I have a $10k+ GIC and tuition paid receipt', points: 5 },
-      { value: 'yes_not_ready', label: "Yes, but I'm missing the GIC or tuition receipt", points: 2 },
-      { value: 'no', label: 'No, my country is not on the SDS list', points: 0 },
-    ],
-  },
-  // Section C: Language
-  {
-    id: 'q6_language_test_taken',
-    text: 'Have you taken an approved English/French test (e.g., IELTS, TOEFL) in the last 2 years?',
-    section: 'Language',
-    options: [
-      { value: 'yes', label: 'Yes', points: 0 }, // Points awarded in followup
+      { value: 'yes', label: 'Yes', points: 10 },
+      { value: 'pending', label: 'Pending', points: 5 },
       { value: 'no', label: 'No', points: 0 },
     ],
   },
   {
-    id: 'q6a_language_score',
-    text: 'What was your overall score?',
-    section: 'Language',
-    type: 'select',
-    condition: (answers: Answers) => answers.q6_language_test_taken === 'yes',
+    id: 'q2_pgwp_eligible',
+    section: 'A — Admission',
+    text: 'Is the program PGWP-eligible? Check school’s list or July 2025 IRCC update.',
     options: [
-      { value: 'high', label: 'IELTS 6.0+ / TOEFL 80+ / PTE 60+ / TEF B2+', points: 10 },
-      { value: 'low', label: 'My score was below these thresholds', points: 4 },
+      { value: 'yes', label: 'Yes', points: 5 },
+      { value: 'unsure', label: 'Unsure', points: 2 },
+      { value: 'no', label: 'No', points: 0 },
+    ],
+  },
+  // Section B: Finances
+  {
+    id: 'q3_liquid_funds',
+    section: 'B — Finances',
+    text: 'Liquid funds available (excluding tuition):',
+    options: [
+      { value: '>=22895', label: '≥ $22,895', points: 12 },
+      { value: '20-22.8k', label: '$20,000 - $22,894', points: 8 },
+      { value: '<20k', label: '< $20,000', points: 0 },
     ],
   },
   {
-    id: 'q7_language_test_booking',
-    text: 'Have you scheduled your language test?',
-    section: 'Language',
-    condition: (answers: Answers) => answers.q6_language_test_taken === 'no',
+    id: 'q4_tuition_payment',
+    section: 'B — Finances',
+    text: 'Tuition payment status:',
     options: [
-      { value: 'yes', label: 'Yes, it is booked for the next 60 days', points: 5 },
-      { value: 'no', label: 'No, it is not booked yet', points: 0 },
-    ],
-  },
-  // Section D: Docs & Timing
-  {
-    id: 'q8_passport_validity',
-    text: 'Is your passport valid for your entire planned study period plus at least 6 months?',
-    section: 'Docs & Timing',
-    options: [
-      { value: 'yes', label: 'Yes, it is', points: 5 },
-      { value: 'no', label: 'No, it expires sooner or needs renewal', points: 0 },
+      { value: 'full_year', label: 'Full year paid', points: 5 },
+      { value: 'deposit', label: 'Deposit paid', points: 2 },
+      { value: 'none', label: 'None paid', points: 0 },
     ],
   },
   {
-    id: 'q9_intake_date',
-    text: 'How far away is your intended program start date?',
-    section: 'Docs & Timing',
+    id: 'q5_funding_sources',
+    section: 'B — Finances',
+    text: 'Funding sources (multi-select, cap 8 pts):',
+    type: 'checkbox',
     options: [
-      { value: '4_months_plus', label: '4 months or more', points: 5 },
-      { value: '2_to_3_months', label: '2-3 months away', points: 3 },
-      { value: 'less_2_months', label: 'Less than 8 weeks away', points: 0 },
+      { value: 'personal_savings', label: 'Personal savings', points: 4 },
+      { value: 'gic', label: 'GIC', points: 4 },
+      { value: 'loan', label: 'Loan', points: 3 },
+      { value: 'family_sponsor', label: 'Family sponsor', points: 2 },
+      { value: 'scholarship', label: 'Scholarship', points: 2 },
     ],
+    maxPoints: 8,
   },
-  // Section E: Risk Flags
+  // Section C: Language Ability
   {
-    id: 'q10_visa_refusals',
-    text: 'Have you ever had a visa refused for Canada or any other country?',
-    section: 'Risk Flags',
+    id: 'q6_language_test',
+    section: 'C — Language Ability',
+    text: 'Which test have you completed (≤ 2 yrs)?',
     options: [
-      { value: 'no', label: 'No refusals', points: 10 },
-      { value: 'yes_resolved', label: 'Yes, but it was resolved with new information', points: 4 },
-      { value: 'yes_unresolved', label: 'Yes, and it is unresolved or I have multiple refusals', points: 0 },
-    ],
-  },
-  {
-    id: 'q11_inadmissibility',
-    text: 'Do you have any criminal record, serious medical condition, or deportation history?',
-    section: 'Risk Flags',
-    options: [
-      { value: 'no', label: 'None', points: 5 },
-      { value: 'yes_minor', label: 'Yes, but it is minor and well-documented', points: 2 },
-      { value: 'yes_major', label: 'Yes, it is serious or the outcome is uncertain', points: 0 },
-    ],
-  },
-  // Section F: Study Plan Fit
-  {
-    id: 'q12_program_fit',
-    text: 'Does your chosen Canadian program clearly advance your current field or career goals?',
-    section: 'Study Plan Fit',
-    options: [
-      { value: 'direct', label: 'Yes, it is a direct progression (e.g., BSc to MSc)', points: 10 },
-      { value: 'related', label: 'It is related, but requires some explanation', points: 5 },
-      { value: 'switch', label: 'It is a major career switch with no clear link', points: 0 },
-    ],
+        {value: 'ielts', label: 'IELTS', points: 0},
+        {value: 'toefl', label: 'TOEFL', points: 0},
+        {value: 'pte', label: 'PTE', points: 0},
+        {value: 'duolingo', label: 'Duolingo', points: 0},
+        {value: 'tef', label: 'TEF', points: 0},
+        {value: 'none', label: 'None', points: 0},
+    ]
   },
   {
-    id: 'q13_home_ties',
-    text: 'Do you have strong home-country ties (e.g., a job offer to return to, property, family business)?',
-    section: 'Study Plan Fit',
+    id: 'q7_language_score',
+    section: 'C — Language Ability',
+    text: 'Highest overall score:',
+    condition: (answers: Answers) => answers.q6_language_test !== 'none',
     options: [
-      { value: 'multiple', label: 'Yes, I have multiple strong ties', points: 5 },
-      { value: 'some', label: 'I have some ties', points: 2 },
-      { value: 'weak', label: 'My ties are weak or not easily proven', points: 0 },
+      { value: 'high', label: 'IELTS 6.0+ / TOEFL 80+ / PTE 60+ / Duolingo 115+ / TEF B2+', points: 10 },
+      { value: 'mid', label: 'IELTS 5.5 – 5.9 / DET 100-114', points: 5 },
+      { value: 'low', label: 'No valid score', points: 0 },
     ],
   },
+  // Section D: Timing & Docs
+  {
+      id: 'q8_program_start',
+      section: 'D — Timing & Docs',
+      text: 'Months until program starts:',
+      options: [
+          { value: '>=4', label: '≥ 4 months', points: 5 },
+          { value: '2-3', label: '2-3 months', points: 3 },
+          { value: '<2', label: '< 2 months', points: 0 },
+      ]
+  },
+  {
+      id: 'q9_passport_validity',
+      section: 'D — Timing & Docs',
+      text: 'Passport validity covers program end + 6 mo?',
+      options: [
+          { value: 'yes', label: 'Yes', points: 3 },
+          { value: 'no', label: 'Needs renewal', points: 0 },
+      ]
+  },
+  {
+      id: 'q10_docs_ready',
+      section: 'D — Timing & Docs',
+      text: 'Core documents scanned & ready? (passport, LOA, funds, test result)',
+      options: [
+          { value: 'all', label: 'All', points: 5 },
+          { value: 'some', label: 'Some', points: 2 },
+          { value: 'few', label: 'Few', points: 0 },
+      ]
+  },
+  // Section E: Provincial Compliance
+  {
+      id: 'q11_pal',
+      section: 'E — Provincial Compliance',
+      text: 'If studying in ON, BC, NS, or NB, have you secured the required Provincial Attestation Letter (PAL)?',
+      options: [
+          { value: 'not_needed', label: 'Not needed', points: 5 },
+          { value: 'yes', label: 'Yes', points: 5 },
+          { value: 'in_progress', label: 'In progress', points: 2 },
+          { value: 'no', label: 'No', points: 0 },
+      ]
+  },
+  // Section F: Risk Factors
+  {
+      id: 'q12_visa_refusals',
+      section: 'F — Risk Factors',
+      text: 'Previous visa refusals?',
+      options: [
+          { value: 'none', label: 'None', points: 5 },
+          { value: 'one_resolved', label: 'One resolved', points: 2 },
+          { value: 'multiple', label: 'Multiple', points: -5 },
+      ]
+  },
+  {
+      id: 'q13_criminal_record',
+      section: 'F — Risk Factors',
+      text: 'Any criminal record, serious medical issue, or deportation?',
+      options: [
+          { value: 'no', label: 'No', points: 5 },
+          { value: 'minor', label: 'Minor & documented', points: 1 },
+          { value: 'serious', label: 'Serious', points: -10 },
+      ]
+  },
+  // Section G: Study Plan Fit
+  {
+      id: 'q14_program_alignment',
+      section: 'G — Study Plan Fit',
+      text: 'Program aligns with past studies/work?',
+      options: [
+          { value: 'direct', label: 'Direct', points: 8 },
+          { value: 'related', label: 'Related', points: 4 },
+          { value: 'major_switch', label: 'Major switch', points: 0 },
+      ]
+  },
+  {
+      id: 'q15_home_ties',
+      section: 'G — Study Plan Fit',
+      text: 'Home-country ties (job offer, property, family biz)?',
+      options: [
+          { value: 'strong', label: 'Strong', points: 5 },
+          { value: 'some', label: 'Some', points: 2 },
+          { value: 'weak', label: 'Weak', points: 0 },
+      ]
+  }
 ];
 
-const sectionMaxPoints: Record<string, number> = {
-    'Admission': 25,
-    'Finances': 25,
-    'Language': 15,
-    'Docs & Timing': 10,
-    'Risk Flags': 15,
-    'Study Plan Fit': 15,
-};
+const sectionMaxPoints: Record<string, number> = questions.reduce((acc, q) => {
+    if (q.section) {
+        if (!acc[q.section]) {
+            acc[q.section] = 0;
+        }
+        if (q.type === 'checkbox') {
+            acc[q.section] += q.maxPoints || 0;
+        } else {
+            acc[q.section] += Math.max(...q.options.map(o => o.points));
+        }
+    }
+    return acc;
+}, {} as Record<string, number>);
+
 
 export function EligibilityQuizFlow() {
   const [answers, setAnswers] = useState<Answers>({});
   const [finished, setFinished] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const visibleQuestions = useMemo(() => {
     const visible = [];
@@ -202,8 +228,14 @@ export function EligibilityQuizFlow() {
     return visibleQuestions[currentQuestionIndex];
   }, [currentQuestionIndex, visibleQuestions, answers]);
 
-  const handleAnswerChange = (questionId: string, value: string) => {
+  const handleAnswerChange = (questionId: string, value: string | string[]) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
+  };
+  
+  const handleCheckboxChange = (questionId: string, value: string, checked: boolean) => {
+    const oldAnswers = (answers[questionId] as string[] || []);
+    const newAnswers = checked ? [...oldAnswers, value] : oldAnswers.filter(v => v !== value);
+    handleAnswerChange(questionId, newAnswers);
   };
 
   const handlePrevious = () => {
@@ -230,17 +262,32 @@ export function EligibilityQuizFlow() {
   
   const calculateScores = () => {
     let totalScore = 0;
-    const sectionScores: Record<string, number> = {
-        'Admission': 0, 'Finances': 0, 'Language': 0, 
-        'Docs & Timing': 0, 'Risk Flags': 0, 'Study Plan Fit': 0
-    };
+    const sectionScores: Record<string, number> = {};
 
     for (const q of questions) {
-        if (answers[q.id]) {
-            const answer = q.options.find(opt => opt.value === answers[q.id]);
-            if (answer) {
-                totalScore += answer.points;
-                sectionScores[q.section] += answer.points;
+        if (!sectionScores[q.section]) {
+            sectionScores[q.section] = 0;
+        }
+
+        const answerValue = answers[q.id];
+        if (answerValue) {
+            if (q.type === 'checkbox' && Array.isArray(answerValue)) {
+                let checkboxPoints = 0;
+                for (const val of answerValue) {
+                    const option = q.options.find(opt => opt.value === val);
+                    if (option) {
+                        checkboxPoints += option.points;
+                    }
+                }
+                const points = Math.min(checkboxPoints, q.maxPoints || 0);
+                totalScore += points;
+                sectionScores[q.section] += points;
+            } else if (typeof answerValue === 'string') {
+                const answer = q.options.find(opt => opt.value === answerValue);
+                if (answer) {
+                    totalScore += answer.points;
+                    sectionScores[q.section] += answer.points;
+                }
             }
         }
     }
@@ -250,22 +297,29 @@ export function EligibilityQuizFlow() {
   const { totalScore, sectionScores } = calculateScores();
 
   useEffect(() => {
-    if (finished && user?.uid) {
-      const saveResults = async () => {
-        try {
-          await setDoc(doc(db, 'users', user.uid, 'quizResults', 'eligibility'), {
-            score: totalScore,
-            sectionScores,
-            answers,
-            takenAt: serverTimestamp(),
-          });
-        } catch (error) {
-          console.error("Error saving quiz results: ", error);
-        }
-      };
-      saveResults();
+    if (finished) {
+      if (user?.uid) {
+        const saveResults = async () => {
+          try {
+            await setDoc(doc(db, 'users', user.uid, 'quizResults', 'eligibility'), {
+              score: totalScore,
+              sectionScores,
+              answers,
+              takenAt: serverTimestamp(),
+            });
+          } catch (error) {
+            console.error("Error saving quiz results: ", error);
+            toast({
+              title: "Error",
+              description: "Could not save quiz results. Please try again.",
+              variant: "destructive",
+            });
+          }
+        };
+        saveResults();
+      }
     }
-  }, [finished, user, totalScore, sectionScores, answers]);
+  }, [finished, user, totalScore, sectionScores, answers, toast]);
   
   if (finished) {
     return <QuizResults totalScore={totalScore} sectionScores={sectionScores} onReset={handleReset} sectionMaxPoints={sectionMaxPoints} answers={answers} />;
@@ -281,30 +335,29 @@ export function EligibilityQuizFlow() {
   return (
     <Card className="max-w-2xl mx-auto">
         <CardHeader>
-            <CardTitle>Question {currentQuestionIndex + 1} of {visibleQuestions.length}</CardTitle>
+            <CardTitle>{currentQuestion.section}: Question {currentQuestionIndex + 1} of {visibleQuestions.length}</CardTitle>
             <Progress value={progressPercentage} className="mt-2" />
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
             <p className="text-lg font-medium">{currentQuestion.text}</p>
-            {currentQuestion.type === 'select' ? (
-                <Select
-                    value={currentAnswer || ''}
-                    onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {currentQuestion.options.map(opt => (
-                            <SelectItem key={opt.value} value={opt.value}>
+            {currentQuestion.type === 'checkbox' ? (
+                 <div className="space-y-2">
+                    {currentQuestion.options.map(opt => (
+                        <div key={opt.value} className="flex items-center space-x-2">
+                             <Checkbox
+                                id={`${currentQuestion.id}-${opt.value}`}
+                                checked={(currentAnswer as string[] || []).includes(opt.value)}
+                                onCheckedChange={(checked) => handleCheckboxChange(currentQuestion.id, opt.value, !!checked)}
+                            />
+                            <Label htmlFor={`${currentQuestion.id}-${opt.value}`} className="text-base font-normal">
                                 {opt.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                            </Label>
+                        </div>
+                    ))}
+                 </div>
             ) : (
                 <RadioGroup
-                    value={currentAnswer || ''}
+                    value={(currentAnswer as string) || ''}
                     onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
                     className="space-y-2"
                 >
@@ -323,8 +376,15 @@ export function EligibilityQuizFlow() {
             <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
                  Previous
             </Button>
-            <Button disabled={!currentAnswer}>
-                Next
+            <Button 
+                onClick={() => {
+                    if (currentQuestionIndex === visibleQuestions.length - 1) {
+                        setFinished(true);
+                    }
+                }}
+                disabled={!currentAnswer || (Array.isArray(currentAnswer) && currentAnswer.length === 0)}
+            >
+                {currentQuestionIndex === visibleQuestions.length - 1 ? 'Finish' : 'Next'}
             </Button>
         </CardFooter>
     </Card>
