@@ -77,9 +77,12 @@ interface Application {
 function getStatusBadgeVariant(status: string) {
     switch (status) {
         case 'submitted': return 'default';
+        case 'Pending Review': return 'secondary';
         case 'pending': return 'secondary';
         case 'draft': return 'outline';
+        case 'Approved': return 'default';
         case 'approved': return 'default';
+        case 'Rejected': return 'destructive';
         case 'rejected': return 'destructive';
         default: return 'outline';
     }
@@ -130,7 +133,7 @@ export function DashboardContent() {
   const chosenInstitution = selectedCollege?.name || 'Not Selected';
   const programOfChoice = draftApplicationData.studyPlan?.programChoice || 'Not Entered';
   
-  const submittedApplications = allApplications.filter(app => app.status !== 'draft');
+  const submittedApplications = allApplications.filter(app => app.status && app.status !== 'draft');
 
   return (
     <main className="flex-1 space-y-8 p-4 md:p-8">
@@ -192,15 +195,20 @@ export function DashboardContent() {
                               <TableHeader>
                                   <TableRow>
                                       <TableHead>Program</TableHead>
-                                      <TableHead>Submitted</TableHead>
+                                      <TableHead className="hidden md:table-cell">Submitted</TableHead>
                                       <TableHead>Status</TableHead>
                                   </TableRow>
                               </TableHeader>
                               <TableBody>
                                   {submittedApplications.map(app => (
                                       <TableRow key={app.id}>
-                                          <TableCell className="font-medium">{app.studyPlan?.programChoice || 'N/A'}</TableCell>
-                                          <TableCell>{app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}</TableCell>
+                                          <TableCell className="font-medium">
+                                            <div>{app.studyPlan?.programChoice || 'N/A'}</div>
+                                            <div className="text-xs text-muted-foreground md:hidden">
+                                                {app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}
+                                            </div>
+                                          </TableCell>
+                                          <TableCell className="hidden md:table-cell">{app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}</TableCell>
                                           <TableCell><Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge></TableCell>
                                       </TableRow>
                                   ))}
