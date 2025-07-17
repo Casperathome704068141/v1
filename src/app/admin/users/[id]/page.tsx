@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, AlertTriangle, User, FileText } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -40,7 +40,8 @@ function getStatusBadgeVariant(status: string) {
     }
 }
 
-export default function UserDetailPage({ params }: { params: { id: string } }) {
+export default function UserDetailPage() {
+    const params = useParams() as { id: string };
     const { id } = params;
     const [user, setUser] = useState<UserProfile | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);

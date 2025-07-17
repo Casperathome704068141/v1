@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -13,12 +12,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format, isValid } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, AlertTriangle, FileText, Download } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
 import { AdminApplicationProgress } from '@/components/admin/admin-application-progress';
-import { useSearchParams } from 'next/navigation';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
@@ -62,7 +60,8 @@ const documentDisplayList = [
     { id: 'eca', name: 'ECA' },
 ];
 
-export default function ApplicationDetailPage({ params }: { params: { id: string } }) {
+export default function ApplicationDetailPage() {
+    const params = useParams() as { id: string };
     const { id } = params;
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -234,13 +233,13 @@ export default function ApplicationDetailPage({ params }: { params: { id: string
                                 <CardHeader><CardTitle>Personal Information</CardTitle></CardHeader>
                                 <CardContent><dl className="divide-y">
                                     <DataRow label="Full Name" value={`${personalInfo.givenNames} ${personalInfo.surname}`} />
-                                    <DataRow label="Email" value={application.studentEmail || personalInfo.email} />
-                                    <DataRow label="Date of Birth" value={safeFormatDate(personalInfo.dob, 'PPP')} />
-                                    <DataRow label="Gender" value={personalInfo.gender} />
-                                    <DataRow label="Country of Citizenship" value={personalInfo.countryOfCitizenship} />
-                                    <DataRow label="Country of Residence" value={personalInfo.countryOfResidence} />
-                                    <DataRow label="Passport Number" value={personalInfo.passportNumber} />
-                                    <DataRow label="Address" value={[personalInfo.address, personalInfo.city, personalInfo.province, personalInfo.postalCode].filter(Boolean).join(', ')} />
+                                    <DataRow label="Email" value={application.studentEmail || personalInfo?.email} />
+                                    <DataRow label="Date of Birth" value={safeFormatDate(personalInfo?.dob, 'PPP')} />
+                                    <DataRow label="Gender" value={personalInfo?.gender} />
+                                    <DataRow label="Country of Citizenship" value={personalInfo?.countryOfCitizenship} />
+                                    <DataRow label="Country of Residence" value={personalInfo?.countryOfResidence} />
+                                    <DataRow label="Passport Number" value={personalInfo?.passportNumber} />
+                                    <DataRow label="Address" value={[personalInfo?.address, personalInfo?.city, personalInfo?.province, personalInfo?.postalCode].filter(Boolean).join(', ')} />
                                 </dl></CardContent>
                             </Card>
                         )}
