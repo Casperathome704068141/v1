@@ -67,31 +67,8 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
     }
 };
 
-interface Application {
-    id: string;
-    status: string;
-    submittedAt?: { toDate: () => Date };
-    [key: string]: any;
-}
-
-function getStatusBadgeVariant(status: string) {
-    switch (status) {
-        case 'submitted': return 'default';
-        case 'Pending Review': return 'secondary';
-        case 'pending': return 'secondary';
-        case 'draft': return 'outline';
-        case 'Approved': return 'default';
-        case 'approved': return 'default';
-        case 'Rejected': return 'destructive';
-        case 'rejected': return 'destructive';
-        default: return 'outline';
-    }
-}
-
 export function DashboardContent() {
   const { user } = useUser();
-  const [submittedApplications, setSubmittedApplications] = useState<Application[]>([]);
-  const [loadingSubmitted, setLoadingSubmitted] = useState(true);
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [loadingQuiz, setLoadingQuiz] = useState(true);
 
@@ -101,15 +78,7 @@ export function DashboardContent() {
     async function fetchData() {
       if(user?.uid) {
         setLoadingQuiz(true);
-        setLoadingSubmitted(true);
         
-        // Fetch submitted applications from the top-level collection
-        const appsQuery = query(collection(db, 'applications'), where('userId', '==', user.uid));
-        const appsSnap = await getDocs(appsQuery);
-        const appsData = appsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Application));
-        setSubmittedApplications(appsData);
-        setLoadingSubmitted(false);
-
         // Fetch quiz score
         const quizDocRef = doc(db, 'users', user.uid, 'quizResults', 'eligibility');
         const quizDocSnap = await getDoc(quizDocRef);
@@ -185,40 +154,6 @@ export function DashboardContent() {
                       </div>
                   </CardContent>
               </Card>
-              
-              {submittedApplications.length > 0 && (
-                  <Card className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                          <CardTitle>Submitted Applications History</CardTitle>
-                          <CardDescription>Track the status of your past submissions.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="overflow-x-auto">
-                          <Table>
-                              <TableHeader>
-                                  <TableRow>
-                                      <TableHead className="whitespace-nowrap">Program</TableHead>
-                                      <TableHead className="whitespace-nowrap hidden md:table-cell">Submitted</TableHead>
-                                      <TableHead>Status</TableHead>
-                                  </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                  {submittedApplications.map(app => (
-                                      <TableRow key={app.id}>
-                                          <TableCell className="font-medium">
-                                              <div>{app.studyPlan?.programChoice || 'N/A'}</div>
-                                              <div className="text-xs text-muted-foreground md:hidden">
-                                                  {app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}
-                                              </div>
-                                          </TableCell>
-                                          <TableCell className="hidden md:table-cell">{app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}</TableCell>
-                                          <TableCell><Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge></TableCell>
-                                      </TableRow>
-                                  ))}
-                              </TableBody>
-                          </Table>
-                      </CardContent>
-                  </Card>
-              )}
           </div>
 
           <div className="space-y-8 md:col-span-1">
