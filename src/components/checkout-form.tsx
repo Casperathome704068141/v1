@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/auth-context';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 type CartItem = {
@@ -35,6 +35,11 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
   const totalAmount = useMemo(() => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   }, [cartItems]);
+
+  const primaryPlanName = useMemo(() => {
+      const primaryPlan = cartItems.find(item => !item.name.toLowerCase().includes("addon"));
+      return primaryPlan?.name || 'Custom Plan';
+  }, [cartItems])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +63,11 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
     
     if (paymentIntent && paymentIntent.status === 'succeeded') {
         try {
+            // Optimistically update the user's plan on the client
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, { plan: primaryPlanName });
+            
+            // Record the successful payment in a subcollection
             const paymentRef = doc(db, 'users', user.uid, 'payments', paymentIntent.id);
             await setDoc(paymentRef, {
                 amount: paymentIntent.amount,
@@ -66,7 +76,7 @@ const Form = ({ clientSecret, cartItems }: { clientSecret: string; cartItems: Ca
                 planDetails: cartItems,
             });
 
-            toast({ title: 'Payment Successful!', description: 'Your purchase is complete.' });
+            toast({ title: 'Payment Successful!', description: 'Your plan has been upgraded.' });
             
             window.location.href = '/dashboard?payment_success=true';
 
@@ -120,9 +130,8 @@ export const CheckoutForm = () => {
     
     const cartItems: CartItem[] = useMemo(() => {
         const cartQuery = searchParams.get('cart');
-        if (!cartQuery || cartQuery.trim() === '') return [];
         try {
-            return JSON.parse(decodeURIComponent(cartQuery));
+            return cartQuery ? JSON.parse(decodeURIComponent(cartQuery)) : [];
         } catch (e) {
             console.error("Failed to parse cart items:", e);
             return [];
