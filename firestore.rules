@@ -9,39 +9,35 @@ service cloud.firestore {
       return request.auth.token.admin == true;
     }
 
-    // This single rule allows a user to read and write to their own document
-    // and any sub-documents (like application drafts, quiz results, etc.).
-    // It ALSO allows an admin to READ any user's data, which is required
-    // for the admin dashboard queries to work correctly.
+    // Rules for the 'users' collection and all sub-documents (drafts, quiz results, etc.).
     match /users/{userId}/{path=**} {
-      allow write: if request.auth.uid == userId;
-      allow read: if request.auth.uid == userId || isAdmin();
+      // A user can read and write to their own documents.
+      // An admin can also read and write to any user's documents.
+      // This single rule covers:
+      // - A user editing their own profile and application draft.
+      // - An admin viewing a user's profile or draft.
+      // - An admin changing a user's subscription plan.
+      // - An admin's collectionGroup query for application drafts.
+      allow read, write: if request.auth.uid == userId || isAdmin();
     }
 
-    // Rules for the top-level 'applications' collection, which holds
-    // finalized submissions.
+    // Rules for the top-level 'applications' collection (for submitted apps).
     match /applications/{appId} {
-      // A user can create their application record upon final submission.
+      // A user can create their application document upon final submission.
+      // The userId on the new document must match the user's own uid.
       allow create: if request.auth.uid == request.resource.data.userId;
 
-      // A user can read their own submitted application, and an admin can read any.
-      allow read: if request.auth.uid == resource.data.userId || isAdmin();
-
-      // Only an admin can update or delete a submitted application.
+      // An admin can perform any action on submitted applications.
+      // A user can only read their own submitted application from this collection.
+      allow read: if resource.data.userId == request.auth.uid || isAdmin();
       allow update, delete: if isAdmin();
     }
 
-    // This rule is specifically for the admin's `collectionGroup('application')` query.
-    // It ensures that any query scanning across all 'application' collections
-    // is only allowed if the user is an admin.
-    match /{path=**}/application/{docId} {
-      allow read: if isAdmin();
-    }
-
-    // Rules for other admin-only collections
+    // Rules for other admin-only collections.
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
+
     match /news/{docId} {
       allow read, write: if isAdmin();
     }
