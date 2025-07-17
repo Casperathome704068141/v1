@@ -90,29 +90,33 @@ function getStatusBadgeVariant(status: string) {
 
 export function DashboardContent() {
   const { user } = useUser();
-  const [allApplications, setAllApplications] = useState<Application[]>([]);
+  const [submittedApplications, setSubmittedApplications] = useState<Application[]>([]);
+  const [loadingSubmitted, setLoadingSubmitted] = useState(true);
   const [quizScore, setQuizScore] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingQuiz, setLoadingQuiz] = useState(true);
 
   const { applicationData: draftApplicationData, isLoaded: isDraftLoaded } = useApplication();
 
   useEffect(() => {
     async function fetchData() {
       if(user?.uid) {
-        setLoading(true);
+        setLoadingQuiz(true);
+        setLoadingSubmitted(true);
         
-        const appsQuery = query(collection(db, 'users', user.uid, 'application'));
+        // Fetch submitted applications from the top-level collection
+        const appsQuery = query(collection(db, 'applications'), where('userId', '==', user.uid));
         const appsSnap = await getDocs(appsQuery);
         const appsData = appsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Application));
-        setAllApplications(appsData);
+        setSubmittedApplications(appsData);
+        setLoadingSubmitted(false);
 
+        // Fetch quiz score
         const quizDocRef = doc(db, 'users', user.uid, 'quizResults', 'eligibility');
         const quizDocSnap = await getDoc(quizDocRef);
         if (quizDocSnap.exists()) {
           setQuizScore(quizDocSnap.data().score);
         }
-        
-        setLoading(false);
+        setLoadingQuiz(false);
       }
     }
     fetchData();
@@ -133,8 +137,6 @@ export function DashboardContent() {
   const chosenInstitution = selectedCollege?.name || 'Not Selected';
   const programOfChoice = draftApplicationData.studyPlan?.programChoice || 'Not Entered';
   
-  const submittedApplications = allApplications.filter(app => app.status && app.status !== 'draft');
-
   return (
     <main className="flex-1 space-y-8 p-4 md:p-8">
       <div className="space-y-2">
@@ -172,7 +174,7 @@ export function DashboardContent() {
                                       {isCompleted ? <Check className="h-5 w-5 text-primary-foreground" /> : step.icon ? <step.icon className={cn("h-4 w-4", isCurrent ? "text-primary" : "text-muted-foreground")} /> : <Circle className={cn("h-3 w-3", isCurrent ? "text-primary fill-primary" : "text-muted-foreground fill-muted-foreground")} />}
                                   </div>
                                   <div className="flex-1 -mt-1.5">
-                                       <div className="flex items-center justify-between">
+                                       <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                                           <p className={cn("font-medium", isCompleted ? "text-foreground" : isCurrent ? "text-primary font-semibold" : "text-muted-foreground")}>{step.name}</p>
                                           {step.href && (<Button asChild variant={isCurrent ? 'secondary' : 'ghost'} size="sm"><Link href={step.href}>{isCompleted ? 'Review' : isCurrent ? 'Continue' : 'Start'} <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>)}
                                        </div>
@@ -187,15 +189,15 @@ export function DashboardContent() {
               {submittedApplications.length > 0 && (
                   <Card className="hover:shadow-lg transition-shadow">
                       <CardHeader>
-                          <CardTitle>Submitted Applications</CardTitle>
+                          <CardTitle>Submitted Applications History</CardTitle>
                           <CardDescription>Track the status of your past submissions.</CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="overflow-x-auto">
                           <Table>
                               <TableHeader>
                                   <TableRow>
-                                      <TableHead>Program</TableHead>
-                                      <TableHead className="hidden md:table-cell">Submitted</TableHead>
+                                      <TableHead className="whitespace-nowrap">Program</TableHead>
+                                      <TableHead className="whitespace-nowrap hidden md:table-cell">Submitted</TableHead>
                                       <TableHead>Status</TableHead>
                                   </TableRow>
                               </TableHeader>
@@ -203,10 +205,10 @@ export function DashboardContent() {
                                   {submittedApplications.map(app => (
                                       <TableRow key={app.id}>
                                           <TableCell className="font-medium">
-                                            <div>{app.studyPlan?.programChoice || 'N/A'}</div>
-                                            <div className="text-xs text-muted-foreground md:hidden">
-                                                {app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}
-                                            </div>
+                                              <div>{app.studyPlan?.programChoice || 'N/A'}</div>
+                                              <div className="text-xs text-muted-foreground md:hidden">
+                                                  {app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}
+                                              </div>
                                           </TableCell>
                                           <TableCell className="hidden md:table-cell">{app.submittedAt ? formatDistanceToNow(app.submittedAt.toDate(), { addSuffix: true }) : 'N/A'}</TableCell>
                                           <TableCell><Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge></TableCell>
@@ -235,7 +237,7 @@ export function DashboardContent() {
               <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><BadgeHelp className="h-5 w-5 text-primary" />Eligibility Score</CardTitle></CardHeader>
                   <CardContent>
-                      {loading ? <Skeleton className="h-5 w-3/4" /> : (
+                      {loadingQuiz ? <Skeleton className="h-5 w-3/4" /> : (
                         quizScore != null ? (
                           <p className="font-semibold text-muted-foreground">Last Score: <span className="font-bold text-foreground">{quizScore}/100</span></p>
                         ) : (
