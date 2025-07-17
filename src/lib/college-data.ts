@@ -987,7 +987,7 @@ export const collegeData: College[] = [
     programs: ['Biology', 'Education', 'Liberal Studies', 'Psychology'],
   },
   {
-    dliNumber: 'O18713250142',
+    dliNumber: 'O18713147522',
     name: "The King's University",
     province: 'AB',
     city: 'Edmonton',
@@ -1392,7 +1392,7 @@ export const collegeData: College[] = [
     programs: ['Engineering', 'Agricultural Sciences', 'Business', 'Medicine'],
   },
   {
-    dliNumber: 'O19147986012',
+    dliNumber: 'O19126683522',
     name: 'University of Winnipeg',
     province: 'MB',
     city: 'Winnipeg',

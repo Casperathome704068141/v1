@@ -23,7 +23,7 @@ interface QuizResultsProps {
   totalScore: number;
   sectionScores: Record<string, number>;
   sectionMaxPoints: Record<string, number>;
-  answers: Record<string, string | null>;
+  answers: Record<string, string | null | string[]>;
   onReset: () => void;
 }
 
@@ -40,9 +40,9 @@ const getResultDetails = (score: number) => {
   if (score >= 50) {
     return {
       status: 'Needs Improvement',
-      description: '🔧 A few gaps to close before you apply. Let\'s generate a personalized action plan for you.',
-      ctaText: 'View Your AI-Generated Action Plan',
-      ctaLink: '/action-plan',
+      description: '🔧 A few gaps to close before you apply. You have a good foundation to build upon.',
+      ctaText: 'Start Your Application',
+      ctaLink: '/application',
       ctaVariant: 'secondary' as const,
     };
   }
@@ -50,7 +50,7 @@ const getResultDetails = (score: number) => {
     status: 'High Risk',
     description: '⚠️ There may be a high refusal risk if you apply now. We recommend a consultation.',
     ctaText: 'Book a 1-on-1 Consultation',
-    ctaLink: '/pricing',
+    ctaLink: '/appointments',
     ctaVariant: 'destructive' as const,
   };
 };
@@ -104,14 +104,14 @@ export function QuizResults({
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
   
   const handleCtaClick = () => {
-    if (resultDetails.ctaLink === '/action-plan') {
-      const answersQuery = encodeURIComponent(JSON.stringify(answers));
-      const scoresQuery = encodeURIComponent(JSON.stringify(sectionScores));
-      router.push(`${resultDetails.ctaLink}?answers=${answersQuery}&scores=${scoresQuery}`);
-    } else {
-      router.push(resultDetails.ctaLink);
-    }
+    router.push(resultDetails.ctaLink);
   }
+
+  const handleActionPlanClick = () => {
+    const answersQuery = encodeURIComponent(JSON.stringify(answers));
+    const scoresQuery = encodeURIComponent(JSON.stringify(sectionScores));
+    router.push(`/action-plan?answers=${answersQuery}&scores=${scoresQuery}`);
+  };
 
   return (
     <Card className="max-w-4xl mx-auto">
@@ -173,6 +173,9 @@ export function QuizResults({
       <CardFooter className="flex-col gap-4 border-t pt-6">
         <Button onClick={handleCtaClick} size="lg" variant={resultDetails.ctaVariant} className="w-full">
           {resultDetails.ctaText}
+        </Button>
+        <Button variant="secondary" onClick={handleActionPlanClick} className="w-full">
+          View Your AI-Generated Action Plan
         </Button>
         <Button variant="outline" onClick={onReset} className="w-full">
           Take the Quiz Again

@@ -8,7 +8,6 @@
  * - FindCollegesOutput - The return type for the findColleges function.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { collegeData } from '@/lib/college-data';
 
@@ -49,48 +48,3 @@ export async function findColleges(input: FindCollegesInput): Promise<FindColleg
 
   return { colleges: filteredColleges }; // Return all matching colleges
 }
-
-// The AI-based flow is no longer needed for simple filtering.
-// We keep the Genkit schema definitions for type safety but bypass the AI call.
-
-/*
-// This AI-based flow is deprecated in favor of direct filtering for performance and reliability.
-const findCollegesSystemPrompt = `You are an expert on Canadian Designated Learning Institutions (DLIs). Your task is to act as a filter for a provided list of colleges.
-
-You will be given a master list of colleges and the user's preferences. You must return a subset of this list, formatted exactly like the input, containing only the colleges that are a good match for the user.
-
-User Preferences:
-- Province: {{{province}}}
-- Program Type: {{{programType}}} (Note: For now, you can ignore this as our data doesn't contain program types. Focus on province and tuition.)
-- Maximum Annual Tuition: \${{{maxTuition}}} CAD
-
-Filtering Criteria:
-1.  **Province**: If the user specifies a province, only return colleges from that province. If they select 'all', consider all provinces.
-2.  **Tuition**: The college's high-end tuition ('tuitionHigh') must be less than or equal to the user's maximum tuition budget.
-3.  **Return Value**: You must only return colleges from the provided master list. Do not invent new colleges or modify the data. Return up to 20 matching colleges.
-
-Here is the master list of colleges you must use as your source of truth:
-${JSON.stringify(collegeData, null, 2)}
-`;
-
-
-const prompt = ai.definePrompt({
-  name: 'findCollegesPrompt',
-  input: { schema: FindCollegesInputSchema },
-  output: { schema: FindCollegesOutputSchema },
-  system: findCollegesSystemPrompt,
-  prompt: `Based on the user preferences and the master list provided in the system instructions, please generate the list of matching colleges now.`
-});
-
-const findCollegesFlow = ai.defineFlow(
-  {
-    name: 'findCollegesFlow',
-    inputSchema: FindCollegesInputSchema,
-    outputSchema: FindCollegesOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
-    return output!;
-  }
-);
-*/
