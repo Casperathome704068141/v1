@@ -2,7 +2,7 @@
 'use client';
 
 import { Progress } from '@/components/ui/progress';
-import { UserCheck, FileText, Send, Fingerprint, Stethoscope, CheckCircle, Circle, Check } from 'lucide-react';
+import { UserCheck, FileText, Send, CheckCircle, Circle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { useApplication } from '@/context/application-context';
 
@@ -19,10 +19,12 @@ const applicationStepsConfig = [
 ];
 
 const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applicationData'], applicationData: any) => {
-    if (!stepId || !applicationData || !applicationData[stepId]) return false;
+    // If application data or the specific step's data doesn't exist, it's not complete.
+    if (!applicationData || !applicationData[stepId]) return false;
     
     const data = applicationData[stepId];
 
+    // If data is an empty object, it's not complete.
     if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
         return false;
     }
@@ -31,7 +33,7 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
         case 'personalInfo':
             return !!data.surname && !!data.givenNames && !!data.dob && !!data.passportNumber;
         case 'academics':
-            return (data.educationHistory && data.educationHistory.length > 0) || (data.employmentHistory && data.employmentHistory.length > 0);
+            return (data.educationHistory?.length > 0) || (data.employmentHistory?.length > 0);
         case 'language':
             return data.testTaken !== 'none' ? !!data.overallScore : !!data.testPlanning;
         case 'finances':
@@ -52,12 +54,9 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
 
 export function AdminApplicationProgress({ applicationData }: { applicationData: any }) {
 
-  // The application is submitted, so this step is always true here.
-  const allSteps = [
-    ...applicationStepsConfig,
-  ].map(step => ({
+  const allSteps = applicationStepsConfig.map(step => ({
       ...step,
-      completed: step.id ? isStepCompleted(step.id as any, applicationData) : step.id === 'submission'
+      completed: step.id ? isStepCompleted(step.id as any, applicationData) : (applicationData.status !== 'draft')
   }));
 
   const completedStepsCount = allSteps.filter(step => step.completed).length;

@@ -10,15 +10,15 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-// FIX: Import `isValid` to check for valid dates
 import { format, isValid } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, AlertTriangle, FileText, Download } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
 import { AdminApplicationProgress } from '@/components/admin/admin-application-progress';
+import { useSearchParams } from 'next/navigation';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
@@ -30,18 +30,14 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-// FIX: Create a safe date formatting function to prevent crashes from invalid date values.
 function safeFormatDate(date: any, formatString: string): string {
     if (!date) return 'N/A';
-    // Convert Firestore Timestamps or string dates to a Date object
     const dateObj = date.toDate ? date.toDate() : new Date(date);
-    // Check if the resulting date is valid before formatting
     if (!isValid(dateObj)) {
       return 'N/A';
     }
     return format(dateObj, formatString);
 }
-
 
 function getStatusBadgeVariant(status: string) {
     switch (status) {
@@ -66,11 +62,11 @@ const documentDisplayList = [
     { id: 'eca', name: 'ECA' },
 ];
 
-export default function ApplicationDetailPage() {
-    const params = useSearchParams();
+export default function ApplicationDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
+    const searchParams = useSearchParams();
     const router = useRouter();
-    const id = router.query.id as string;
-    const userId = params.get('userId');
+    const userId = searchParams.get('userId');
 
     const [application, setApplication] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -90,14 +86,16 @@ export default function ApplicationDetailPage() {
             setLoading(true);
             setError(null);
             try {
-                const appRef = doc(db, 'users', userId as string, 'application', id);
-                const docSnap = await getDoc(appRef);
+                // First, try to get the application from the user's 'application' subcollection (for drafts)
+                const draftAppRef = doc(db, 'users', userId as string, 'application', id);
+                let docSnap = await getDoc(draftAppRef);
 
                 if (docSnap.exists()) {
                     const appData = docSnap.data();
                     setApplication(appData);
                     setStatus(appData.status || 'draft');
                 } else {
+                     // If not found in drafts, check the top-level 'applications' collection (for submitted apps)
                      const submittedAppRef = doc(db, 'applications', id);
                      const submittedDocSnap = await getDoc(submittedAppRef);
                      if (submittedDocSnap.exists()) {
@@ -105,7 +103,7 @@ export default function ApplicationDetailPage() {
                          setApplication(appData);
                          setStatus(appData.status || 'submitted');
                      } else {
-                        setError("No application found with this ID.");
+                        setError("No application found with this ID for the specified user.");
                      }
                 }
             } catch (err) {
@@ -192,9 +190,8 @@ export default function ApplicationDetailPage() {
         return <AdminLayout><main className="p-8">Application not found.</main></AdminLayout>;
     }
 
-
-    const { personalInfo, academics, finances, family, background, studyPlan, documents, submittedAt, status: appStatus } = application;
-    const currentStatus = appStatus || 'draft';
+    const { personalInfo, academics, finances, family, background, studyPlan, documents, submittedAt } = application;
+    const currentStatus = application.status || 'draft';
     
     const allUploadedFiles = documentDisplayList.flatMap(docDef => {
         const docData = documents?.[docDef.id];
@@ -238,7 +235,6 @@ export default function ApplicationDetailPage() {
                                 <CardContent><dl className="divide-y">
                                     <DataRow label="Full Name" value={`${personalInfo.givenNames} ${personalInfo.surname}`} />
                                     <DataRow label="Email" value={application.studentEmail || personalInfo.email} />
-                                    {/* FIX: Use the safe formatting function */}
                                     <DataRow label="Date of Birth" value={safeFormatDate(personalInfo.dob, 'PPP')} />
                                     <DataRow label="Gender" value={personalInfo.gender} />
                                     <DataRow label="Country of Citizenship" value={personalInfo.countryOfCitizenship} />
@@ -290,7 +286,7 @@ export default function ApplicationDetailPage() {
                                     <DataRow label="Total Funds Available" value={finances.totalFunds ? `$${Number(finances.totalFunds).toLocaleString('en-CA')} CAD` : 'N/A'} />
                                     <DataRow label="Funding Sources" value={finances.fundingSources?.join(', ')} />
                                     <DataRow label="Primary Sponsor" value={finances.primarySponsorName} />
-                                    <DataRow label="Sponsor's Relationship" value={finances.primarySponsorRelationship} />
+                                    <DataRow label="Sponsor's Relationship" value={finances.sponsorRelationship} />
                                     <DataRow label="Sponsor's Address" value={finances.primarySponsorAddress} />
                                     <DataRow label="Sponsor's Phone" value={finances.primarySponsorPhone} />
                                 </dl></CardContent>
@@ -302,8 +298,8 @@ export default function ApplicationDetailPage() {
                                 <CardContent><dl className="divide-y">
                                     <DataRow label="Marital Status" value={family.maritalStatus} />
                                     {family.spouseName && <DataRow label="Spouse's Name" value={family.spouseName} />}
-                                    <DataRow label="Father's Name" value={family.fatherName} />
-                                    <DataRow label="Mother's Name" value={family.motherName} />
+                                    <DataRow label="Father's Name" value={family.parent1Name} />
+                                    <DataRow label="Mother's Name" value={family.parent2Name} />
                                 </dl></CardContent>
                             </Card>
                         )}
@@ -311,10 +307,10 @@ export default function ApplicationDetailPage() {
                             <Card>
                                 <CardHeader><CardTitle>Background Information</CardTitle></CardHeader>
                                 <CardContent><dl className="divide-y">
-                                    <DataRow label="Visa Refusal" value={`${background.visaRefusal ? `Yes - ${background.visaRefusalDetails}` : 'No'}`} />
-                                    <DataRow label="Criminal Record" value={`${background.criminalRecord ? `Yes - ${background.criminalRecordDetails}`: 'No'}`} />
-                                    <DataRow label="Unauthorized Overstay" value={`${background.overstay ? `Yes - ${background.overstayDetails}` : 'No'}`} />
-                                    <DataRow label="Medical Issues" value={`${background.medicalIssues ? `Yes - ${background.medicalIssuesDetails}` : 'No'}`} />
+                                    <DataRow label="Visa Refusal" value={`${background.visaRefusal === 'yes' ? `Yes - ${background.visaRefusalDetails}` : 'No'}`} />
+                                    <DataRow label="Criminal Record" value={`${background.criminalRecord === 'yes' ? `Yes - ${background.criminalRecordDetails}`: 'No'}`} />
+                                    <DataRow label="Unauthorized Overstay" value={`${background.overstay === 'yes' ? `Yes - ${background.overstayDetails}` : 'No'}`} />
+                                    <DataRow label="Medical Issues" value={`${background.medicalConditions === 'yes' ? `Yes - ${background.medicalConditionsDetails}` : 'No'}`} />
                                 </dl></CardContent>
                             </Card>
                         )}
@@ -324,11 +320,11 @@ export default function ApplicationDetailPage() {
                                 <CardContent className="space-y-4">
                                     <div>
                                         <h4 className="font-semibold">Why this program?</h4>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{studyPlan.programReason}</p>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{studyPlan.whyInstitution}</p>
                                     </div>
                                     <div>
                                         <h4 className="font-semibold">Future Goals</h4>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{studyPlan.futureGoals}</p>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{studyPlan.howProgramFitsCareer}</p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -344,7 +340,6 @@ export default function ApplicationDetailPage() {
                                                     <FileText className="h-5 w-5 text-muted-foreground" />
                                                     <div>
                                                         <p className="text-sm font-medium">{file.fileName}</p>
-                                                        {/* FIX: Use the safe formatting function */}
                                                         <p className="text-xs text-muted-foreground">{file.category} &middot; {safeFormatDate(file.date, 'PP')}</p>
                                                     </div>
                                                 </div>
@@ -370,7 +365,6 @@ export default function ApplicationDetailPage() {
                             <CardContent className="space-y-4">
                                 <dl className="divide-y">
                                     <DataRow label="Current Status" value={<Badge variant={getStatusBadgeVariant(currentStatus)}>{currentStatus}</Badge>} />
-                                    {/* FIX: Use the safe formatting function */}
                                     <DataRow label="Submitted At" value={safeFormatDate(submittedAt, 'PPP p')} />
                                 </dl>
                                 <Separator />
