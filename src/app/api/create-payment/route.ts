@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { auth } from '@/lib/firebaseAdmin'; // Using Admin SDK for backend verification
+import { admin } from '@/lib/firebaseAdmin'; // Using Admin SDK for backend verification
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     let decodedToken;
     try {
-        decodedToken = await auth.verifyIdToken(idToken);
+        decodedToken = await admin.auth().verifyIdToken(idToken);
     } catch (error) {
         console.error('Error verifying auth token:', error);
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
