@@ -1,41 +1,30 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for the admin custom claim on the user's token.
+    // A user is an admin if they are authenticated and their document
+    // in the 'users' collection has a field 'isAdmin' set to true.
     function isAdmin() {
-      return request.auth.token.admin == true;
+      // Use .get('isAdmin', false) to safely default to false if the field doesn't exist.
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true;
     }
 
-    // Rules for the 'users' collection and all sub-documents.
+    // Rules for the 'users' collection.
     match /users/{userId}/{path=**} {
-      // A user can always read and write to their own documents.
+      // A user can read and write to their own documents.
       // An admin can read and write to any user's documents.
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
 
-    // Rules for the single 'application' document that each user has.
-    match /users/{userId}/application/{draftId} {
-       // A user can update their own application draft.
-       allow write: if request.auth.uid == userId;
-       // Admins can read all application drafts for the admin panel list.
-       allow read: if request.auth.uid == userId || isAdmin();
-    }
-
-    // Rules for the top-level 'applications' collection (DEPRECATED but kept for safety).
-    match /applications/{appId} {
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow read: if resource.data.userId == request.auth.uid || isAdmin();
-      allow update, delete: if isAdmin();
+    // Rules for the 'applications' subcollection (drafts).
+    // This explicit rule is good practice for collectionGroup queries by admins.
+    match /{path=**}/application/{docId} {
+      allow list: if isAdmin();
     }
     
-    // Rules for sending mail. Only admins can trigger emails.
-    match /mail/{docId} {
-      allow create: if isAdmin();
-    }
-
-    // Rules for the 'appointments' collection.
+    // Rules for creating new appointments.
     match /appointments/{apptId} {
       // Any authenticated user can create (book) an appointment,
       // as long as they are booking it for themselves.
@@ -45,7 +34,12 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Rules for other admin-only collections.
+    // Rules for sending mail. Only admins can trigger emails.
+    match /mail/{docId} {
+      allow create: if isAdmin();
+    }
+
+    // Rules for admin-only settings.
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
