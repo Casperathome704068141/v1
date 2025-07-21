@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -10,8 +9,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 import { useApplication, UploadedFile, documentList } from "@/context/application-context";
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
@@ -22,39 +20,6 @@ const getStatusInfo = (files?: UploadedFile[]) => {
         return { icon: CheckCircle2, color: 'text-green-500', badgeVariant: 'default' as const, label: 'Uploaded' };
     }
     return { icon: Circle, color: 'text-muted-foreground', badgeVariant: 'secondary' as const, label: 'Pending' };
-}
-
-function FileUploadDropzone({ isUploading, onDrop }: { isUploading: boolean, onDrop: (acceptedFiles: File[]) => void }) {
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-        onDrop, 
-        accept: {'application/pdf':[], 'image/jpeg':[], 'image/png':[]},
-        disabled: isUploading 
-    });
-
-    return (
-        <div {...getRootProps()} className={cn("border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-            isUploading ? "cursor-not-allowed bg-muted/50" : "cursor-pointer",
-            isDragActive ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-        )}>
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                {isUploading ? (
-                    <>
-                        <Loader2 className="h-10 w-10 animate-spin" />
-                        <p className="font-semibold">Processing uploads...</p>
-                    </>
-                ) : (
-                    <>
-                        <UploadCloud className="h-10 w-10" />
-                        <p className="font-semibold">
-                            {isDragActive ? "Drop the files here..." : "Drag & drop files here, or click to select"}
-                        </p>
-                        <p className="text-xs">PDF, JPG, PNG (Max 5MB per file)</p>
-                    </>
-                )}
-            </div>
-        </div>
-    );
 }
 
 function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
@@ -135,6 +100,7 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
     };
 
     const statusInfo = getStatusInfo(statusData?.files);
+    const allowMultiple = ['educationDocs', 'proofOfFunds', 'tiesToHome', 'travelHistory'].includes(docInfo.id);
 
     return (
         <div>
@@ -145,6 +111,9 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
                         <div className="flex-1">
                             <p className="font-medium text-sm">{docInfo.name}</p>
                             <p className="text-xs text-muted-foreground">{docInfo.description}</p>
+                            {allowMultiple && (
+                                <p className="text-xs text-primary/80 mt-1">You can upload multiple files for this category.</p>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
@@ -180,57 +149,6 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
 }
 
 export function DocumentsForm() {
-    const { applicationData, updateStepData } = useApplication();
-    const { user } = useAuth();
-    const { toast } = useToast();
-    const [isDropzoneUploading, setIsDropzoneUploading] = useState(false);
-
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
-        if (!user) return;
-        setIsDropzoneUploading(true);
-        
-        let filesUploadedCount = 0;
-        const newDocumentsData = structuredClone(applicationData.documents || {});
-
-        for (const file of acceptedFiles) {
-            const docIdGuess = file.name.split('.')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-            const matchingDoc = documentList.find(d => docIdGuess.includes(d.id.toLowerCase()));
-
-            if (!matchingDoc) {
-                toast({ variant: 'destructive', title: 'File Not Recognized', description: `Could not categorize '${file.name}'. Please use individual upload buttons.` });
-                continue;
-            }
-
-            try {
-                const storagePath = `users/${user.uid}/documents/${matchingDoc.id}/${file.name}`;
-                const storageRef = ref(storage, storagePath);
-                await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(storageRef);
-                const newFile: UploadedFile = { fileName: file.name, url: downloadURL, date: new Date().toISOString(), path: storagePath };
-
-                const currentDoc = newDocumentsData[matchingDoc.id] || { status: 'Pending', files: [] };
-                currentDoc.files.push(newFile);
-                currentDoc.status = 'Uploaded';
-                newDocumentsData[matchingDoc.id] = currentDoc;
-
-                filesUploadedCount++;
-            } catch (error: any) {
-                console.error("Upload error in dropzone:", error);
-                 const description = error.code === 'storage/unauthorized'
-                    ? `Permission denied. Please check your Storage rules.`
-                    : `Could not upload ${file.name}.`;
-                toast({ variant: 'destructive', title: 'Upload Failed', description });
-            }
-        }
-
-        if (filesUploadedCount > 0) {
-            await updateStepData('documents', newDocumentsData);
-            toast({ title: 'Uploads Complete', description: `${filesUploadedCount} file(s) were successfully uploaded.` });
-        }
-
-        setIsDropzoneUploading(false);
-    }, [user, applicationData.documents, toast, updateStepData]);
-
     const coreDocs = documentList.filter(d => d.category === 'Core');
     const situationalDocs = documentList.filter(d => d.category === 'Situational');
 
@@ -239,18 +157,13 @@ export function DocumentsForm() {
             <CardHeader>
                 <CardTitle>Upload Documents</CardTitle>
                 <CardDescription>
-                    Upload all required documents here. You can manage all your uploaded files in the main <Link href="/documents" className="text-primary underline">Document Locker</Link>.
+                    Upload all required documents for your application. You can manage all your uploaded files later in the main <Link href="/documents" className="text-primary underline">Document Locker</Link>.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
-                <FileUploadDropzone 
-                    isUploading={isDropzoneUploading}
-                    onDrop={onDrop}
-                />
-
                 <div className="space-y-6">
                     <div>
-                        <h4 className="text-base font-semibold mb-2">Core Documents</h4>
+                        <h4 className="text-base font-semibold mb-2 px-4">Core Documents</h4>
                         <div className="rounded-md border">
                             {coreDocs.map((doc, index, arr) => (
                                 <React.Fragment key={doc.id}>
@@ -263,7 +176,7 @@ export function DocumentsForm() {
                     
                     {situationalDocs.length > 0 && (
                          <div>
-                            <h4 className="text-base font-semibold mb-2">Situational & Recommended Documents</h4>
+                            <h4 className="text-base font-semibold mb-2 px-4">Situational & Recommended Documents</h4>
                             <div className="rounded-md border">
                                 {situationalDocs.map((doc, index, arr) => (
                                     <React.Fragment key={doc.id}>
