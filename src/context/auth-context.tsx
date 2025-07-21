@@ -73,9 +73,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         setLoading(true);
         if (currentUser) {
-            const tokenResult = await currentUser.getIdTokenResult(true);
-            const claims = tokenResult.claims;
-            setIsAdmin(!!claims.admin);
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists() && userDocSnap.data().isAdmin) {
+                setIsAdmin(true);
+            } else {
+                setIsAdmin(false);
+            }
 
             setUser(currentUser);
             const userRef = doc(db, 'users', currentUser.uid);
@@ -85,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (docSnap.exists()) {
                     setProfile({
                         ...docSnap.data(),
-                        admin: !!claims.admin,
+                        admin: userDocSnap.data().isAdmin || false,
                     } as UserProfile);
                 } else {
                     createUserDocument(currentUser).catch(console.error);
