@@ -49,7 +49,7 @@ function AppointmentsContent() {
     try {
       // 1. Create a public appointment document for admin viewing
       await addDoc(collection(db, 'appointments'), {
-        studentUid: user.uid,
+        userId: user.uid, // Corrected from studentUid to userId
         studentName: profile.name,
         studentEmail: profile.email,
         appointmentDate: date,

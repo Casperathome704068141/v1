@@ -31,15 +31,14 @@ service cloud.firestore {
     // Rules for top-level 'appointments' collection.
     match /appointments/{appointmentId} {
       // Admins can list the entire collection and delete any appointment.
-      // This is the key fix for the admin dashboard.
       allow list, delete: if isAdmin();
 
       // Authenticated users can create their own appointments.
-      allow create: if request.auth.uid == request.resource.data.studentUid;
+      // The `userId` field in the document must match their own UID.
+      allow create: if request.auth.uid == request.resource.data.userId;
 
       // An individual appointment can be read or updated if the user is the owner OR is an admin.
-      // This covers a user viewing their own appointment details and an admin viewing any detail.
-      allow get, update: if request.auth.uid == resource.data.studentUid || isAdmin();
+      allow get, update: if request.auth.uid == resource.data.userId || isAdmin();
     }
 
     // Rules for other admin-only or specific collections.
