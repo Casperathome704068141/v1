@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -13,31 +13,55 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-
-const timeSlots = [
-  '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
-  '11:00 AM', '11:30 AM', '01:00 PM', '01:30 PM',
-  '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM'
-];
-
+import { doc, setDoc, serverTimestamp, collection, addDoc, getDoc } from 'firebase/firestore';
 
 function AppointmentsContent() {
   const { profile, loading, user } = useUser();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(true);
   const { toast } = useToast();
 
+  useEffect(() => {
+    async function fetchAvailability() {
+      setLoadingSlots(true);
+      const settingsRef = doc(db, 'settings', 'appointments');
+      const docSnap = await getDoc(settingsRef);
+      if (docSnap.exists() && docSnap.data().timeSlots) {
+        setTimeSlots(docSnap.data().timeSlots);
+      } else {
+        // Fallback if settings are not configured
+        setTimeSlots([
+          '09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM'
+        ]);
+      }
+      setLoadingSlots(false);
+    }
+    fetchAvailability();
+  }, []);
+
   const handleConfirm = async () => {
-    if (!user || !date || !selectedTime) return;
+    if (!user || !profile || !date || !selectedTime) return;
     setIsConfirming(true);
 
-    const mockApptId = `${date.toISOString().split('T')[0]}-${selectedTime.replace(' ', '')}`;
-
     try {
-      const apptRef = doc(db, 'users', user.uid, 'appointments', mockApptId);
+      // 1. Create a public appointment document for admin viewing
+      await addDoc(collection(db, 'appointments'), {
+        studentUid: user.uid,
+        studentName: profile.name,
+        studentEmail: profile.email,
+        appointmentDate: date,
+        appointmentTime: selectedTime,
+        contactPreference: profile.contactPreference || 'email',
+        status: 'booked',
+        createdAt: serverTimestamp(),
+      });
       
+      // 2. Create a private record for the user
+      const userApptId = `${date.toISOString().split('T')[0]}-${selectedTime.replace(/[\s:]/g, '')}`;
+      const apptRef = doc(db, 'users', user.uid, 'appointments', userApptId);
       await setDoc(apptRef, {
         status: 'confirmed',
         confirmedAt: serverTimestamp(),
@@ -49,6 +73,7 @@ function AppointmentsContent() {
         title: "Appointment Confirmed!",
         description: `Your meeting for ${date.toLocaleDateString()} at ${selectedTime} is booked.`,
       });
+      setSelectedTime(null);
 
     } catch (error) {
       console.error("Failed to confirm appointment:", error);
@@ -100,7 +125,7 @@ function AppointmentsContent() {
             </CardHeader>
             <CardFooter>
                 <Button asChild size="lg" className="w-full">
-                    <Link href="/pricing">
+                    <Link href="/billing">
                         <Zap className="mr-2 h-4 w-4" />
                         View Pricing Plans
                     </Link>
@@ -127,7 +152,7 @@ function AppointmentsContent() {
             className="rounded-md border"
             captionLayout="dropdown-buttons"
             fromYear={new Date().getFullYear()}
-            toYear={new Date().getFullYear() + 2}
+            toYear={new Date().getFullYear() + 1}
             disabled={(date) => date < new Date()}
           />
         </div>
@@ -136,17 +161,23 @@ function AppointmentsContent() {
             <Clock className="h-5 w-5 text-primary" />
             Available Times on {date ? date.toLocaleDateString() : 'selected date'}
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {timeSlots.map(time => (
-              <Button 
-                key={time}
-                variant={selectedTime === time ? 'default' : 'outline'}
-                onClick={() => setSelectedTime(time)}
-              >
-                {time}
-              </Button>
-            ))}
-          </div>
+          {loadingSlots ? (
+             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {Array.from({length: 8}).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {timeSlots.map(time => (
+                <Button 
+                    key={time}
+                    variant={selectedTime === time ? 'default' : 'outline'}
+                    onClick={() => setSelectedTime(time)}
+                >
+                    {time}
+                </Button>
+                ))}
+            </div>
+          )}
           <Button 
             className="mt-8 w-full" 
             size="lg" 

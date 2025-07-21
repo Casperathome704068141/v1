@@ -213,7 +213,7 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <SheetHeader className="p-4 border-b border-sidebar-border">
+            <SheetHeader className="border-b border-sidebar-border p-4">
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <SheetDescription className="sr-only">
                 Main application navigation and menu.
@@ -284,14 +284,14 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-7 w-7", className)}
+      className={cn("h-9 w-9", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
       }}
       {...props}
     >
-      <PanelLeft />
+      <PanelLeft className="h-5 w-5" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

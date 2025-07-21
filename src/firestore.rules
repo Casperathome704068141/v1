@@ -1,0 +1,51 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check for the admin custom claim on the user's token.
+    function isAdmin() {
+      return request.auth.token.admin == true;
+    }
+
+    // Rules for the 'users' collection and all sub-documents.
+    match /users/{userId}/{path=**} {
+      // A user can always read and write to their own documents.
+      // An admin can read and write to any user's documents.
+      allow read, write: if request.auth.uid == userId || isAdmin();
+    }
+
+    // Rules for the top-level 'applications' collection (for submitted apps).
+    match /applications/{appId} {
+      // A user can create their application document upon final submission.
+      // The userId on the new document must match the user's own uid.
+      allow create: if request.auth.uid == request.resource.data.userId;
+
+      // An admin can perform any action on submitted applications.
+      // A user can also read their own submitted application.
+      allow read: if resource.data.userId == request.auth.uid || isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // Rules for top-level 'appointments' collection.
+    match /appointments/{appointmentId} {
+        // A user can create their own appointment.
+        allow create: if request.auth.uid == request.resource.data.studentUid;
+        // Only admins can view, update or delete appointments.
+        allow read, update, delete: if isAdmin();
+    }
+
+    // Rules for other admin-only or specific collections.
+    match /settings/{docId} {
+        // Any authenticated user can read settings (e.g., appointment availability).
+        allow read: if request.auth != null;
+        // Only admins can change settings.
+        allow write: if isAdmin();
+    }
+
+    match /news/{docId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

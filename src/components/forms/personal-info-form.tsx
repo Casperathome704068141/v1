@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useApplication } from "@/context/application-context";
 import { useAuth } from "@/context/auth-context";
 import { useEffect } from "react";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const personalInfoSchema = z.object({
   surname: z.string().min(1, "Surname is required."),
@@ -36,6 +37,7 @@ const personalInfoSchema = z.object({
   homeAddress: z.string().min(1, "Home address is required."),
   email: z.string().email("Invalid email address.").min(1, "Email is required."),
   phoneNumber: z.string().min(1, "Phone number is required."),
+  contactPreference: z.enum(['email', 'whatsapp'], { required_error: "Please select a contact preference." }),
 });
 
 export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
@@ -61,6 +63,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
     homeAddress: '',
     email: user?.email || '',
     phoneNumber: '',
+    contactPreference: 'email' as 'email' | 'whatsapp',
     dob: undefined,
     passportIssueDate: undefined,
     passportExpiryDate: undefined,
@@ -77,7 +80,6 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
       const valuesToReset = {
         ...defaultValues,
         ...contextData,
-        // FIX: Safely create date objects only if the source value exists
         dob: contextData.dob ? new Date(contextData.dob) : undefined,
         passportIssueDate: contextData.passportIssueDate ? new Date(contextData.passportIssueDate) : undefined,
         passportExpiryDate: contextData.passportExpiryDate ? new Date(contextData.passportExpiryDate) : undefined,
@@ -435,6 +437,22 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
               )}
             />
           </div>
+          <FormField
+            control={form.control}
+            name="contactPreference"
+            render={({ field }) => (
+                <FormItem className="space-y-3">
+                    <FormLabel>How should we contact you for appointments?</FormLabel>
+                    <FormControl>
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
+                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="email" /></FormControl><FormLabel className="font-normal">Email</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="whatsapp" /></FormControl><FormLabel className="font-normal">WhatsApp</FormLabel></FormItem>
+                        </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}
+          />
         </CardContent>
       </form>
     </Form>

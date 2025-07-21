@@ -26,7 +26,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, Settings, LogOut, BarChart3, Newspaper, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Settings, LogOut, BarChart3, Newspaper, CreditCard, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -69,6 +69,7 @@ const navItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/applications', icon: FileText, label: 'Applications' },
   { href: '/admin/users', icon: Users, label: 'Users' },
+  { href: '/admin/appointments', icon: Calendar, label: 'Appointments' },
   { href: '/admin/payments', icon: CreditCard, label: 'Payments' },
   { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/admin/cms', icon: Newspaper, label: 'News CMS' },
@@ -106,7 +107,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <SidebarContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <SidebarMenuItem key={item.label}>
+                <SidebarMenuItem key={item.href}>
                   <Link href={item.href} legacyBehavior passHref>
                     <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
                       <item.icon />

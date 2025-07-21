@@ -14,8 +14,8 @@ export interface UserProfile {
     email: string | null;
     name: string | null;
     plan: string;
+    contactPreference?: 'email' | 'whatsapp';
     signedUp?: any;
-    // Add admin claim to profile for client-side checks
     admin?: boolean;
 }
 
@@ -47,6 +47,7 @@ async function createUserDocument(user: User) {
             email: user.email,
             signedUp: serverTimestamp(),
             plan: 'Free',
+            contactPreference: 'email',
         });
     } catch (error) {
         console.error("Error creating user document:", error);
@@ -63,9 +64,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const { toast } = useToast();
   
-  // Warning for missing Firebase config can be simplified or removed if not needed.
-  // For this fix, we'll assume config is present.
-
   useEffect(() => {
     if (!auth || !db) {
         setLoading(false);
@@ -75,8 +73,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         setLoading(true);
         if (currentUser) {
-            // FIX: Force a token refresh to get custom claims immediately after login.
-            // This ensures the `admin` claim is available for Firestore security rules.
             const tokenResult = await currentUser.getIdTokenResult(true);
             const claims = tokenResult.claims;
             setIsAdmin(!!claims.admin);
@@ -89,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 if (docSnap.exists()) {
                     setProfile({
                         ...docSnap.data(),
-                        admin: !!claims.admin, // Also add admin status to the user profile object
+                        admin: !!claims.admin,
                     } as UserProfile);
                 } else {
                     createUserDocument(currentUser).catch(console.error);
@@ -116,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (loading) return; // Wait until auth state is confirmed
+    if (loading) return;
 
     const isAuthRoute = authRoutes.includes(pathname);
     const isAdminLogin = pathname === '/admin/login';
@@ -124,21 +120,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const isPublicRoute = publicRoutes.includes(pathname);
 
     if (user) {
-        // User is logged in
         if (isAdminRoute && !isAdmin) {
-            // Non-admin trying to access admin pages, redirect away
             router.push('/dashboard');
         } else if (isAuthRoute && !isAdminLogin) {
-             // Logged-in user on a regular login/signup page, redirect to dashboard
             router.push('/dashboard');
         }
     } else {
-        // User is not logged in
         if (isAdminRoute && !isAdminLogin) {
-            // Not logged in and trying to access admin pages (except login)
             router.push('/admin/login');
         } else if (!isPublicRoute && !isAuthRoute) {
-            // Not logged in and on a protected page
             router.push('/');
         }
     }
@@ -151,7 +141,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const wasAdmin = isAdmin;
     try {
       await firebaseSignOut(auth);
-      // Redirect to the appropriate login page
       router.replace(wasAdmin ? '/admin/login' : '/');
     } catch (error) {
       console.error("Error signing out: ", error);
@@ -169,7 +158,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       await createUserDocument(result.user);
-      // After sign-in, the onAuthStateChanged listener will handle the rest
     } catch (error: any) {
       console.error("Error signing in with Google: ", error);
       toast({
@@ -181,9 +169,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
   
-  // Simplified loading state for admin to avoid full-page skeleton
   if (loading && pathname.startsWith('/admin')) {
-      return null; // Or a minimal loader
+      return null;
   }
 
   const isPublicOrAuthRoute = publicRoutes.includes(pathname) || authRoutes.includes(pathname);
