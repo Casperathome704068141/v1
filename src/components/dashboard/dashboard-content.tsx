@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, getDocs, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, onSnapshot, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -69,9 +69,20 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
 
 type Appointment = {
     id: string;
-    time: Timestamp;
-    status: string;
+    requestedDate: string;
+    requestedTime: string;
+    status: 'pending' | 'confirmed' | 'declined';
+    rejectionReason?: string;
 };
+
+function getStatusBadgeVariant(status: Appointment['status']) {
+    switch (status) {
+        case 'confirmed': return 'success';
+        case 'pending': return 'secondary';
+        case 'declined': return 'destructive';
+        default: return 'outline';
+    }
+}
 
 function MyAppointments() {
     const { user } = useUser();
@@ -86,7 +97,8 @@ function MyAppointments() {
 
         const myApptsQ = query(
           collection(db, "appointments"),
-          where("userId", "==", user.uid)
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
         );
 
         const unsubscribe = onSnapshot(myApptsQ, snap => {
@@ -101,24 +113,35 @@ function MyAppointments() {
 
     return (
         <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><CalendarCheck className="h-5 w-5 text-primary" />My Appointments</CardTitle></CardHeader>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg"><CalendarCheck className="h-5 w-5 text-primary" />My Appointments</CardTitle>
+                <CardDescription>The status of your appointment requests.</CardDescription>
+            </CardHeader>
             <CardContent>
                 {loading ? <Skeleton className="h-10 w-full" /> : myAppointments.length > 0 ? (
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                         {myAppointments.map(appt => (
-                            <li key={appt.id} className="text-sm flex justify-between">
-                                <span>{format(appt.time.toDate(), 'PPP p')}</span>
-                                <Badge variant="secondary" className="capitalize">{appt.status}</Badge>
+                            <li key={appt.id} className="text-sm border-b pb-2 last:border-b-0 last:pb-0">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold">{appt.requestedDate}</span>
+                                    <Badge variant={getStatusBadgeVariant(appt.status)} className="capitalize">{appt.status}</Badge>
+                                </div>
+                                <p className="text-muted-foreground">{appt.requestedTime}</p>
+                                {appt.status === 'declined' && appt.rejectionReason && (
+                                    <p className="text-xs text-destructive mt-1">Reason: {appt.rejectionReason}</p>
+                                )}
                             </li>
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-sm text-muted-foreground">You have no upcoming appointments.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">You have no appointment requests.</p>
                 )}
-                <Button asChild variant="secondary" className="w-full mt-4">
-                    <Link href="/appointments">Book a New Appointment</Link>
-                </Button>
             </CardContent>
+            <CardFooter>
+                 <Button asChild variant="secondary" className="w-full">
+                    <Link href="/appointments">Request a New Appointment</Link>
+                </Button>
+            </CardFooter>
         </Card>
     );
 }
