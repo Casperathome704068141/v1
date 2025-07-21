@@ -50,6 +50,7 @@ export const documentList = [
     { id: 'medical', name: 'Medical Exam (eMedical Sheet)', description: 'Required if staying 6+ months or from a designated country.', category: 'Situational' },
     { id: 'pcc', name: 'Police Clearance Certificate (PCC)', description: 'Recommended for applicants over 18.', category: 'Situational' },
     { id: 'marriageCert', name: 'Marriage Certificate', description: 'Required only if your spouse is coming with you.', category: 'Situational' },
+    { id: 'eca', name: 'Educational Credential Assessment (ECA)', description: 'Required for credentials obtained outside of Canada.', category: 'Situational' },
 ];
 
 // Define types for all form sections.

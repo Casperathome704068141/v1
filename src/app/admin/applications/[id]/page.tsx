@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, use } from 'react';
@@ -17,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
 import { AdminApplicationProgress } from '@/components/admin/admin-application-progress';
+import { documentList } from '@/context/application-context';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
@@ -48,17 +50,6 @@ function getStatusBadgeVariant(status: string) {
         default: return 'outline';
     }
 }
-
-const documentDisplayList = [
-    { id: 'passport', name: 'Passport Bio Page' },
-    { id: 'loa', name: 'Letter of Acceptance' },
-    { id: 'proofOfFunds', name: 'Proof of Funds' },
-    { id: 'languageTest', name: 'Language Test Results' },
-    { id: 'sop', name: 'Statement of Purpose' },
-    { id: 'photo', name: 'Digital Photo' },
-    { id: 'marriageCert', name: 'Marriage Certificate' },
-    { id: 'eca', name: 'ECA' },
-];
 
 export default function ApplicationDetailPage() {
     const params = useParams() as { id: string };
@@ -192,7 +183,7 @@ export default function ApplicationDetailPage() {
     const { personalInfo, academics, finances, family, background, studyPlan, documents, submittedAt } = application;
     const currentStatus = application.status || 'draft';
     
-    const allUploadedFiles = documentDisplayList.flatMap(docDef => {
+    const allUploadedFiles = documentList.flatMap(docDef => {
         const docData = documents?.[docDef.id];
         if (docData?.files && docData.files.length > 0) {
             return docData.files.map((file: UploadedFile) => ({
