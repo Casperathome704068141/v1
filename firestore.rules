@@ -4,8 +4,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
-      // This function relies on a custom claim set on the user's auth token.
-      // This is the most secure method but requires server-side setup to assign the claim.
+      // NOTE: This is the secure, production-ready way to check for an admin.
+      // This will work once the custom claim is set on your user account.
       return request.auth.token.admin == true;
     }
 
@@ -22,25 +22,23 @@ service cloud.firestore {
     match /mail/{docId} {
       allow create: if isAdmin();
     }
-    
-    match /appointments/{appointmentId} {
-      // Any authenticated user can create an appointment for themselves.
-      // The `userId` field in the new document must match their own UID.
+
+    // Rules for the 'appointments' collection.
+    match /appointments/{apptId} {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-
-      // WARNING: THIS IS A TEMPORARY RULE FOR DEBUGGING
-      // It allows ANY logged-in user to read all appointments.
-      // This is NOT secure for production.
-      allow read: if request.auth != null;
       
-      // Update/delete should still be admin-only.
-      allow update, delete: if isAdmin();
+      // TEMPORARY DEBUGGING RULE: Allow any authenticated user to read/write.
+      // WARNING: Insecure for production.
+      allow read, update, delete: if request.auth != null;
     }
 
+    // Rules for the 'settings' collection.
     match /settings/{docId} {
-      allow read, write: if isAdmin();
+      // TEMPORARY DEBUGGING RULE: Allow any authenticated user to read/write.
+      // WARNING: Insecure for production.
+      allow read, write: if request.auth != null;
     }
-    
+
     match /news/{docId} {
       allow read, write: if isAdmin();
     }
