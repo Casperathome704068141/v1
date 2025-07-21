@@ -8,56 +8,42 @@ service cloud.firestore {
       return request.auth.token.admin == true;
     }
 
-    // USER DATA
-    match /users/{userId}/{path=**} {
-      // Users can read and write their own data. Admins can read anyone's data.
+    // Users can read and write their own data. Admins can read/write any user's data.
+    match /users/{userId}/{documents=**} {
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
-
-    // APPLICATIONS
+    
+    // Submitted applications can only be accessed by admins.
     match /applications/{appId} {
-      allow read, update: if isAdmin();
+        allow read, update, delete: if isAdmin();
     }
-    
-    match /users/{userId}/application/{appId} {
-        allow read, write: if request.auth.uid == userId;
-        allow read: if isAdmin();
-    }
-    
-    // APPOINTMENTS
+
+    // Appointments can be created by the user, but only managed by admins.
     match /appointments/{appointmentId} {
-      // Any authenticated user can create their own appointment request.
+      // Any authenticated user can create an appointment for themselves.
       allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
-
-      // A user can read their own appointment. Admins can also read any single appointment.
-      allow get: if request.auth.uid == resource.data.userId || isAdmin();
-
-      // Only admins can list all appointments. This fixes the error on the admin page.
-      allow list: if isAdmin();
-      
+      // A user can read their own appointment, and an admin can read any appointment.
+      allow read: if request.auth.uid == resource.data.userId || isAdmin();
       // Only admins can update (confirm/decline) or delete appointments.
       allow update, delete: if isAdmin();
     }
-    
-    // SETTINGS
+
+    // Settings can be read by any authenticated user (e.g., for available times)
+    // but only written to by admins.
     match /settings/{docId} {
-      // Any authenticated user can read settings (like available times).
       allow read: if request.auth != null;
-      // Only admins can write settings.
       allow write: if isAdmin();
     }
-
-    // NEWS & ANNOUNCEMENTS
+    
+    // News can be read by anyone, but only written by admins.
     match /news/{docId} {
-      // Anyone can read news.
-      allow read;
-      // Only admins can create/update news.
+      allow read: if true;
       allow write: if isAdmin();
     }
-
-    // DENY ALL OTHER ACCESS
-    match /{path=**} {
-      allow read, write: if false;
+    
+    // Admins need to query the 'application' collection group to see all applications.
+    match /{path=**}/application/{appId} {
+      allow read: if isAdmin();
     }
   }
 }
