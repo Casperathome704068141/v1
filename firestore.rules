@@ -3,54 +3,44 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function that checks for `isAdmin: true` in a user's own document.
-    // This is safer and more debuggable than custom claims for this context.
     function isAdmin() {
-      // Ensure the user is authenticated and that the `isAdmin` field in their
-      // user document exists and is set to `true`.
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return request.auth != null && 
-             userDoc.data.keys().hasAny(['isAdmin']) && 
-             userDoc.data.isAdmin == true;
+      // This function relies on a custom claim set on the user's auth token.
+      // This is the most secure method but requires server-side setup to assign the claim.
+      return request.auth.token.admin == true;
     }
 
-    // Rules for the 'users' collection and all sub-documents.
     match /users/{userId}/{path=**} {
-      // A user can always read and write to their own documents.
-      // An admin can read and write to any user's documents.
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
-    
-    // This rule is needed so the get() call in isAdmin() can succeed for the user
-    // checking their own admin status. It's covered by the rule above but is
-    // good to be aware of. The rule above allows a user to read their own path.
 
-    // Rules for the top-level 'applications' collection (for submitted apps).
     match /applications/{appId} {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow read: if resource.data.userId == request.auth.uid || isAdmin();
       allow update, delete: if isAdmin();
     }
 
-    // Rules for the 'mail' collection, for sending emails.
     match /mail/{docId} {
       allow create: if isAdmin();
     }
     
-    // Rules for the 'appointments' collection.
-    match /appointments/{apptId} {
-      // Any authenticated user can create (book) an appointment.
-      // We validate that the user is not creating an appointment for someone else.
-      allow create: if request.auth != null && request.resource.data.studentUid == request.auth.uid;
+    match /appointments/{appointmentId} {
+      // Any authenticated user can create an appointment for themselves.
+      // The `userId` field in the new document must match their own UID.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
 
-      // Only an admin can read the full list of appointments or update/delete them.
-      allow read, update, delete: if isAdmin();
+      // WARNING: THIS IS A TEMPORARY RULE FOR DEBUGGING
+      // It allows ANY logged-in user to read all appointments.
+      // This is NOT secure for production.
+      allow read: if request.auth != null;
+      
+      // Update/delete should still be admin-only.
+      allow update, delete: if isAdmin();
     }
 
-    // Rules for other admin-only collections.
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
+    
     match /news/{docId} {
       allow read, write: if isAdmin();
     }
