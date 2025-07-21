@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -66,6 +66,62 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
             return false;
     }
 };
+
+type Appointment = {
+    id: string;
+    time: Timestamp;
+    status: string;
+};
+
+function MyAppointments() {
+    const { user } = useUser();
+    const [myAppointments, setMyAppointments] = useState<Appointment[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!user?.uid) {
+            setLoading(false);
+            return;
+        }
+
+        const myApptsQ = query(
+          collection(db, "appointments"),
+          where("userId", "==", user.uid)
+        );
+
+        const unsubscribe = onSnapshot(myApptsQ, snap => {
+            const appts = snap.docs.map(d => ({id: d.id, ...d.data()}) as Appointment);
+            setMyAppointments(appts);
+            setLoading(false);
+        });
+        
+        return () => unsubscribe();
+
+    }, [user]);
+
+    return (
+        <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><CalendarCheck className="h-5 w-5 text-primary" />My Appointments</CardTitle></CardHeader>
+            <CardContent>
+                {loading ? <Skeleton className="h-10 w-full" /> : myAppointments.length > 0 ? (
+                    <ul className="space-y-2">
+                        {myAppointments.map(appt => (
+                            <li key={appt.id} className="text-sm flex justify-between">
+                                <span>{format(appt.time.toDate(), 'PPP p')}</span>
+                                <Badge variant="secondary" className="capitalize">{appt.status}</Badge>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-muted-foreground">You have no upcoming appointments.</p>
+                )}
+                <Button asChild variant="secondary" className="w-full mt-4">
+                    <Link href="/appointments">Book a New Appointment</Link>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
 
 export function DashboardContent() {
   const { user } = useUser();
@@ -157,17 +213,7 @@ export function DashboardContent() {
           </div>
 
           <div className="space-y-8 md:col-span-1">
-               {currentStep && currentStep.href && (
-                  <Card className="bg-primary/5 border-primary/20 hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                          <CardTitle className="flex items-center gap-2 text-lg text-primary"><ArrowRight className="h-5 w-5 text-primary" />Next Step: {currentStep.name}</CardTitle>
-                          <CardDescription>Continue where you left off in your application.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                          <Button asChild className="w-full"><Link href={currentStep.href}>Let's Go</Link></Button>
-                      </CardContent>
-                  </Card>
-              )}
+              <MyAppointments />
               
               <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><BadgeHelp className="h-5 w-5 text-primary" />Eligibility Score</CardTitle></CardHeader>

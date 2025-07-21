@@ -3,38 +3,75 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper for your admin custom claim
     function isAdmin() {
-      // This is the correct, secure way to check for an admin role
-      // based on a custom claim set on the user's authentication token.
       return request.auth.token.admin == true;
     }
 
+    // Rules for user data
     match /users/{userId}/{path=**} {
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
-
+    
+    // Rules for submitted applications (admin review)
     match /applications/{appId} {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow read: if resource.data.userId == request.auth.uid || isAdmin();
       allow update, delete: if isAdmin();
     }
     
-    match /appointments/{appointmentId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read: if request.auth.uid == resource.data.userId || isAdmin();
-      allow update, delete: if isAdmin();
-    }
-
-    match /mail/{docId} {
-      allow create: if isAdmin();
-    }
-    
+    // Rules for site-wide settings
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
-    
+
+    // Rules for news/CMS
     match /news/{docId} {
       allow read, write: if isAdmin();
+    }
+
+    // ── 1) timeSlots ───────────────────────────────
+    match /timeSlots/{slotId} {
+      // any signed‑in user can list & view all slots
+      allow read: if request.auth.uid != null;
+
+      // only admins can create or delete slots
+      allow create, delete: if isAdmin();
+
+      // updates: either an admin, or a user _booking_ an unbooked slot
+      allow update: if
+        // admin may change anything
+        isAdmin()
+        ||
+        // booking flow: flip booked:false→true and set bookedBy==your uid
+        (
+          // original doc must be unbooked:
+          resource.data.booked == false
+          // new doc must be booked by you (no other fields changed)
+          && request.resource.data.booked == true
+          && request.resource.data.bookedBy == request.auth.uid
+          // and you can’t maliciously edit other fields:
+          && request.resource.data.time == resource.data.time
+        );
+    }
+
+    // ── 2) appointments ────────────────────────────
+    match /appointments/{apptId} {
+      // create: any signed‑in user may create their own appointment record
+      allow create: if 
+        request.auth.uid != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.slotId is string
+        && request.resource.data.time is timestamp
+        && request.resource.data.status == "pending";
+
+      // read: the booker or any admin
+      allow read: if
+        request.auth.uid == resource.data.userId
+        || isAdmin();
+
+      // updates/deletes: only admins manage status
+      allow update, delete: if isAdmin();
     }
   }
 }
