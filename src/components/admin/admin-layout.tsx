@@ -29,12 +29,16 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, FileText, Settings, LogOut, BarChart3, Newspaper, CreditCard, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useAuth } from '@/context/auth-context';
+import { Skeleton } from '../ui/skeleton';
+import { Card, CardHeader, CardContent } from '../ui/card';
 
 function UserMenu() {
+  const { signOut, user } = useAuth();
   const router = useRouter();
 
-  const handleSignOut = () => {
-    // In a real app, clear admin session/token
+  const handleSignOut = async () => {
+    await signOut();
     router.replace('/admin/login');
   };
 
@@ -43,7 +47,7 @@ function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={"https://placehold.co/100x100.png"} alt="Admin" data-ai-hint="user avatar" />
+            <AvatarImage src={user?.photoURL || `https://avatar.vercel.sh/${user?.email}.png`} alt="Admin" data-ai-hint="user avatar" />
             <AvatarFallback>A</AvatarFallback>
           </Avatar>
         </Button>
@@ -51,8 +55,8 @@ function UserMenu() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Admin User</p>
-            <p className="text-xs leading-none text-muted-foreground">admin@mapleleafs.edu</p>
+            <p className="text-sm font-medium leading-none">{user?.displayName || 'Admin'}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -76,8 +80,26 @@ const navItems = [
   { href: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
+function AdminPageSkeleton() {
+    return (
+        <div className="flex-1 space-y-6 p-4 md:p-8 animate-pulse">
+            <Skeleton className="h-8 w-48 mb-4" />
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-8">
+                    <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-2/3" /></CardContent></Card>
+                    <Card><CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-2/3" /></CardContent></Card>
+                </div>
+                <div className="lg:col-span-1">
+                        <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></CardContent></Card>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { loading: isAuthLoading } = useAuth();
 
   return (
     <SidebarProvider>
@@ -129,9 +151,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger className="sm:hidden" />
             <UserMenu />
           </header>
-          {children}
+          {isAuthLoading ? <AdminPageSkeleton /> : children}
         </SidebarInset>
       </div>
     </SidebarProvider>
   );
 }
+    
