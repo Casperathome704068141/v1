@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { UserCheck, FileText, Send, CheckCircle, Circle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { useApplication } from '@/context/application-context';
+import { documentList } from '@/context/application-context';
 
 const applicationStepsConfig = [
     { id: 'personalInfo', name: 'Profile Information', icon: UserCheck },
@@ -45,8 +46,8 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
         case 'background':
             return data.certification === true;
         case 'documents':
-            const requiredDocs = ['passport', 'loa', 'proofOfFunds', 'languageTest', 'sop', 'photo'];
-            return requiredDocs.every((docId: string) => data[docId]?.files?.length > 0);
+            const requiredDocs = documentList.filter(d => d.category === 'Core');
+            return requiredDocs.every(doc => applicationData.documents?.[doc.id]?.files?.length > 0);
         default:
             return false;
     }

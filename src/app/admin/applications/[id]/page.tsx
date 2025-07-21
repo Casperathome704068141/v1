@@ -183,16 +183,21 @@ export default function ApplicationDetailPage() {
     const { personalInfo, academics, finances, family, background, studyPlan, documents, submittedAt } = application;
     const currentStatus = application.status || 'draft';
     
-    const allUploadedFiles = documentList.flatMap(docDef => {
-        const docData = documents?.[docDef.id];
+    const allUploadedFiles = documents 
+    ? Object.keys(documents).flatMap(docKey => {
+        const docData = documents[docKey];
         if (docData?.files && docData.files.length > 0) {
+            const masterDocInfo = documentList.find(d => d.id === docKey);
+            const categoryName = masterDocInfo ? masterDocInfo.name : docKey; // Fallback to the key if not found
+
             return docData.files.map((file: UploadedFile) => ({
-                category: docDef.name,
-                ...file
+                category: categoryName,
+                ...file,
             }));
         }
         return [];
-    });
+    })
+    : [];
 
     return (
         <AdminLayout>
