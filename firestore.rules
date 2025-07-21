@@ -1,49 +1,40 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This function checks the user's authentication token for an 'admin' custom claim.
-    // This is the most secure way to identify an admin. You must set this claim
-    // on a user's account using a server-side process (like a Firebase Function).
     function isAdmin() {
+      // This is the correct, secure way to check for an admin role
+      // based on a custom claim set on the user's authentication token.
       return request.auth.token.admin == true;
     }
 
-    // A user can read/write their own user document and its subcollections.
-    // An admin can also read/write any user's document and subcollections.
     match /users/{userId}/{path=**} {
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
 
-    // A user can create an application for themselves.
-    // An admin can read or update any application.
     match /applications/{appId} {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow read: if resource.data.userId == request.auth.uid || isAdmin();
       allow update, delete: if isAdmin();
     }
     
-    // Appointments can be created by any authenticated user for themselves.
-    // Admins can read/update/delete any appointment.
-    // Users can read only their own appointments.
     match /appointments/{appointmentId} {
-     allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
-     allow read: if request.auth.uid == resource.data.userId || isAdmin();
-     allow update, delete: if isAdmin();
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth.uid == resource.data.userId || isAdmin();
+      allow update, delete: if isAdmin();
     }
 
-    // Admins have full control over settings, news, and mail collections.
-    match /settings/{docId} {
-      allow read, write: if isAdmin();
-    }
-    match /news/{docId} {
-      allow read, write: if isAdmin();
-    }
     match /mail/{docId} {
       allow create: if isAdmin();
     }
+    
+    match /settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /news/{docId} {
+      allow read, write: if isAdmin();
+    }
   }
 }
-    

@@ -183,3 +183,12 @@ INFO: Detected non-HTTP/2 connection.
 [debug] [2025-07-21T18:38:00.292Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules 200
 [debug] [2025-07-21T18:38:00.292Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules {}
 [info] ✔  firestore: Rules updated. 
+[info] i  firestore: Change detected, updating rules... 
+[debug] [2025-07-21T18:39:53.890Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules [none]
+[debug] [2025-07-21T18:39:53.895Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules {"ignore_errors":true,"rules":{"files":[{"name":"security.rules","content":"rules_version = '2';\n\nservice cloud.firestore {\n  match /databases/{database}/documents {\n\n    function isAdmin() {\n      // This is the correct, secure way to check for an admin role\n      // based on a custom claim set on the user's authentication token.\n      return request.auth.token.admin == true;\n    }\n\n    match /users/{userId}/{path=**} {\n      allow read, write: if request.auth.uid == userId || isAdmin();\n    }\n\n    match /applications/{appId} {\n      allow create: if request.auth.uid == request.resource.data.userId;\n      allow read: if resource.data.userId == request.auth.uid || isAdmin();\n      allow update, delete: if isAdmin();\n    }\n    \n    match /appointments/{appointmentId} {\n      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;\n      allow read: if request.auth.uid == resource.data.userId || isAdmin();\n      allow update, delete: if isAdmin();\n    }\n\n    match /mail/{docId} {\n      allow create: if isAdmin();\n    }\n    \n    match /settings/{docId} {\n      allow read, write: if isAdmin();\n    }\n    \n    match /news/{docId} {\n      allow read, write: if isAdmin();\n    }\n  }\n}\n"}]}}
+[debug] [2025-07-21T18:39:53.922Z] Jul 21, 2025 6:39:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 21, 2025 6:39:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-07-21T18:39:54.147Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules 200
+[debug] [2025-07-21T18:39:54.150Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-app:securityRules {}
+[info] ✔  firestore: Rules updated. 
