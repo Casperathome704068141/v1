@@ -1,44 +1,48 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
+      // This will be true if the user has a custom claim of `admin: true`.
+      // Ensure this is set for your admin user account.
       return request.auth.token.admin == true;
     }
 
+    // USER DATA: Users can manage their own data. Admins can manage any user.
     match /users/{userId}/{path=**} {
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
-    
+
+    // SUBMITTED APPLICATIONS: Users create their own. Admins manage all.
     match /applications/{appId} {
       allow create: if request.auth.uid == request.resource.data.userId;
       allow read: if resource.data.userId == request.auth.uid || isAdmin();
       allow update, delete: if isAdmin();
     }
     
-    // Appointments are now request-based.
-    match /appointments/{appointmentId} {
-      // Any authenticated user can create their own appointment request.
+    // APPOINTMENT REQUESTS:
+    match /appointments/{apptId} {
+      // Any authenticated user can create an appointment request for themselves.
       allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
 
       // A user can read their own appointment. An admin can read all appointments.
       allow read: if request.auth.uid == resource.data.userId || isAdmin();
 
-      // Only an admin can update (confirm/decline) or delete an appointment.
+      // Only an admin can update (confirm/decline) or delete.
       allow update, delete: if isAdmin();
     }
 
-    match /mail/{docId} {
-      allow create: if isAdmin();
-    }
-    
+    // ADMIN-ONLY COLLECTIONS:
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
-
     match /news/{docId} {
       allow read, write: if isAdmin();
+    }
+     match /mail/{docId} {
+      allow create: if isAdmin();
     }
   }
 }

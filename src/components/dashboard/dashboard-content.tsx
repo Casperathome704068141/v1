@@ -9,14 +9,11 @@ import { ArrowRight, BrainCircuit, Check, Circle, UserCheck, Send, Fingerprint, 
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
-import { format, formatDistanceToNow } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, getDocs, query, where, onSnapshot, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, doc, getDoc, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-
 
 const applicationStepsConfig = [
     { id: 'personalInfo', name: 'Profile Information', href: '/application?step=profile', icon: UserCheck },
@@ -27,7 +24,6 @@ const applicationStepsConfig = [
     { id: 'family', name: 'Family Information', href: '/application?step=family', icon: FileText },
     { id: 'background', name: 'Background & Security', href: '/application?step=background', icon: FileText },
     { id: 'documents', name: 'Upload Documents', href: '/application?step=documents', icon: FileText },
-    // These are placeholders for the user journey after submission
     { name: 'Application Submission', icon: Send, completed: false },
     { name: 'Biometrics Completed', icon: Fingerprint, completed: false },
     { name: 'Medical Exam Passed', icon: Stethoscope, completed: false },
@@ -105,6 +101,9 @@ function MyAppointments() {
             const appts = snap.docs.map(d => ({id: d.id, ...d.data()}) as Appointment);
             setMyAppointments(appts);
             setLoading(false);
+        }, (error) => {
+            console.error("Error fetching appointments:", error);
+            setLoading(false);
         });
         
         return () => unsubscribe();
@@ -120,7 +119,7 @@ function MyAppointments() {
             <CardContent>
                 {loading ? <Skeleton className="h-10 w-full" /> : myAppointments.length > 0 ? (
                     <ul className="space-y-3">
-                        {myAppointments.map(appt => (
+                        {myAppointments.slice(0, 3).map(appt => (
                             <li key={appt.id} className="text-sm border-b pb-2 last:border-b-0 last:pb-0">
                                 <div className="flex justify-between items-center">
                                     <span className="font-semibold">{appt.requestedDate}</span>
@@ -151,14 +150,13 @@ export function DashboardContent() {
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [loadingQuiz, setLoadingQuiz] = useState(true);
 
-  const { applicationData: draftApplicationData, isLoaded: isDraftLoaded } = useApplication();
+  const { applicationData: draftApplicationData } = useApplication();
 
   useEffect(() => {
     async function fetchData() {
       if(user?.uid) {
         setLoadingQuiz(true);
         
-        // Fetch quiz score
         const quizDocRef = doc(db, 'users', user.uid, 'quizResults', 'eligibility');
         const quizDocSnap = await getDoc(quizDocRef);
         if (quizDocSnap.exists()) {
