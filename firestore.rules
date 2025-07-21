@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -9,35 +8,47 @@ service cloud.firestore {
       return request.auth.token.admin == true;
     }
 
-    // Rules for the 'users' collection and all sub-documents (drafts, quiz results, etc.).
+    // Rules for the 'users' collection and all sub-documents.
     match /users/{userId}/{path=**} {
-      // A user can read and write to their own documents.
-      // An admin can also read and write to any user's documents.
-      // This single rule covers:
-      // - A user editing their own profile and application draft.
-      // - An admin viewing a user's profile or draft.
-      // - An admin changing a user's subscription plan.
-      // - An admin's collectionGroup query for application drafts.
+      // A user can always read and write to their own documents.
+      // An admin can read and write to any user's documents.
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
 
-    // Rules for the top-level 'applications' collection (for submitted apps).
-    match /applications/{appId} {
-      // A user can create their application document upon final submission.
-      // The userId on the new document must match the user's own uid.
-      allow create: if request.auth.uid == request.resource.data.userId;
+    // Rules for the single 'application' document that each user has.
+    match /users/{userId}/application/{draftId} {
+       // A user can update their own application draft.
+       allow write: if request.auth.uid == userId;
+       // Admins can read all application drafts for the admin panel list.
+       allow read: if request.auth.uid == userId || isAdmin();
+    }
 
-      // An admin can perform any action on submitted applications.
-      // A user can only read their own submitted application from this collection.
+    // Rules for the top-level 'applications' collection (DEPRECATED but kept for safety).
+    match /applications/{appId} {
+      allow create: if request.auth.uid == request.resource.data.userId;
       allow read: if resource.data.userId == request.auth.uid || isAdmin();
       allow update, delete: if isAdmin();
+    }
+    
+    // Rules for sending mail. Only admins can trigger emails.
+    match /mail/{docId} {
+      allow create: if isAdmin();
+    }
+
+    // Rules for the 'appointments' collection.
+    match /appointments/{apptId} {
+      // Any authenticated user can create (book) an appointment,
+      // as long as they are booking it for themselves.
+      allow create: if request.auth != null && request.resource.data.studentUid == request.auth.uid;
+
+      // Only an admin can read the full list of appointments or update/delete them.
+      allow read, update, delete: if isAdmin();
     }
 
     // Rules for other admin-only collections.
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
-
     match /news/{docId} {
       allow read, write: if isAdmin();
     }
