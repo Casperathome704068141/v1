@@ -55,6 +55,8 @@ export const documentList = [
 
 // Define types for all form sections.
 interface ApplicationData {
+  status: 'draft' | 'submitted';
+  submittedAppId?: string; // ID of the corresponding document in the top-level 'applications' collection
   selectedCollege: College | null;
   personalInfo: Partial<PersonalInfoFormValues>;
   academics: Partial<AcademicsFormValues>;
@@ -78,6 +80,7 @@ const ApplicationContext = createContext<ApplicationContextType | undefined>(und
 
 // Define initial empty state for the application data
 const initialApplicationData: ApplicationData = {
+   status: 'draft',
    selectedCollege: null,
    personalInfo: {},
    academics: { educationHistory: [], employmentHistory: [] },

@@ -4,8 +4,7 @@
 import { Progress } from '@/components/ui/progress';
 import { UserCheck, FileText, Send, CheckCircle, Circle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { useApplication } from '@/context/application-context';
-import { documentList } from '@/context/application-context';
+import { useApplication, documentList } from '@/context/application-context';
 
 const applicationStepsConfig = [
     { id: 'personalInfo', name: 'Profile Information', icon: UserCheck },
@@ -19,7 +18,7 @@ const applicationStepsConfig = [
     { id: 'submission', name: 'Application Submission', icon: Send },
 ];
 
-const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applicationData'], applicationData: any) => {
+const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applicationData'], applicationData: ReturnType<typeof useApplication>['applicationData']) => {
     // If application data or the specific step's data doesn't exist, it's not complete.
     if (!applicationData || !applicationData[stepId]) return false;
     
@@ -49,17 +48,18 @@ const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applic
             const requiredDocs = documentList.filter(d => d.category === 'Core');
             return requiredDocs.every(doc => applicationData.documents?.[doc.id]?.files?.length > 0);
         case 'submission':
-            return (applicationData.status !== 'draft');
+            return false; // This is a placeholder for the final step.
         default:
             return false;
     }
 };
 
-export function AdminApplicationProgress({ applicationData }: { applicationData: any }) {
+export function ApplicationProgress() {
+  const { applicationData } = useApplication();
 
   const allSteps = applicationStepsConfig.map(step => ({
       ...step,
-      completed: step.id ? isStepCompleted(step.id as any, applicationData) : (applicationData.status !== 'draft')
+      completed: step.id ? isStepCompleted(step.id as any, applicationData) : (applicationData.status === 'submitted')
   }));
 
   const completedStepsCount = allSteps.filter(step => step.completed).length;

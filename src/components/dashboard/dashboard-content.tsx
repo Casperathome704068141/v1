@@ -15,6 +15,8 @@ import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { ApplicationProgress } from './application-progress';
+
 
 type Appointment = {
     id: string;
@@ -108,32 +110,18 @@ function MyAppointments() {
 
 function ApplicationStatusTimeline() {
     const { user } = useUser();
+    const { applicationData, isLoaded } = useApplication();
     const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [submittedApplicationId, setSubmittedApplicationId] = useState<string | null>(null);
+
+    const submittedApplicationId = applicationData.submittedAppId;
 
     useEffect(() => {
-        if (!user?.uid) {
-            setLoading(false);
-            return;
-        }
-
-        // First, check if there's a submitted application ID in the user's draft doc
-        const draftRef = doc(db, 'users', user.uid, 'application', 'draft');
-        const unsubscribeDraft = onSnapshot(draftRef, (docSnap) => {
-            if (docSnap.exists() && docSnap.data().submittedAppId) {
-                setSubmittedApplicationId(docSnap.data().submittedAppId);
-            } else {
-                setLoading(false); // No submitted app found
-            }
-        });
-
-        return () => unsubscribeDraft();
-    }, [user]);
-
-    useEffect(() => {
+        if (!isLoaded) return;
+        
         if (!submittedApplicationId) {
+            setLoading(false);
             return;
         }
 
@@ -156,9 +144,9 @@ function ApplicationStatusTimeline() {
 
         return () => unsubscribeHistory();
 
-    }, [submittedApplicationId]);
+    }, [submittedApplicationId, isLoaded]);
 
-    if (loading) {
+    if (!isLoaded || loading) {
         return (
              <Card>
                 <CardHeader><CardTitle>Your Application Status</CardTitle><CardDescription>Updates from our team will appear here.</CardDescription></CardHeader>
@@ -168,25 +156,6 @@ function ApplicationStatusTimeline() {
                     <Skeleton className="h-6 w-1/2" />
                     <Skeleton className="h-4 w-4/5" />
                 </CardContent>
-            </Card>
-        );
-    }
-
-    if (!submittedApplicationId) {
-         return (
-            <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                    <CardTitle>Your Application Journey</CardTitle>
-                    <CardDescription>Complete your profile to submit your application.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground text-center py-4">No application submitted yet.</p>
-                </CardContent>
-                <CardFooter>
-                    <Button asChild className="w-full">
-                        <Link href="/application">Go to Application <ArrowRight /></Link>
-                    </Button>
-                </CardFooter>
             </Card>
         );
     }
@@ -200,10 +169,10 @@ function ApplicationStatusTimeline() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <History className="h-5 w-5 text-primary" />
-                    Your Application Status
+                    Admin Status Updates
                 </CardTitle>
                 <CardDescription>
-                    {statusHistory.length > 0 ? `Current Status: ${statusHistory[0].status}` : 'Awaiting first update.'}
+                    {statusHistory.length > 0 ? `Current Status: ${statusHistory[0].status}` : 'Awaiting first update from our team.'}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -226,7 +195,7 @@ function ApplicationStatusTimeline() {
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">Your application has been submitted. Status updates will appear here.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">Your application has been submitted. Status updates from our team will appear here.</p>
                 )}
             </CardContent>
         </Card>
@@ -235,6 +204,7 @@ function ApplicationStatusTimeline() {
 
 export function DashboardContent() {
   const { user } = useUser();
+  const { applicationData } = useApplication();
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [loadingQuiz, setLoadingQuiz] = useState(true);
 
@@ -254,6 +224,8 @@ export function DashboardContent() {
     fetchData();
   }, [user]);
 
+  const hasSubmitted = applicationData.status === 'submitted' && applicationData.submittedAppId;
+
   return (
     <main className="flex-1 space-y-8 p-4 md:p-8">
       <div className="space-y-2">
@@ -267,7 +239,11 @@ export function DashboardContent() {
 
       <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2 space-y-8">
-             <ApplicationStatusTimeline />
+             {hasSubmitted ? (
+                <ApplicationStatusTimeline />
+             ) : (
+                <ApplicationProgress />
+             )}
           </div>
 
           <div className="space-y-8 md:col-span-1">
