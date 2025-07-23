@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BrainCircuit, Check, Circle, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle, CalendarCheck, GraduationCap, FileText, BadgeHelp } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Check, Circle, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle, CalendarCheck, GraduationCap, FileText, BadgeHelp, History } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
@@ -14,54 +14,7 @@ import { collection, doc, getDoc, query, where, onSnapshot, orderBy } from 'fire
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-
-const applicationStepsConfig = [
-    { id: 'personalInfo', name: 'Profile Information', href: '/application?step=profile', icon: UserCheck },
-    { id: 'academics', name: 'Academic & Work History', href: '/application?step=academics', icon: FileText },
-    { id: 'language', name: 'Language Proficiency', href: '/application?step=language', icon: FileText },
-    { id: 'finances', name: 'Financial Details', href: '/application?step=finances', icon: FileText },
-    { id: 'studyPlan', name: 'Study Plan', href: '/application?step=plan', icon: FileText },
-    { id: 'family', name: 'Family Information', href: '/application?step=family', icon: FileText },
-    { id: 'background', name: 'Background & Security', href: '/application?step=background', icon: FileText },
-    { id: 'documents', name: 'Upload Documents', href: '/application?step=documents', icon: FileText },
-    { name: 'Application Submission', icon: Send, completed: false },
-    { name: 'Biometrics Completed', icon: Fingerprint, completed: false },
-    { name: 'Medical Exam Passed', icon: Stethoscope, completed: false },
-    { name: 'Passport Request', icon: Send, completed: false },
-    { name: 'Visa Approved', icon: CheckCircle, completed: false },
-];
-
-const isStepCompleted = (stepId: keyof ReturnType<typeof useApplication>['applicationData'], applicationData: any) => {
-    if (!stepId || !applicationData || !applicationData[stepId]) return false;
-    
-    const data = applicationData[stepId];
-
-    if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
-        return false;
-    }
-
-    switch (stepId) {
-        case 'personalInfo':
-            return !!data.surname && !!data.givenNames && !!data.dob && !!data.passportNumber;
-        case 'academics':
-            return (data.educationHistory && data.educationHistory.length > 0) || (data.employmentHistory && data.employmentHistory.length > 0);
-        case 'language':
-            return data.testTaken !== 'none' ? !!data.overallScore : !!data.testPlanning;
-        case 'finances':
-            return !!data.totalFunds && data.fundingSources?.length > 0 && data.proofType?.length > 0;
-        case 'studyPlan':
-            return !!data.whyInstitution && !!data.howProgramFitsCareer;
-        case 'family':
-            return !!data.parent1Name;
-        case 'background':
-            return data.certification === true;
-        case 'documents':
-            const requiredDocs = ['passport', 'loa', 'proofOfFunds', 'languageTest', 'sop', 'photo'];
-            return requiredDocs.every((docId: string) => data[docId]?.files?.length > 0);
-        default:
-            return false;
-    }
-};
+import { format } from 'date-fns';
 
 type Appointment = {
     id: string;
@@ -70,6 +23,14 @@ type Appointment = {
     status: 'pending' | 'confirmed' | 'declined';
     rejectionReason?: string;
 };
+
+type StatusHistoryItem = {
+    id: string;
+    status: string;
+    notes: string;
+    timestamp: any;
+    updatedBy: string;
+}
 
 function getStatusBadgeVariant(status: Appointment['status']) {
     switch (status) {
@@ -145,12 +106,137 @@ function MyAppointments() {
     );
 }
 
+function ApplicationStatusTimeline() {
+    const { user } = useUser();
+    const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [submittedApplicationId, setSubmittedApplicationId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!user?.uid) {
+            setLoading(false);
+            return;
+        }
+
+        // First, check if there's a submitted application ID in the user's draft doc
+        const draftRef = doc(db, 'users', user.uid, 'application', 'draft');
+        const unsubscribeDraft = onSnapshot(draftRef, (docSnap) => {
+            if (docSnap.exists() && docSnap.data().submittedAppId) {
+                setSubmittedApplicationId(docSnap.data().submittedAppId);
+            } else {
+                setLoading(false); // No submitted app found
+            }
+        });
+
+        return () => unsubscribeDraft();
+    }, [user]);
+
+    useEffect(() => {
+        if (!submittedApplicationId) {
+            return;
+        }
+
+        // Now, listen to the status history of the found submitted application
+        const historyRef = collection(db, 'applications', submittedApplicationId, 'statusHistory');
+        const q = query(historyRef, orderBy('timestamp', 'desc'));
+        
+        const unsubscribeHistory = onSnapshot(q, (snapshot) => {
+            const history: StatusHistoryItem[] = [];
+            snapshot.forEach(doc => {
+                history.push({ id: doc.id, ...doc.data() } as StatusHistoryItem);
+            });
+            setStatusHistory(history);
+            setLoading(false);
+        }, (err) => {
+            console.error("Error fetching status history:", err);
+            setError("Could not load application status.");
+            setLoading(false);
+        });
+
+        return () => unsubscribeHistory();
+
+    }, [submittedApplicationId]);
+
+    if (loading) {
+        return (
+             <Card>
+                <CardHeader><CardTitle>Your Application Status</CardTitle><CardDescription>Updates from our team will appear here.</CardDescription></CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-6 w-1/2" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-6 w-1/2" />
+                    <Skeleton className="h-4 w-4/5" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (!submittedApplicationId) {
+         return (
+            <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                    <CardTitle>Your Application Journey</CardTitle>
+                    <CardDescription>Complete your profile to submit your application.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground text-center py-4">No application submitted yet.</p>
+                </CardContent>
+                <CardFooter>
+                    <Button asChild className="w-full">
+                        <Link href="/application">Go to Application <ArrowRight /></Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+        );
+    }
+    
+     if (error) {
+        return <p className="text-destructive">{error}</p>
+     }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <History className="h-5 w-5 text-primary" />
+                    Your Application Status
+                </CardTitle>
+                <CardDescription>
+                    {statusHistory.length > 0 ? `Current Status: ${statusHistory[0].status}` : 'Awaiting first update.'}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {statusHistory.length > 0 ? (
+                    <ul className="space-y-6">
+                        {statusHistory.map((item, index) => (
+                            <li key={item.id} className="relative flex gap-4">
+                                <div className="absolute left-2.5 top-2.5 -ml-px mt-1 h-full w-0.5 bg-border" />
+                                <div className={cn("relative z-10 flex h-5 w-5 items-center justify-center rounded-full", index === 0 ? "bg-primary" : "bg-muted-foreground")}>
+                                   {index === 0 && <div className="h-2 w-2 rounded-full bg-white" />}
+                                </div>
+                                <div className="flex-1">
+                                    <p className={cn("font-semibold", index === 0 && "text-primary")}>{item.status}</p>
+                                    <p className="text-sm text-muted-foreground">{item.notes}</p>
+                                    <p className="text-xs text-muted-foreground/80 mt-1">
+                                        {format(item.timestamp.toDate(), 'PPp')}
+                                    </p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Your application has been submitted. Status updates will appear here.</p>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+
 export function DashboardContent() {
   const { user } = useUser();
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [loadingQuiz, setLoadingQuiz] = useState(true);
-
-  const { applicationData: draftApplicationData } = useApplication();
 
   useEffect(() => {
     async function fetchData() {
@@ -168,21 +254,6 @@ export function DashboardContent() {
     fetchData();
   }, [user]);
 
-  const journeySteps = applicationStepsConfig.map(step => ({
-      ...step,
-      completed: step.id ? isStepCompleted(step.id as any, draftApplicationData) : step.completed
-  }));
-
-  const filledApplicationSteps = journeySteps.filter(step => step.id);
-  const completedStepsCount = filledApplicationSteps.filter(step => step.completed).length;
-  const progressPercentage = filledApplicationSteps.length > 0 ? (completedStepsCount / filledApplicationSteps.length) * 100 : 0;
-  const currentStepIndex = journeySteps.findIndex(step => !step.completed);
-  const currentStep = currentStepIndex !== -1 ? journeySteps[currentStepIndex] : null;
-
-  const { selectedCollege } = draftApplicationData;
-  const chosenInstitution = selectedCollege?.name || 'Not Selected';
-  const programOfChoice = draftApplicationData.studyPlan?.programChoice || 'Not Entered';
-  
   return (
     <main className="flex-1 space-y-8 p-4 md:p-8">
       <div className="space-y-2">
@@ -196,41 +267,7 @@ export function DashboardContent() {
 
       <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2 space-y-8">
-              <Card className="h-full hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                      <CardTitle>Your Journey Overview</CardTitle>
-                      <CardDescription>You've completed {completedStepsCount} of {filledApplicationSteps.length} application steps. Let's keep going!</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                      <div className="flex items-center gap-4">
-                          <Progress value={progressPercentage} className="h-2" />
-                          <span className="text-sm font-semibold text-muted-foreground">{Math.round(progressPercentage)}%</span>
-                      </div>
-                      <div className="relative">
-                          {journeySteps.map((step, index) => {
-                              const isCompleted = step.completed;
-                              const isCurrent = index === currentStepIndex;
-
-                              return (
-                              <div key={step.name} className="flex items-start gap-4 pb-8">
-                                  {index < journeySteps.length - 1 && (
-                                      <div className={cn("absolute left-4 top-5 -ml-px h-full w-0.5", isCompleted ? "bg-primary" : "bg-border")}></div>
-                                  )}
-                                  <div className={cn("relative z-10 flex h-8 w-8 items-center justify-center rounded-full", isCompleted ? 'bg-primary' : isCurrent ? 'bg-primary/20 border-2 border-primary' : 'bg-muted', isCurrent && "animate-pulse")}>
-                                      {isCompleted ? <Check className="h-5 w-5 text-primary-foreground" /> : step.icon ? <step.icon className={cn("h-4 w-4", isCurrent ? "text-primary" : "text-muted-foreground")} /> : <Circle className={cn("h-3 w-3", isCurrent ? "text-primary fill-primary" : "text-muted-foreground fill-muted-foreground")} />}
-                                  </div>
-                                  <div className="flex-1 -mt-1.5">
-                                       <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                          <p className={cn("font-medium", isCompleted ? "text-foreground" : isCurrent ? "text-primary font-semibold" : "text-muted-foreground")}>{step.name}</p>
-                                          {step.href && (<Button asChild variant={isCurrent ? 'secondary' : 'ghost'} size="sm"><Link href={step.href}>{isCompleted ? 'Review' : isCurrent ? 'Continue' : 'Start'} <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>)}
-                                       </div>
-                                      {isCurrent && <p className="text-sm text-muted-foreground mt-1">This is your next step.</p>}
-                                  </div>
-                              </div>
-                          )})}
-                      </div>
-                  </CardContent>
-              </Card>
+             <ApplicationStatusTimeline />
           </div>
 
           <div className="space-y-8 md:col-span-1">
@@ -248,17 +285,6 @@ export function DashboardContent() {
                       )}
                       <Button asChild variant="secondary" className="w-full mt-4">
                         <Link href="/eligibility-quiz">{quizScore != null ? 'Retake Quiz' : 'Take Quiz'}</Link>
-                      </Button>
-                  </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><GraduationCap className="h-5 w-5 text-primary" />Your Study Plan</CardTitle></CardHeader>
-                  <CardContent>
-                      <p className="font-semibold text-primary">{chosenInstitution}</p>
-                      <p className="text-sm text-muted-foreground">{programOfChoice}</p>
-                       <Button asChild variant="secondary" className="w-full mt-4">
-                          <Link href="/college-match">Change College/Program</Link>
                       </Button>
                   </CardContent>
               </Card>

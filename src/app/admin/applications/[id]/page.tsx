@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, writeBatch } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,13 +12,16 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, isValid } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, AlertTriangle, FileText, Download } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, FileText, Download, MessageSquare, History } from 'lucide-react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
 import { AdminApplicationProgress } from '@/components/admin/admin-application-progress';
 import { documentList } from '@/context/application-context';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/auth-context';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
@@ -42,8 +45,12 @@ function safeFormatDate(date: any, formatString: string): string {
 function getStatusBadgeVariant(status: string) {
     switch (status) {
         case 'Approved': return 'success';
-        case 'submitted': return 'default';
         case 'Pending Review': return 'secondary';
+        case 'Awaiting LOA': return 'secondary';
+        case 'Application Submitted to IRCC': return 'default';
+        case 'Awaiting Biometrics': return 'default';
+        case 'Awaiting Medical': return 'default';
+        case 'Passport Request': return 'success';
         case 'Action Required': return 'destructive';
         case 'Rejected': return 'destructive';
         case 'draft': return 'outline';
@@ -51,23 +58,34 @@ function getStatusBadgeVariant(status: string) {
     }
 }
 
+type StatusHistoryItem = {
+    id: string;
+    status: string;
+    notes: string;
+    timestamp: any;
+    updatedBy: string;
+}
+
 export default function ApplicationDetailPage() {
     const params = useParams() as { id: string };
-    const { id } = params;
+    const { id: applicationId } = params;
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { user: adminUser } = useAuth();
     const userId = searchParams.get('userId');
 
     const [application, setApplication] = useState<any>(null);
+    const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState('');
+    const [statusNotes, setStatusNotes] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
 
     useEffect(() => {
-        if (!id || !userId) {
-            setError("Application or User ID is missing.");
+        if (!applicationId) {
+            setError("Application ID is missing.");
             setLoading(false);
             return;
         }
@@ -76,26 +94,29 @@ export default function ApplicationDetailPage() {
             setLoading(true);
             setError(null);
             try {
-                // First, try to get the application from the user's 'application' subcollection (for drafts)
-                const draftAppRef = doc(db, 'users', userId as string, 'application', id);
-                let docSnap = await getDoc(draftAppRef);
+                const appRef = doc(db, 'applications', applicationId);
+                const docSnap = await getDoc(appRef);
 
-                if (docSnap.exists()) {
-                    const appData = docSnap.data();
-                    setApplication(appData);
-                    setStatus(appData.status || 'draft');
-                } else {
-                     // If not found in drafts, check the top-level 'applications' collection (for submitted apps)
-                     const submittedAppRef = doc(db, 'applications', id);
-                     const submittedDocSnap = await getDoc(submittedAppRef);
-                     if (submittedDocSnap.exists()) {
-                         const appData = submittedDocSnap.data();
-                         setApplication(appData);
-                         setStatus(appData.status || 'submitted');
-                     } else {
-                        setError("No application found with this ID for the specified user.");
-                     }
-                }
+                 if (docSnap.exists()) {
+                     const appData = docSnap.data();
+                     setApplication(appData);
+                     setStatus(appData.status || 'submitted');
+                 } else {
+                    setError("No application found with this ID.");
+                 }
+                
+                // Set up listener for status history
+                const historyRef = collection(db, 'applications', applicationId, 'statusHistory');
+                const q = query(historyRef, orderBy('timestamp', 'desc'));
+                const unsubscribe = onSnapshot(q, (snapshot) => {
+                    const history: StatusHistoryItem[] = [];
+                    snapshot.forEach(doc => {
+                        history.push({ id: doc.id, ...doc.data() } as StatusHistoryItem);
+                    });
+                    setStatusHistory(history);
+                });
+                return unsubscribe;
+
             } catch (err) {
                 console.error("Firebase error getting document:", err);
                 setError("An error occurred while fetching the application.");
@@ -104,29 +125,41 @@ export default function ApplicationDetailPage() {
             }
         }
         getApplication();
-    }, [id, userId]);
+    }, [applicationId]);
 
     const handleStatusUpdate = async () => {
-        if (!userId && !application?.userId) {
-           toast({ variant: 'destructive', title: 'Error', description: 'User ID is missing.' });
+        if (!adminUser) {
+           toast({ variant: 'destructive', title: 'Error', description: 'You are not authenticated.' });
            return;
         }
         
-        const targetUserId = userId || application?.userId;
-        const isDraft = application.status === 'draft';
-        const docRef = isDraft
-            ? doc(db, 'users', targetUserId, 'application', id)
-            : doc(db, 'applications', id);
-
-
         setIsUpdating(true);
         try {
-            await updateDoc(docRef, { status: status });
+            const batch = writeBatch(db);
+
+            // 1. Update the main application document
+            const appRef = doc(db, 'applications', applicationId);
+            batch.update(appRef, { 
+                status: status,
+                updatedAt: serverTimestamp(),
+            });
+
+            // 2. Add a new entry to the status history subcollection
+            const historyRef = doc(collection(db, 'applications', applicationId, 'statusHistory'));
+            batch.set(historyRef, {
+                status: status,
+                notes: statusNotes,
+                timestamp: serverTimestamp(),
+                updatedBy: adminUser.displayName || adminUser.email,
+            });
+
+            await batch.commit();
+
             toast({
                 title: 'Status Updated',
                 description: `Application status changed to ${status}.`,
             });
-            setApplication((prev: any) => ({ ...prev, status }));
+            setStatusNotes(''); // Clear notes after update
         } catch (error) {
             console.error("Error updating status: ", error);
             toast({
@@ -188,7 +221,7 @@ export default function ApplicationDetailPage() {
         const docData = documents[docKey];
         if (docData?.files && docData.files.length > 0) {
             const masterDocInfo = documentList.find(d => d.id === docKey);
-            const categoryName = masterDocInfo ? masterDocInfo.name : docKey; // Fallback to the key if not found
+            const categoryName = masterDocInfo ? masterDocInfo.name : docKey; 
 
             return docData.files.map((file: UploadedFile) => ({
                 category: categoryName,
@@ -210,7 +243,7 @@ export default function ApplicationDetailPage() {
                     <div className="flex justify-between items-start">
                         <div>
                              <h1 className="font-headline text-3xl font-bold">Application: {personalInfo?.givenNames} {personalInfo?.surname}</h1>
-                            <p className="text-muted-foreground">App ID: {id} / User ID: {userId || application.userId}</p>
+                            <p className="text-muted-foreground">App ID: {applicationId} / User ID: {userId || application.userId}</p>
                         </div>
                         <Badge variant={getStatusBadgeVariant(currentStatus)} className="text-base">{currentStatus}</Badge>
                     </div>
@@ -218,6 +251,29 @@ export default function ApplicationDetailPage() {
                 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     <div className="lg:col-span-2 space-y-8">
+                        <Card>
+                            <CardHeader><CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" />Status History</CardTitle></CardHeader>
+                            <CardContent>
+                                {statusHistory.length > 0 ? (
+                                    <ul className="space-y-4">
+                                        {statusHistory.map(item => (
+                                            <li key={item.id} className="flex gap-4">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="h-3 w-3 rounded-full bg-primary" />
+                                                    <div className="h-full w-px bg-border" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold">{item.status} <span className="text-xs text-muted-foreground font-normal">- {safeFormatDate(item.timestamp, 'PPp')}</span></p>
+                                                    <p className="text-sm text-muted-foreground">{item.notes}</p>
+                                                    <p className="text-xs text-muted-foreground/70">by {item.updatedBy}</p>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : <p className="text-sm text-muted-foreground">No status history found.</p>}
+                            </CardContent>
+                        </Card>
+
                          <Card>
                             <CardHeader><CardTitle>Application Checklist</CardTitle></CardHeader>
                             <CardContent>
@@ -287,43 +343,6 @@ export default function ApplicationDetailPage() {
                                 </dl></CardContent>
                             </Card>
                         )}
-                        {family && (
-                            <Card>
-                                <CardHeader><CardTitle>Family Information</CardTitle></CardHeader>
-                                <CardContent><dl className="divide-y">
-                                    <DataRow label="Marital Status" value={family.maritalStatus} />
-                                    {family.spouseName && <DataRow label="Spouse's Name" value={family.spouseName} />}
-                                    <DataRow label="Father's Name" value={family.parent1Name} />
-                                    <DataRow label="Mother's Name" value={family.parent2Name} />
-                                </dl></CardContent>
-                            </Card>
-                        )}
-                        {background && (
-                            <Card>
-                                <CardHeader><CardTitle>Background Information</CardTitle></CardHeader>
-                                <CardContent><dl className="divide-y">
-                                    <DataRow label="Visa Refusal" value={`${background.visaRefusal === 'yes' ? `Yes - ${background.visaRefusalDetails}` : 'No'}`} />
-                                    <DataRow label="Criminal Record" value={`${background.criminalRecord === 'yes' ? `Yes - ${background.criminalRecordDetails}`: 'No'}`} />
-                                    <DataRow label="Unauthorized Overstay" value={`${background.overstay === 'yes' ? `Yes - ${background.overstayDetails}` : 'No'}`} />
-                                    <DataRow label="Medical Issues" value={`${background.medicalConditions === 'yes' ? `Yes - ${background.medicalConditionsDetails}` : 'No'}`} />
-                                </dl></CardContent>
-                            </Card>
-                        )}
-                         {studyPlan && (
-                            <Card>
-                                <CardHeader><CardTitle>Study Plan</CardTitle></CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <h4 className="font-semibold">Why this program?</h4>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{studyPlan.whyInstitution}</p>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold">Future Goals</h4>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{studyPlan.howProgramFitsCareer}</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                          {allUploadedFiles.length > 0 && (
                             <Card>
                                 <CardHeader><CardTitle>Uploaded Documents</CardTitle></CardHeader>
@@ -364,22 +383,30 @@ export default function ApplicationDetailPage() {
                                 </dl>
                                 <Separator />
                                 <div className="space-y-2 pt-2">
-                                     <label htmlFor="status-select" className="text-sm font-medium">Change Status</label>
+                                     <Label htmlFor="status-select">Change Status</Label>
                                      <Select value={status} onValueChange={setStatus}>
                                         <SelectTrigger id="status-select">
                                             <SelectValue placeholder="Set new status" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="draft">Draft</SelectItem>
                                             <SelectItem value="Pending Review">Pending Review</SelectItem>
+                                            <SelectItem value="Awaiting LOA">Awaiting LOA</SelectItem>
+                                            <SelectItem value="Application Submitted to IRCC">Application Submitted to IRCC</SelectItem>
+                                            <SelectItem value="Awaiting Biometrics">Awaiting Biometrics</SelectItem>
+                                            <SelectItem value="Awaiting Medical">Awaiting Medical</SelectItem>
+                                            <SelectItem value="Passport Request">Passport Request (PPR)</SelectItem>
                                             <SelectItem value="Approved">Approved</SelectItem>
                                             <SelectItem value="Action Required">Action Required</SelectItem>
                                             <SelectItem value="Rejected">Rejected</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="status-notes">Notes for Client (Optional)</Label>
+                                    <Textarea id="status-notes" value={statusNotes} onChange={(e) => setStatusNotes(e.target.value)} placeholder="e.g., We have submitted the application to IRCC. Please watch for a biometrics instruction letter." />
+                                </div>
                                 <Button className="w-full" onClick={handleStatusUpdate} disabled={isUpdating || status === currentStatus}>
-                                    {isUpdating ? 'Updating...' : 'Update Status'}
+                                    {isUpdating ? 'Updating...' : 'Update Status & Notify Client'}
                                 </Button>
                             </CardContent>
                         </Card>

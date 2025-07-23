@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, FileText, AlertTriangle, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, writeBatch } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
@@ -48,25 +48,42 @@ function ApplicationReviewContent() {
     try {
         const studentFullName = (`${personalInfo?.givenNames || ''} ${personalInfo?.surname || ''}`).trim() || user.displayName;
         
+        // Use a batched write to perform multiple operations atomically.
+        const batch = writeBatch(db);
+
         // 1. Create a new document in the top-level 'applications' collection for admin review
-        const submittedAppRef = await addDoc(collection(db, 'applications'), {
+        const submittedAppRef = doc(collection(db, 'applications'));
+        batch.set(submittedAppRef, {
             ...applicationData,
             userId: user.uid,
             studentName: studentFullName,
             studentEmail: user.email,
-            status: 'Pending Review',
+            status: 'Pending Review', // Initial status for admin
             submittedAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
         
-        // 2. Update the user's draft document to mark it as submitted.
+        // 2. Add the first status to the history sub-collection
+        const statusHistoryRef = doc(collection(submittedAppRef, 'statusHistory'));
+        batch.set(statusHistoryRef, {
+            status: 'Pending Review',
+            notes: 'Application has been successfully submitted by the student and is awaiting review by our team.',
+            timestamp: serverTimestamp(),
+            updatedBy: 'System',
+        });
+
+        // 3. Update the user's draft document to mark it as submitted.
+        // Use set with merge to prevent "no document to update" error if it's the first save.
         const draftRef = doc(db, 'users', user.uid, 'application', 'draft');
-        await updateDoc(draftRef, {
+        batch.set(draftRef, {
             status: 'submitted',
             submittedAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             submittedAppId: submittedAppRef.id
-        });
+        }, { merge: true });
+
+        // Commit the batch
+        await batch.commit();
 
         toast({
             title: 'Application Submitted!',
@@ -90,7 +107,6 @@ function ApplicationReviewContent() {
     }
   };
   
-  // FIX: Only check for Core documents to enable submission.
   const requiredDocs = documentList.filter(doc => doc.category === 'Core');
   const allDocsUploaded = requiredDocs.every(doc => documents?.[doc.id]?.files?.length > 0);
 

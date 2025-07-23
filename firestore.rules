@@ -1,55 +1,57 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
+    
+    // Helper function for admin custom claim check
     function isAdmin() {
       return request.auth.token.admin == true;
     }
 
-    match /users/{userId}/{path=**} {
+    // Rules for users collection and their sub-collections
+    // This covers user profiles and draft applications
+    match /users/{userId}/{document=**} {
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
-
+    
+    // Rules for top-level submitted applications
     match /applications/{applicationId} {
-      allow read, update, delete: if isAdmin();
+        // Users can read their own submitted application to check status
+        allow get: if request.auth.uid == resource.data.userId || isAdmin();
+        
+        // Admins can list all applications and update/delete them
+        allow list, update, delete: if isAdmin();
+
+        // Rules for the status history sub-collection
+        match /statusHistory/{historyId} {
+            // Admins can create new status updates
+            allow create: if isAdmin();
+            // Users can read the status history for their own application
+            allow read: if request.auth.uid == get(/databases/$(database)/documents/applications/$(applicationId)).data.userId || isAdmin();
+        }
     }
-
+    
+    // Rules for appointment requests
     match /appointments/{appointmentId} {
-      // Allow creation if the user is authenticated, the data is for them,
-      // and all required fields are present with correct types.
-      // The createdAt check is the key fix here.
-      allow create: if request.auth.uid != null
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.userName is string
-        && request.resource.data.userEmail is string
-        && request.resource.data.requestedDate is string
-        && request.resource.data.requestedTime is string
-        && request.resource.data.topic is string
-        && request.resource.data.status == "pending"
-        && request.resource.data.createdAt == request.time; // Use request.time to validate a server timestamp
-
-      // Allow users to read their own appointments, and admins to read any.
+      // Any authenticated user can create an appointment for themselves
+      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
+      
+      // A user can read their own appointment, admins can read all
       allow read: if request.auth.uid == resource.data.userId || isAdmin();
       
-      // Only admins can update (confirm/decline) or delete appointments.
+      // Only admins can update (confirm/decline) or delete appointments
       allow update, delete: if isAdmin();
     }
-
+    
+    // Admins can manage platform settings
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
-
+    
+    // Admins can manage news/CMS content
     match /news/{docId} {
-      // Anyone can read news
-      allow read: if true;
-      // Only admins can create/edit news
-      allow write: if isAdmin();
-    }
-
-    // This rule allows admins to perform collection group queries on all 'application' subcollections.
-    // This is necessary for the "Manage Applications" page to view both drafts and submitted apps.
-    match /{path=**}/application/{applicationId} {
-       allow read: if isAdmin();
+      allow read, write: if isAdmin();
     }
   }
 }
