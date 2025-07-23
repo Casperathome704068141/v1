@@ -17,7 +17,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
-import { ApplicationProgress as AdminApplicationProgress } from '@/components/dashboard/application-progress';
+import { AdminApplicationProgress } from '@/components/admin/admin-application-progress';
 import { documentList } from '@/context/application-context';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';

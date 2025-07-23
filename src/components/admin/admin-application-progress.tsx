@@ -2,10 +2,10 @@
 'use client';
 
 import { Progress } from '@/components/ui/progress';
-import { UserCheck, FileText, Send, CheckCircle, Circle, Check } from 'lucide-react';
+import { UserCheck, FileText, Send, Check, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { useApplication } from '@/context/application-context';
 import { documentList } from '@/context/application-context';
+import type { useApplication } from '@/context/application-context';
 
 const applicationStepsConfig = [
     { id: 'personalInfo', name: 'Profile Information', icon: UserCheck },
