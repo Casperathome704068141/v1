@@ -17,7 +17,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UploadedFile } from '@/context/application-context';
-import { AdminApplicationProgress } from '@/components/admin/admin-application-progress';
+import { ApplicationProgress as AdminApplicationProgress } from '@/components/dashboard/application-progress';
 import { documentList } from '@/context/application-context';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -72,7 +72,9 @@ export default function ApplicationDetailPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { user: adminUser } = useAuth();
+    
     const userId = searchParams.get('userId');
+    const isDraft = searchParams.get('isDraft') === 'true';
 
     const [application, setApplication] = useState<any>(null);
     const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
@@ -94,29 +96,43 @@ export default function ApplicationDetailPage() {
             setLoading(true);
             setError(null);
             try {
-                const appRef = doc(db, 'applications', applicationId);
+                let appRef;
+                if (isDraft) {
+                    if (!userId) {
+                        setError("User ID is required to view a draft application.");
+                        setLoading(false);
+                        return;
+                    }
+                    // For drafts, the ID is always 'draft' and we build the path with the userId.
+                    appRef = doc(db, 'users', userId, 'application', 'draft');
+                } else {
+                    // For submitted apps, the ID is the document ID in the top-level collection.
+                    appRef = doc(db, 'applications', applicationId);
+                }
+
                 const docSnap = await getDoc(appRef);
 
                  if (docSnap.exists()) {
                      const appData = docSnap.data();
                      setApplication(appData);
                      setStatus(appData.status || 'submitted');
+
+                    // Only fetch status history for submitted applications
+                    if (!isDraft) {
+                        const historyRef = collection(db, 'applications', applicationId, 'statusHistory');
+                        const q = query(historyRef, orderBy('timestamp', 'desc'));
+                        const unsubscribe = onSnapshot(q, (snapshot) => {
+                            const history: StatusHistoryItem[] = [];
+                            snapshot.forEach(doc => {
+                                history.push({ id: doc.id, ...doc.data() } as StatusHistoryItem);
+                            });
+                            setStatusHistory(history);
+                        });
+                        return unsubscribe;
+                    }
                  } else {
                     setError("No application found with this ID.");
                  }
-                
-                // Set up listener for status history
-                const historyRef = collection(db, 'applications', applicationId, 'statusHistory');
-                const q = query(historyRef, orderBy('timestamp', 'desc'));
-                const unsubscribe = onSnapshot(q, (snapshot) => {
-                    const history: StatusHistoryItem[] = [];
-                    snapshot.forEach(doc => {
-                        history.push({ id: doc.id, ...doc.data() } as StatusHistoryItem);
-                    });
-                    setStatusHistory(history);
-                });
-                return unsubscribe;
-
             } catch (err) {
                 console.error("Firebase error getting document:", err);
                 setError("An error occurred while fetching the application.");
@@ -125,11 +141,11 @@ export default function ApplicationDetailPage() {
             }
         }
         getApplication();
-    }, [applicationId]);
+    }, [applicationId, userId, isDraft]);
 
     const handleStatusUpdate = async () => {
-        if (!adminUser) {
-           toast({ variant: 'destructive', title: 'Error', description: 'You are not authenticated.' });
+        if (!adminUser || isDraft) {
+           toast({ variant: 'destructive', title: 'Error', description: 'Cannot update status of a draft application.' });
            return;
         }
         
@@ -238,12 +254,14 @@ export default function ApplicationDetailPage() {
                 <div>
                      <Button variant="ghost" onClick={() => router.back()} className="mb-4 -ml-4">
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Applications
+                        Back
                     </Button>
                     <div className="flex justify-between items-start">
                         <div>
                              <h1 className="font-headline text-3xl font-bold">Application: {personalInfo?.givenNames} {personalInfo?.surname}</h1>
-                            <p className="text-muted-foreground">App ID: {applicationId} / User ID: {userId || application.userId}</p>
+                            <p className="text-muted-foreground">
+                                {isDraft ? `Draft / User ID: ${userId}` : `App ID: ${applicationId} / User ID: ${userId || application.userId}`}
+                            </p>
                         </div>
                         <Badge variant={getStatusBadgeVariant(currentStatus)} className="text-base">{currentStatus}</Badge>
                     </div>
@@ -251,29 +269,30 @@ export default function ApplicationDetailPage() {
                 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card>
-                            <CardHeader><CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" />Status History</CardTitle></CardHeader>
-                            <CardContent>
-                                {statusHistory.length > 0 ? (
-                                    <ul className="space-y-4">
-                                        {statusHistory.map(item => (
-                                            <li key={item.id} className="flex gap-4">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="h-3 w-3 rounded-full bg-primary" />
-                                                    <div className="h-full w-px bg-border" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold">{item.status} <span className="text-xs text-muted-foreground font-normal">- {safeFormatDate(item.timestamp, 'PPp')}</span></p>
-                                                    <p className="text-sm text-muted-foreground">{item.notes}</p>
-                                                    <p className="text-xs text-muted-foreground/70">by {item.updatedBy}</p>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : <p className="text-sm text-muted-foreground">No status history found.</p>}
-                            </CardContent>
-                        </Card>
-
+                        {!isDraft && (
+                            <Card>
+                                <CardHeader><CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" />Status History</CardTitle></CardHeader>
+                                <CardContent>
+                                    {statusHistory.length > 0 ? (
+                                        <ul className="space-y-4">
+                                            {statusHistory.map(item => (
+                                                <li key={item.id} className="flex gap-4">
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="h-3 w-3 rounded-full bg-primary" />
+                                                        <div className="h-full w-px bg-border" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold">{item.status} <span className="text-xs text-muted-foreground font-normal">- {safeFormatDate(item.timestamp, 'PPp')}</span></p>
+                                                        <p className="text-sm text-muted-foreground">{item.notes}</p>
+                                                        <p className="text-xs text-muted-foreground/70">by {item.updatedBy}</p>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : <p className="text-sm text-muted-foreground">No status history found.</p>}
+                                </CardContent>
+                            </Card>
+                        )}
                          <Card>
                             <CardHeader><CardTitle>Application Checklist</CardTitle></CardHeader>
                             <CardContent>
@@ -371,7 +390,8 @@ export default function ApplicationDetailPage() {
                     </div>
 
                     <div className="lg:col-span-1 space-y-8 sticky top-8">
-                        <Card>
+                       {!isDraft && (
+                         <Card>
                             <CardHeader>
                                 <CardTitle>Application Management</CardTitle>
                                 <CardDescription>Update the status of this application.</CardDescription>
@@ -410,6 +430,17 @@ export default function ApplicationDetailPage() {
                                 </Button>
                             </CardContent>
                         </Card>
+                       )}
+                       {isDraft && (
+                           <Card>
+                               <CardHeader>
+                                   <CardTitle>Draft Application</CardTitle>
+                                   <CardDescription>
+                                       This is a draft application and has not been submitted by the user. You can view the contents but cannot change its status here.
+                                   </CardDescription>
+                               </CardHeader>
+                           </Card>
+                       )}
                     </div>
                 </div>
             </main>

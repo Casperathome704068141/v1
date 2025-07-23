@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -23,18 +24,20 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 
 type Application = {
-    id: string;
+    id: string; // The doc ID from the subcollection, e.g. "draft"
     status: string;
     submittedAt: string;
     submittedAtTimestamp: Timestamp | null;
+    submittedAppId?: string; // The ID of the submitted app in the top-level collection
 };
 
 function getStatusBadgeVariant(status: string) {
     switch (status) {
-        case 'Approved': return 'default';
+        case 'Approved': return 'success';
         case 'submitted': return 'default';
         case 'Pending Review': return 'secondary';
         case 'Action Required': return 'destructive';
+        case 'Rejected': return 'destructive';
         case 'draft': return 'outline';
         default: return 'outline';
     }
@@ -69,18 +72,18 @@ export default function UserDetailPage() {
                     return;
                 }
 
-                // Fetch all applications (drafts and submitted)
+                // Fetch the application draft from the user's subcollection
                 const appsCollectionRef = collection(db, 'users', id, 'application');
-                const appsQuery = query(appsCollectionRef);
-                const appsSnapshot = await getDocs(appsQuery);
+                const appsSnapshot = await getDocs(appsCollectionRef);
 
-                const appsList = appsSnapshot.docs.map(doc => {
-                    const data = doc.data();
+                const appsList = appsSnapshot.docs.map(docSnap => {
+                    const data = docSnap.data();
                     return {
-                        id: doc.id,
-                        status: data.status || 'draft', // Default to draft if no status
+                        id: docSnap.id,
+                        status: data.status || 'draft',
                         submittedAtTimestamp: data.submittedAt || null,
                         submittedAt: data.submittedAt?.toDate() ? formatDistanceToNow(data.submittedAt.toDate(), { addSuffix: true }) : 'Draft',
+                        submittedAppId: data.submittedAppId,
                     };
                 });
                 
@@ -170,7 +173,7 @@ export default function UserDetailPage() {
         <AdminLayout>
             <main className="flex-1 space-y-6 p-4 md:p-8">
                 <div>
-                     <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+                     <Button variant="ghost" onClick={() => router.back()} className="mb-4 -ml-4">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Users
                     </Button>
@@ -230,27 +233,32 @@ export default function UserDetailPage() {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>App ID</TableHead>
+                                            <TableHead>Type</TableHead>
                                             <TableHead>Last Updated</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Action</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {applications.length > 0 ? applications.map(app => (
+                                        {applications.length > 0 ? applications.map(app => {
+                                            const isDraft = app.status === 'draft';
+                                            const appId = isDraft ? app.id : app.submittedAppId;
+                                            const url = `/admin/applications/${appId}?userId=${id}${isDraft ? '&isDraft=true' : ''}`;
+
+                                            return (
                                             <TableRow key={app.id}>
-                                                <TableCell className="font-mono">{app.id.substring(0, 7).toUpperCase()}</TableCell>
+                                                <TableCell className="font-mono">{isDraft ? 'DRAFT' : 'SUBMITTED'}</TableCell>
                                                 <TableCell>{app.submittedAt}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                  <Link href={`/admin/applications/${app.id}?userId=${id}`}>
+                                                  <Link href={url}>
                                                     <Button variant="outline" size="sm">View Details</Button>
                                                   </Link>
                                                 </TableCell>
                                             </TableRow>
-                                        )) : (
+                                        )}) : (
                                             <TableRow>
                                                 <TableCell colSpan={4} className="text-center text-muted-foreground">No applications found.</TableCell>
                                             </TableRow>
