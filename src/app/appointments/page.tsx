@@ -50,17 +50,20 @@ function AppointmentRequestForm() {
     }
     
     setIsSubmitting(true);
-    try {
-      await addDoc(collection(db, "appointments"), {
+    
+    const payload = {
         userId: user.uid,
         userName: profile.name,
         userEmail: profile.email,
         requestedDate: format(data.requestedDate, 'PPP'), // Store as a readable string
         requestedTime: data.requestedTime,
         topic: data.topic,
-        status: "pending",
+        status: "pending" as const,
         createdAt: serverTimestamp(),
-      });
+    };
+
+    try {
+      await addDoc(collection(db, "appointments"), payload);
       toast({
         title: "Request Sent!",
         description: "Your appointment request has been submitted. We will confirm shortly.",
