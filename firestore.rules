@@ -1,54 +1,81 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check for admin custom claim
+    
     function isAdmin() {
       return request.auth.token.admin == true;
     }
 
-    // Rules for users collection and their sub-collections (including application drafts)
-    match /users/{userId}/{document=**} {
-      // User can read and write to their own documents. Admin has full access.
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      // Users can read/write their own data, admins have full access
       allow read, write: if request.auth.uid == userId || isAdmin();
-    }
-
-    // Rules for the top-level 'applications' collection (submitted applications)
-    match /applications/{applicationId} {
-      // Logged-in users can create an application for themselves
-      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
-      // Admins can read, update, and delete any submitted application
-      allow read, update, delete: if isAdmin();
+      
+      // Rules for the 'application' subcollection (drafts)
+      match /application/{draftId} {
+        allow read, write: if request.auth.uid == userId || isAdmin();
+      }
+      
+      // Rules for the 'quizResults' subcollection
+      match /quizResults/{resultId} {
+        allow read, write: if request.auth.uid == userId || isAdmin();
+      }
+      
+      // Rules for the 'payments' subcollection
+      match /payments/{paymentId} {
+         allow read: if request.auth.uid == userId || isAdmin();
+         // Disallow client-side writes to prevent tampering
+         allow write: if false;
+      }
     }
     
-    // Rules for the 'statusHistory' sub-collection within each application
-    match /applications/{applicationId}/statusHistory/{historyId} {
-        // The user who owns the application can read their own status history
+    // Rules for the top-level 'applications' collection (submitted)
+    match /applications/{applicationId} {
+      // Admins have full control over submitted applications
+      allow read, write: if isAdmin();
+      
+      // Rules for the 'statusHistory' subcollection
+      match /statusHistory/{historyId} {
+        // Admins can write, users can read their own history
+        allow write: if isAdmin();
         allow read: if request.auth.uid == get(/databases/$(database)/documents/applications/$(applicationId)).data.userId || isAdmin();
-        // Only admins can create new status history entries
-        allow create: if isAdmin();
+      }
     }
-
-    // Rules for appointments
+    
+    // Rules for the 'appointments' collection
     match /appointments/{appointmentId} {
-      // Allow authenticated users to create appointments for themselves
+      // Any authenticated user can create an appointment for themselves
       allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
-      // Allow users to read their own appointments, and admins to read all
+      
+      // Users can read their own appointments, admins can read all
       allow read: if request.auth.uid == resource.data.userId || isAdmin();
+      
       // Only admins can update or delete appointments
       allow update, delete: if isAdmin();
     }
     
-    // Rules for app-wide settings (e.g., maintenance mode)
-    match /settings/{docId} {
-      allow read: if true; // All users can read settings
-      allow write: if isAdmin(); // Only admins can change settings
+    // Rules for the 'settings' collection
+    match /settings/general {
+      // Any authenticated user can read settings (e.g., for maintenance mode checks)
+      allow read: if request.auth != null;
+      // Only admins can change settings
+      allow write: if isAdmin();
     }
     
-    // Rules for news/CMS posts
+    // Rules for the 'news' collection
     match /news/{newsId} {
-        allow read: if true; // All users can read news
-        allow write: if isAdmin(); // Only admins can create/edit news
+      // Any authenticated user can read news
+      allow read: if request.auth != null;
+      // Only admins can write/publish news
+      allow write: if isAdmin();
+    }
+
+    // Rule for the 'application' collection group query used by admins
+    match /{path=**}/application/{docId} {
+      // Admins can query across all 'application' subcollections
+      allow read: if isAdmin();
     }
   }
 }
