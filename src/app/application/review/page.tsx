@@ -7,13 +7,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { useApplication, documentList } from '@/context/application-context';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, FileText, AlertTriangle, Send } from 'lucide-react';
+import { CheckCircle, FileText, AlertTriangle, Send, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, doc, writeBatch } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
@@ -169,25 +170,29 @@ function ApplicationReviewContent() {
         </div>
 
         <div className="space-y-8 lg:col-span-1">
-            <Card className={allDocsUploaded ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    {allDocsUploaded ? <CheckCircle className="text-green-600" /> : <AlertTriangle className="text-red-600" />}
-                    Document Check
+                    <FileText className="h-5 w-5 text-primary" />
+                    Document Checklist
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">
-                    {allDocsUploaded 
-                        ? 'All required documents have been uploaded.' 
-                        : 'You are missing one or more required documents. Please complete the uploads before submitting.'}
-                </p>
-                <ul className="mt-4 space-y-2 text-sm">
+                {!allDocsUploaded && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Missing Documents</AlertTitle>
+                    <AlertDescription>
+                      Submitting now may cause delays. We recommend completing all uploads before proceeding.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <ul className="space-y-2 text-sm">
                     {requiredDocs.map(doc => (
                         <li key={doc.id} className="flex items-center gap-2">
                            {documents?.[doc.id]?.files?.length > 0
                            ? <CheckCircle className="h-4 w-4 text-green-500" />
-                           : <FileText className="h-4 w-4 text-muted-foreground" />}
+                           : <AlertCircle className="h-4 w-4 text-yellow-500" />}
                            <span>{doc.name}</span>
                         </li>
                     ))}
@@ -199,11 +204,11 @@ function ApplicationReviewContent() {
                 <CardHeader>
                     <CardTitle>Final Submission</CardTitle>
                     <CardDescription>
-                        Once you submit, your application will be locked and sent for review.
+                        Once you submit, your application will be locked and sent for review. You can monitor its status from your dashboard.
                     </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                    <Button className="w-full" size="lg" onClick={handleSubmit} disabled={!allDocsUploaded || isSubmitting}>
+                    <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting}>
                         <Send className="mr-2 h-4 w-4" />
                         {isSubmitting ? 'Submitting...' : 'Confirm & Submit Application'}
                     </Button>
