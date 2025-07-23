@@ -27,11 +27,28 @@ const appointmentRequestSchema = z.object({
   requestedDate: z.date({
     required_error: "A date for the appointment is required.",
   }),
-  requestedTime: z.string().min(1, "Please select a preferred time block."),
+  requestedTime: z.string().min(1, "Please select a preferred time."),
   topic: z.string().min(10, "Please briefly describe the topic (min. 10 characters).").max(500),
 });
 
 type AppointmentRequestValues = z.infer<typeof appointmentRequestSchema>;
+
+function generateTimeSlots() {
+  const slots = [];
+  const startTime = new Date();
+  startTime.setHours(9, 0, 0, 0); // 9:00 AM
+
+  const endTime = new Date();
+  endTime.setHours(17, 0, 0, 0); // 5:00 PM (loops until 4:30 PM)
+
+  while (startTime < endTime) {
+    slots.push(startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+    startTime.setMinutes(startTime.getMinutes() + 30);
+  }
+  return slots;
+};
+
+const timeSlots = generateTimeSlots();
 
 function AppointmentRequestForm() {
   const { user, profile } = useUser();
@@ -137,15 +154,17 @@ function AppointmentRequestForm() {
             name="requestedTime"
             render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Preferred Time</FormLabel>
+                    <FormLabel>Preferred Time (EST)</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select a time block" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Select a time" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="Morning (9am - 12pm EST)">Morning (9am - 12pm EST)</SelectItem>
-                            <SelectItem value="Afternoon (1pm - 5pm EST)">Afternoon (1pm - 5pm EST)</SelectItem>
-                            <SelectItem value="Evening (5pm - 8pm EST)">Evening (5pm - 8pm EST)</SelectItem>
+                            {timeSlots.map(slot => (
+                                <SelectItem key={slot} value={slot}>
+                                    {slot}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                     <FormMessage />
