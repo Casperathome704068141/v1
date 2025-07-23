@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { collectionGroup, getDocs, query, Query } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,7 +29,10 @@ function getStatusBadgeVariant(status: string) {
     switch (status) {
         case 'submitted': return 'default';
         case 'Pending Review': return 'secondary';
+        case 'Awaiting LOA': return 'secondary';
+        case 'Application Submitted to IRCC': return 'default';
         case 'Approved': return 'success';
+        case 'Passport Request': return 'success';
         case 'Action Required': return 'destructive';
         case 'Rejected': return 'destructive';
         case 'draft': return 'outline';
@@ -45,45 +48,32 @@ export default function AdminApplicationsPage() {
     const router = useRouter();
 
     useEffect(() => {
-        async function getApplications() {
-            setLoading(true);
-            try {
-                // FIX: Removed `orderBy` from the query to avoid missing index errors.
-                // The sorting will be handled on the client side.
-                const applicationsCollection = collectionGroup(db, 'application');
-                const q = query(applicationsCollection);
-                const appSnapshot = await getDocs(q);
-                
-                const applicationsList: Application[] = appSnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    const userId = doc.ref.parent.parent!.id;
-                    return {
-                        id: doc.id,
-                        userId: userId,
-                        studentName: data.personalInfo?.givenNames ? `${data.personalInfo.givenNames} ${data.personalInfo.surname}` : (data.studentName || 'N/A'),
-                        status: data.status || 'draft',
-                        submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'PPP') : 'N/A',
-                        country: data.personalInfo?.countryOfCitizenship || 'N/A',
-                        updatedAt: data.updatedAt?.toDate() || new Date(0), // Use for sorting drafts
-                    };
-                });
+        setLoading(true);
+        // Query the top-level 'applications' collection for all submitted applications
+        const applicationsCollection = collection(db, 'applications');
+        const q = query(applicationsCollection, orderBy('submittedAt', 'desc'));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const applicationsList: Application[] = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    userId: data.userId,
+                    studentName: data.studentName || 'N/A',
+                    status: data.status || 'Pending Review',
+                    submittedAt: data.submittedAt?.toDate() ? format(data.submittedAt.toDate(), 'PPP') : 'N/A',
+                    country: data.personalInfo?.countryOfCitizenship || 'N/A',
+                    updatedAt: data.updatedAt?.toDate() || new Date(0),
+                };
+            });
+            setApplications(applicationsList);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching applications:", error);
+            setLoading(false);
+        });
 
-                // Client-side sorting
-                applicationsList.sort((a, b) => {
-                    const aDate = a.status === 'draft' ? a.updatedAt : (a.submittedAt !== 'N/A' ? new Date(a.submittedAt) : new Date(0));
-                    const bDate = b.status === 'draft' ? b.updatedAt : (b.submittedAt !== 'N/A' ? new Date(b.submittedAt) : new Date(0));
-                    return bDate.getTime() - aDate.getTime();
-                });
-
-                setApplications(applicationsList);
-            } catch (error) {
-                console.error("Error fetching applications:", error);
-                // You might want to set an error state here to show in the UI
-            } finally {
-                setLoading(false);
-            }
-        }
-        getApplications();
+        return () => unsubscribe();
     }, []);
 
     const filteredApplications = useMemo(() => {
@@ -105,8 +95,8 @@ export default function AdminApplicationsPage() {
 
         <Card>
             <CardHeader>
-                <CardTitle>All Applications (Submitted & Drafts)</CardTitle>
-                <CardDescription>View, manage, and track all applications. Click a row to view details.</CardDescription>
+                <CardTitle>All Submitted Applications</CardTitle>
+                <CardDescription>View, manage, and track all submitted applications. Click a row to view details.</CardDescription>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                     <Input 
                         placeholder="Search by name, app ID, or user ID..." 
@@ -115,14 +105,15 @@ export default function AdminApplicationsPage() {
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectTrigger className="w-full sm:w-[220px]">
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="submitted">Submitted</SelectItem>
                             <SelectItem value="Pending Review">Pending Review</SelectItem>
+                            <SelectItem value="Awaiting LOA">Awaiting LOA</SelectItem>
+                            <SelectItem value="Application Submitted to IRCC">Submitted to IRCC</SelectItem>
+                            <SelectItem value="Passport Request">Passport Request</SelectItem>
                             <SelectItem value="Approved">Approved</SelectItem>
                             <SelectItem value="Action Required">Action Required</SelectItem>
                             <SelectItem value="Rejected">Rejected</SelectItem>
@@ -137,7 +128,7 @@ export default function AdminApplicationsPage() {
                             <TableRow>
                                 <TableHead>Student Name</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Last Updated</TableHead>
+                                <TableHead>Submitted At</TableHead>
                                 <TableHead>App ID</TableHead>
                                 <TableHead>User ID</TableHead>
                             </TableRow>
@@ -149,13 +140,13 @@ export default function AdminApplicationsPage() {
                                         <TableCell><Skeleton className="h-5 w-[150px]" /></TableCell>
                                         <TableCell><Skeleton className="h-6 w-[120px]" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-[200px]" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-[200px]" /></TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 filteredApplications.map(app => (
-                                    <TableRow key={`${app.userId}-${app.id}`} onClick={() => router.push(`/admin/applications/${app.id}?userId=${app.userId}`)} className="cursor-pointer hover:bg-muted/50">
+                                    <TableRow key={app.id} onClick={() => router.push(`/admin/applications/${app.id}`)} className="cursor-pointer hover:bg-muted/50">
                                         <TableCell className="font-medium">{app.studentName}</TableCell>
                                         <TableCell>
                                             <Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge>
@@ -163,7 +154,7 @@ export default function AdminApplicationsPage() {
                                         <TableCell className="text-sm text-muted-foreground">
                                             {app.submittedAt}
                                         </TableCell>
-                                        <TableCell className="font-mono text-xs">{app.id.substring(0, 7).toUpperCase()}</TableCell>
+                                        <TableCell className="font-mono text-xs">{app.id.substring(0, 10)}...</TableCell>
                                         <TableCell className="font-mono text-xs">{app.userId}</TableCell>
                                     </TableRow>
                                 ))

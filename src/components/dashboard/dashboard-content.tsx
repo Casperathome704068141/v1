@@ -3,20 +3,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BrainCircuit, Check, Circle, UserCheck, Send, Fingerprint, Stethoscope, CheckCircle, CalendarCheck, GraduationCap, FileText, BadgeHelp, History } from 'lucide-react';
+import { ArrowRight, BadgeHelp, CalendarCheck, History } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { useApplication } from '@/context/application-context';
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ApplicationProgress } from './application-progress';
-
+import { ApplicationJourney } from './application-journey';
 
 type Appointment = {
     id: string;
@@ -108,9 +106,8 @@ function MyAppointments() {
     );
 }
 
-function ApplicationStatusTimeline() {
-    const { user } = useUser();
-    const { applicationData, isLoaded } = useApplication();
+function ApplicationStatus() {
+    const { isLoaded, applicationData } = useApplication();
     const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -125,7 +122,6 @@ function ApplicationStatusTimeline() {
             return;
         }
 
-        // Now, listen to the status history of the found submitted application
         const historyRef = collection(db, 'applications', submittedApplicationId, 'statusHistory');
         const q = query(historyRef, orderBy('timestamp', 'desc'));
         
@@ -146,10 +142,14 @@ function ApplicationStatusTimeline() {
 
     }, [submittedApplicationId, isLoaded]);
 
+    if (!submittedApplicationId) {
+        return <ApplicationProgress />;
+    }
+
     if (!isLoaded || loading) {
         return (
              <Card>
-                <CardHeader><CardTitle>Your Application Status</CardTitle><CardDescription>Updates from our team will appear here.</CardDescription></CardHeader>
+                <CardHeader><CardTitle>Your Application Journey</CardTitle><CardDescription>Updates from our team will appear here.</CardDescription></CardHeader>
                 <CardContent className="space-y-4">
                     <Skeleton className="h-6 w-1/2" />
                     <Skeleton className="h-4 w-full" />
@@ -169,34 +169,17 @@ function ApplicationStatusTimeline() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <History className="h-5 w-5 text-primary" />
-                    Admin Status Updates
+                    Your Application Journey
                 </CardTitle>
                 <CardDescription>
-                    {statusHistory.length > 0 ? `Current Status: ${statusHistory[0].status}` : 'Awaiting first update from our team.'}
+                    {statusHistory.length > 0 ? `Current Status: ${statusHistory[0].status}` : 'Your application has been submitted!'}
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                {statusHistory.length > 0 ? (
-                    <ul className="space-y-6">
-                        {statusHistory.map((item, index) => (
-                            <li key={item.id} className="relative flex gap-4">
-                                <div className="absolute left-2.5 top-2.5 -ml-px mt-1 h-full w-0.5 bg-border" />
-                                <div className={cn("relative z-10 flex h-5 w-5 items-center justify-center rounded-full", index === 0 ? "bg-primary" : "bg-muted-foreground")}>
-                                   {index === 0 && <div className="h-2 w-2 rounded-full bg-white" />}
-                                </div>
-                                <div className="flex-1">
-                                    <p className={cn("font-semibold", index === 0 && "text-primary")}>{item.status}</p>
-                                    <p className="text-sm text-muted-foreground">{item.notes}</p>
-                                    <p className="text-xs text-muted-foreground/80 mt-1">
-                                        {format(item.timestamp.toDate(), 'PPp')}
-                                    </p>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">Your application has been submitted. Status updates from our team will appear here.</p>
-                )}
+                <ApplicationJourney 
+                    currentStatus={statusHistory.length > 0 ? statusHistory[0].status : 'Pending Review'} 
+                    statusHistory={statusHistory} 
+                />
             </CardContent>
         </Card>
     )
@@ -204,7 +187,6 @@ function ApplicationStatusTimeline() {
 
 export function DashboardContent() {
   const { user } = useUser();
-  const { applicationData } = useApplication();
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [loadingQuiz, setLoadingQuiz] = useState(true);
 
@@ -224,8 +206,6 @@ export function DashboardContent() {
     fetchData();
   }, [user]);
 
-  const hasSubmitted = applicationData.status === 'submitted' && applicationData.submittedAppId;
-
   return (
     <main className="flex-1 space-y-8 p-4 md:p-8">
       <div className="space-y-2">
@@ -239,11 +219,7 @@ export function DashboardContent() {
 
       <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2 space-y-8">
-             {hasSubmitted ? (
-                <ApplicationStatusTimeline />
-             ) : (
-                <ApplicationProgress />
-             )}
+             <ApplicationStatus />
           </div>
 
           <div className="space-y-8 md:col-span-1">

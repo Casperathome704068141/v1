@@ -1,57 +1,54 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function for admin custom claim check
+
+    // Helper function to check for admin custom claim
     function isAdmin() {
       return request.auth.token.admin == true;
     }
 
-    // Rules for users collection and their sub-collections
-    // This covers user profiles and draft applications
+    // Rules for users collection and their sub-collections (including application drafts)
     match /users/{userId}/{document=**} {
+      // User can read and write to their own documents. Admin has full access.
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
-    
-    // Rules for top-level submitted applications
-    match /applications/{applicationId} {
-        // Users can read their own submitted application to check status
-        allow get: if request.auth.uid == resource.data.userId || isAdmin();
-        
-        // Admins can list all applications and update/delete them
-        allow list, update, delete: if isAdmin();
 
-        // Rules for the status history sub-collection
-        match /statusHistory/{historyId} {
-            // Admins can create new status updates
-            allow create: if isAdmin();
-            // Users can read the status history for their own application
-            allow read: if request.auth.uid == get(/databases/$(database)/documents/applications/$(applicationId)).data.userId || isAdmin();
-        }
+    // Rules for the top-level 'applications' collection (submitted applications)
+    match /applications/{applicationId} {
+      // Logged-in users can create an application for themselves
+      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
+      // Admins can read, update, and delete any submitted application
+      allow read, update, delete: if isAdmin();
     }
     
-    // Rules for appointment requests
+    // Rules for the 'statusHistory' sub-collection within each application
+    match /applications/{applicationId}/statusHistory/{historyId} {
+        // The user who owns the application can read their own status history
+        allow read: if request.auth.uid == get(/databases/$(database)/documents/applications/$(applicationId)).data.userId || isAdmin();
+        // Only admins can create new status history entries
+        allow create: if isAdmin();
+    }
+
+    // Rules for appointments
     match /appointments/{appointmentId} {
-      // Any authenticated user can create an appointment for themselves
+      // Allow authenticated users to create appointments for themselves
       allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
-      
-      // A user can read their own appointment, admins can read all
+      // Allow users to read their own appointments, and admins to read all
       allow read: if request.auth.uid == resource.data.userId || isAdmin();
-      
-      // Only admins can update (confirm/decline) or delete appointments
+      // Only admins can update or delete appointments
       allow update, delete: if isAdmin();
     }
     
-    // Admins can manage platform settings
+    // Rules for app-wide settings (e.g., maintenance mode)
     match /settings/{docId} {
-      allow read, write: if isAdmin();
+      allow read: if true; // All users can read settings
+      allow write: if isAdmin(); // Only admins can change settings
     }
     
-    // Admins can manage news/CMS content
-    match /news/{docId} {
-      allow read, write: if isAdmin();
+    // Rules for news/CMS posts
+    match /news/{newsId} {
+        allow read: if true; // All users can read news
+        allow write: if isAdmin(); // Only admins can create/edit news
     }
   }
 }
