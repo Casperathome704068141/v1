@@ -1,65 +1,55 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function for admin custom claim check
+
     function isAdmin() {
       return request.auth.token.admin == true;
     }
 
-    // Rules for the 'users' collection and all sub-collections (like application drafts)
     match /users/{userId}/{path=**} {
       allow read, write: if request.auth.uid == userId || isAdmin();
     }
-    
-    // Rules for the top-level 'applications' collection (submitted applications)
+
     match /applications/{applicationId} {
-      // Only admins can read, update, or delete submitted applications
       allow read, update, delete: if isAdmin();
-      // No one can create documents here directly; they are created server-side or via a secure function
-      allow create: if false; 
     }
-    
-    // Rules for the 'appointments' collection
+
     match /appointments/{appointmentId} {
-      // Allow a user to create an appointment if the document has the correct structure and ownership
+      // Allow creation if the user is authenticated, the data is for them,
+      // and all required fields are present with correct types.
+      // The createdAt check is the key fix here.
       allow create: if request.auth.uid != null
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.size() == 8
         && request.resource.data.userName is string
         && request.resource.data.userEmail is string
         && request.resource.data.requestedDate is string
         && request.resource.data.requestedTime is string
         && request.resource.data.topic is string
         && request.resource.data.status == "pending"
-        && request.resource.data.createdAt is timestamp;
+        && request.resource.data.createdAt == request.time; // Use request.time to validate a server timestamp
 
-      // Allow a user to read their own appointments, and admins to read all appointments.
+      // Allow users to read their own appointments, and admins to read any.
       allow read: if request.auth.uid == resource.data.userId || isAdmin();
-
-      // Only allow admins to update (e.g., change status) or delete appointments.
+      
+      // Only admins can update (confirm/decline) or delete appointments.
       allow update, delete: if isAdmin();
     }
-    
-    // Rules for 'settings' collection (e.g., site-wide configurations)
+
     match /settings/{docId} {
       allow read, write: if isAdmin();
     }
-    
-    // Rules for 'news' collection (CMS content)
+
     match /news/{docId} {
-      // Anyone can read news posts
+      // Anyone can read news
       allow read: if true;
-      // Only admins can create/update/delete news posts
+      // Only admins can create/edit news
       allow write: if isAdmin();
     }
 
-    // Rule for the 'application' collection group query used by admins
-    // This allows admins to query across all users' 'application' sub-collections
+    // This rule allows admins to perform collection group queries on all 'application' subcollections.
+    // This is necessary for the "Manage Applications" page to view both drafts and submitted apps.
     match /{path=**}/application/{applicationId} {
-       allow read, list: if isAdmin();
+       allow read: if isAdmin();
     }
   }
 }
