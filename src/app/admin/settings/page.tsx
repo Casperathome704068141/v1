@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -102,7 +101,7 @@ export default function AdminSettingsPage() {
     <AdminLayout>
       <main className="flex-1 space-y-8 p-4 md:p-8">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+            <h1 className="text-3xl font-bold tracking-tight font-headline">Settings</h1>
             <p className="text-muted-foreground">Manage platform-wide configurations and preferences.</p>
         </div>
         

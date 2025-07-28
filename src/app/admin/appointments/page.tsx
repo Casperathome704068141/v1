@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -97,7 +96,7 @@ const AppointmentCard = ({ appointment, onUpdate }: { appointment: Appointment, 
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                    <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700" onClick={() => onUpdate(appointment.id, 'confirmed')}>
+                    <Button size="sm" variant="success" onClick={() => onUpdate(appointment.id, 'confirmed')}>
                         <Check className="mr-2 h-4 w-4"/> Accept
                     </Button>
                 </div>
@@ -162,7 +161,7 @@ export default function AdminAppointmentsPage() {
         <AdminLayout>
             <main className="flex-1 space-y-8 p-4 md:p-8">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Appointment Requests</h1>
+                    <h1 className="text-3xl font-bold tracking-tight font-headline">Appointment Requests</h1>
                     <p className="text-muted-foreground">Review, confirm, or decline appointment requests from users.</p>
                 </div>
 
@@ -173,7 +172,7 @@ export default function AdminAppointmentsPage() {
                 )}
                 
                 <section>
-                    <h2 className="text-2xl font-semibold tracking-tight mb-4">Pending Requests</h2>
+                    <h2 className="text-2xl font-semibold tracking-tight mb-4 font-headline">Pending Requests</h2>
                     {loading ? (
                          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                              <Skeleton className="h-48 w-full" />
@@ -184,7 +183,11 @@ export default function AdminAppointmentsPage() {
                             {pendingAppointments.map(appt => <AppointmentCard key={appt.id} appointment={appt} onUpdate={handleUpdateStatus} />)}
                         </div>
                     ) : (
-                        <div className="text-center py-12 text-muted-foreground">No pending appointment requests.</div>
+                        <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-lg">
+                            <CalendarCheck2 className="mx-auto h-12 w-12" />
+                            <h3 className="mt-4 text-lg font-medium">All Caught Up!</h3>
+                            <p className="mt-1 text-sm">No pending appointment requests.</p>
+                        </div>
                     )}
                 </section>
 

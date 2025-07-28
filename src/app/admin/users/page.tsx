@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -28,6 +27,7 @@ function getPlanBadgeVariant(plan: string) {
     switch (plan?.toLowerCase()) {
         case 'elite': return 'default';
         case 'advantage': return 'secondary';
+        case 'starter': return 'outline';
         default: return 'outline';
     }
 }
@@ -105,7 +105,7 @@ export default function AdminUsersPage() {
             <main className="flex-1 space-y-4 p-4 md:p-8 pt-6">
                 <div className="flex items-center justify-between space-y-2">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">User Management</h2>
+                        <h2 className="text-3xl font-bold tracking-tight font-headline">User Management</h2>
                         <p className="text-muted-foreground">View and manage all registered user accounts.</p>
                     </div>
                 </div>

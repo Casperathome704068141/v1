@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -60,7 +59,7 @@ export default function AdminCmsPage() {
     <AdminLayout>
       <main className="flex-1 space-y-8 p-4 md:p-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">News & Announcements</h1>
+          <h1 className="text-3xl font-bold tracking-tight font-headline">News & Announcements</h1>
           <p className="text-muted-foreground">Create and publish articles for your users.</p>
         </div>
         
@@ -90,7 +89,7 @@ export default function AdminCmsPage() {
                         </TabsList>
                         <TabsContent value="edit">
                             <div className="space-y-2">
-                                <Label htmlFor="post-content" className="text-base">Content</Label>
+                                <Label htmlFor="post-content" className="text-base sr-only">Content</Label>
                                 <Textarea 
                                     id="post-content" 
                                     placeholder="Write your article content here... Use markdown for formatting." 
@@ -103,7 +102,7 @@ export default function AdminCmsPage() {
                             </div>
                         </TabsContent>
                         <TabsContent value="preview">
-                             <div className="prose prose-stone dark:prose-invert rounded-md border p-4 min-h-[258px]">
+                             <div className="prose prose-stone dark:prose-invert rounded-md border bg-muted/50 p-4 min-h-[288px]">
                                 {content ? <ReactMarkdown>{content}</ReactMarkdown> : <div className="flex flex-col items-center justify-center h-full text-muted-foreground"><Eye className="h-8 w-8 mb-2" /><span>Start typing to see a preview.</span></div>}
                             </div>
                         </TabsContent>

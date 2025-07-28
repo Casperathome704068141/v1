@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -62,7 +61,7 @@ export default function AdminPaymentsPage() {
     <AdminLayout>
       <main className="flex-1 space-y-8 p-4 md:p-8">
         <div>
-            <h1 className="text-3xl font-bold tracking-tight">Payments</h1>
+            <h1 className="text-3xl font-bold tracking-tight font-headline">Payments</h1>
             <p className="text-muted-foreground">Track all transactions and revenue.</p>
         </div>
 

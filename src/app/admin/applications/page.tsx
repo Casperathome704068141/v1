@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -39,25 +38,6 @@ function getStatusBadgeVariant(status: string) {
         default: return 'outline';
     }
 }
-
-const ApplicationsTableSkeleton = () => (
-    <div className="space-y-4">
-        {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="flex items-center space-x-4 p-4 border-b">
-                <div className="space-y-2 flex-1">
-                    <Skeleton className="h-5 w-1/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                </div>
-                <div className="space-y-2 flex-1">
-                    <Skeleton className="h-5 w-1/3" />
-                </div>
-                <div className="space-y-2 flex-1">
-                    <Skeleton className="h-5 w-1/2" />
-                </div>
-            </div>
-        ))}
-    </div>
-);
 
 const NoResults = () => (
     <div className="text-center py-16">
@@ -117,7 +97,7 @@ export default function AdminApplicationsPage() {
         <main className="flex-1 space-y-4 p-4 md:p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Manage Applications</h2>
+                    <h2 className="text-3xl font-bold tracking-tight font-headline">Manage Applications</h2>
                     <p className="text-muted-foreground">Here you can view, manage, and track all submitted student applications.</p>
                 </div>
             </div>
@@ -178,7 +158,7 @@ export default function AdminApplicationsPage() {
                                     ))
                                 ) : filteredApplications.length > 0 ? (
                                     filteredApplications.map(app => (
-                                        <TableRow key={app.id} onClick={() => router.push(`/admin/applications/${app.id}`)} className="cursor-pointer hover:bg-muted/50">
+                                        <TableRow key={app.id} onClick={() => router.push(`/admin/applications/${app.id}?userId=${app.userId}`)} className="cursor-pointer hover:bg-muted/50">
                                             <TableCell className="font-medium">{app.studentName}</TableCell>
                                             <TableCell className="text-muted-foreground">{app.country}</TableCell>
                                             <TableCell><Badge variant={getStatusBadgeVariant(app.status)}>{app.status}</Badge></TableCell>
