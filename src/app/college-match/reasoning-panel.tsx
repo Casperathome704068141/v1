@@ -50,11 +50,11 @@ export function ReasoningPanel({ dliDetails, studentProfile, filteringLogic, ini
 
     getReasoning();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dliDetails, filteringLogic]);
+  }, [dliDetails.name, filteringLogic]);
 
   if (loading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-3/4" />
@@ -66,5 +66,5 @@ export function ReasoningPanel({ dliDetails, studentProfile, filteringLogic, ini
     return <p className="text-sm text-destructive">{error}</p>;
   }
 
-  return <p className="text-sm text-muted-foreground">{reasoning}</p>;
+  return <p className="text-sm text-muted-foreground leading-relaxed">{reasoning}</p>;
 }
