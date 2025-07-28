@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -46,43 +45,59 @@ const sectionMaxPoints: Record<string, number> = questions.reduce((acc, q) => {
 
 export function EligibilityQuizFlow() {
   const [answers, setAnswers] = useState<Answers>({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [finished, setFinished] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
   const visibleQuestions = useMemo(() => questions.filter(q => !q.condition || q.condition(answers)), [answers]);
-  const currentQuestionIndex = useMemo(() => visibleQuestions.findIndex(q => answers[q.id] === undefined), [visibleQuestions, answers]);
-  
-  useEffect(() => {
-    if (currentQuestionIndex === -1 && Object.keys(answers).length >= visibleQuestions.length) {
-      setFinished(true);
-    }
-  }, [currentQuestionIndex, answers, visibleQuestions.length]);
-
   const currentQuestion = visibleQuestions[currentQuestionIndex];
 
-  const handleAnswerChange = (questionId: string, value: string | string[]) => setAnswers(prev => ({ ...prev, [questionId]: value }));
+  const handleAnswerChange = (questionId: string, value: string) => {
+    const newAnswers = { ...answers, [questionId]: value };
+    setAnswers(newAnswers);
+    if (currentQuestionIndex < visibleQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      setFinished(true);
+    }
+  };
 
   const handleCheckboxChange = (questionId: string, value: string, checked: boolean) => {
     const oldAns = (answers[questionId] as string[] || []);
     const newAns = checked ? [...oldAns, value] : oldAns.filter(v => v !== value);
-    handleAnswerChange(questionId, newAns);
+    setAnswers(prev => ({ ...prev, [questionId]: newAns }));
   };
+  
+  const handleNextForCheckbox = () => {
+     if (currentQuestionIndex < visibleQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      setFinished(true);
+    }
+  }
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      const prevQId = visibleQuestions[currentQuestionIndex - 1].id;
-      const newAnswers = { ...answers };
-      delete newAnswers[prevQId];
-      questions.forEach(q => { if (q.condition && !q.condition(newAnswers)) delete newAnswers[q.id]; });
-      setAnswers(newAnswers);
+        const prevQuestionId = visibleQuestions[currentQuestionIndex - 1].id;
+        const newAnswers = { ...answers };
+        delete newAnswers[prevQuestionId];
+        // Also remove answers for questions that are no longer visible
+        questions.forEach(q => {
+            if (q.condition && !q.condition(newAnswers)) {
+                delete newAnswers[q.id];
+            }
+        });
+
+        setAnswers(newAnswers);
+        setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
   const calculateScores = () => {
     let totalScore = 0;
     const sectionScores: Record<string, number> = {};
-    questions.forEach(q => {
+    visibleQuestions.forEach(q => {
       if (!sectionScores[q.section]) sectionScores[q.section] = 0;
       const answerValue = answers[q.id];
       if (answerValue) {
@@ -111,11 +126,12 @@ export function EligibilityQuizFlow() {
         takenAt: serverTimestamp(),
       }).catch(error => toast({ title: "Error Saving Results", description: "Your results could not be saved.", variant: "destructive" }));
     }
-  }, [finished, user, answers, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished, user]);
 
   if (finished) {
     const { totalScore, sectionScores } = calculateScores();
-    return <QuizResults totalScore={totalScore} sectionScores={sectionScores} onReset={() => { setAnswers({}); setFinished(false); }} sectionMaxPoints={sectionMaxPoints} answers={answers} />;
+    return <QuizResults totalScore={totalScore} sectionScores={sectionScores} onReset={() => { setAnswers({}); setCurrentQuestionIndex(0); setFinished(false); }} sectionMaxPoints={sectionMaxPoints} answers={answers} />;
   }
 
   if (!currentQuestion) return null;
@@ -144,30 +160,37 @@ export function EligibilityQuizFlow() {
             <p className="text-lg font-semibold mb-4">{currentQuestion.text}</p>
             <div className="space-y-3">
               {currentQuestion.options.map(opt => {
-                const isSelected = currentQuestion.type === 'checkbox'
-                  ? ((answers[currentQuestion.id] as string[]) || []).includes(opt.value)
-                  : answers[currentQuestion.id] === opt.value;
-                
-                return (
-                  <motion.div key={opt.value} whileTap={{ scale: 0.98 }}>
+                if (currentQuestion.type === 'checkbox') {
+                  const isSelected = ((answers[currentQuestion.id] as string[]) || []).includes(opt.value);
+                  return (
                     <Label
+                      key={opt.value}
                       htmlFor={`${currentQuestion.id}-${opt.value}`}
                       className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-all ${
                         isSelected ? 'border-primary bg-primary/10' : 'hover:border-primary/50'
                       }`}
                     >
-                      {currentQuestion.type === 'checkbox' ? (
-                          <Checkbox
-                            id={`${currentQuestion.id}-${opt.value}`}
-                            checked={isSelected}
-                            onCheckedChange={checked => handleCheckboxChange(currentQuestion.id, opt.value, !!checked)}
-                            className="h-6 w-6"
-                          />
-                      ) : (
-                          <Check className={`h-6 w-6 rounded-full p-1 transition-all ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} />
-                      )}
+                      <Checkbox
+                        id={`${currentQuestion.id}-${opt.value}`}
+                        checked={isSelected}
+                        onCheckedChange={checked => handleCheckboxChange(currentQuestion.id, opt.value, !!checked)}
+                        className="h-6 w-6"
+                      />
                       <span className="flex-1 text-base">{opt.label}</span>
                     </Label>
+                  );
+                }
+                return (
+                  <motion.div key={opt.value} whileTap={{ scale: 0.98 }}>
+                    <div
+                      onClick={() => handleAnswerChange(currentQuestion.id, opt.value)}
+                      className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-all ${
+                        answers[currentQuestion.id] === opt.value ? 'border-primary bg-primary/10' : 'hover:border-primary/50'
+                      }`}
+                    >
+                      <Check className={`h-6 w-6 rounded-full p-1 transition-all ${answers[currentQuestion.id] === opt.value ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} />
+                      <span className="flex-1 text-base">{opt.label}</span>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -179,15 +202,15 @@ export function EligibilityQuizFlow() {
         <Button variant="ghost" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Previous
         </Button>
-        <Button 
-            onClick={() => {if (currentQuestionIndex === visibleQuestions.length - 1) setFinished(true);}}
+        {currentQuestion.type === 'checkbox' && (
+           <Button 
+            onClick={handleNextForCheckbox}
             disabled={!answers[currentQuestion.id] || (Array.isArray(answers[currentQuestion.id]) && (answers[currentQuestion.id] as string[]).length === 0)}
-        >
-          {currentQuestionIndex === visibleQuestions.length - 1 ? 'Finish & See Results' : 'Next'} <Send className="ml-2 h-4 w-4" />
-        </Button>
+           >
+             {currentQuestionIndex === visibleQuestions.length - 1 ? 'Finish & See Results' : 'Next'} <Send className="ml-2 h-4 w-4" />
+           </Button>
+        )}
       </CardFooter>
     </Card>
   );
 }
-
-    

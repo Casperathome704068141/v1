@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -12,9 +12,10 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { ArrowLeft, LogIn } from 'lucide-react';
+import { ArrowLeft, LogIn, Briefcase } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const GoogleIcon = (props) => <svg role="img" viewBox="0 0 24 24" {...props}><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.98-4.66 1.98-3.55 0-6.43-2.91-6.43-6.48s2.88-6.48 6.43-6.48c2.05 0 3.32.83 4.1 1.62l2.5-2.5C18.16 3.73 15.66 2.53 12.48 2.53c-5.47 0-9.9 4.43-9.9 9.9s4.43 9.9 9.9 9.9c2.78 0 5.03-1.02 6.7-2.72 1.7-1.7 2.37-4.1 2.37-6.52 0-.65-.07-1.25-.16-1.82z"/></svg>;
 
@@ -98,6 +99,22 @@ export default function LoginPage() {
                         </Link>
                     </div>
                 </CardContent>
+                <CardFooter className="justify-center pt-4">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link href="/admin/login" aria-label="Admin Login">
+                                        <Briefcase className="h-5 w-5 text-muted-foreground" />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Admin Portal</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </CardFooter>
             </Card>
         </motion.div>
     </div>
