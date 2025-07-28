@@ -4,14 +4,13 @@
 export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import Image from 'next/image';
@@ -30,7 +29,6 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -38,11 +36,11 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
+    if (password.length < 6) {
       toast({
         variant: 'destructive',
         title: 'Signup Failed',
-        description: 'Passwords do not match.',
+        description: 'Password must be at least 6 characters long.',
       });
       return;
     }
@@ -52,8 +50,6 @@ export default function SignupPage() {
       await updateProfile(userCredential.user, {
         displayName: fullName,
       });
-      // The createUserDocument logic is now handled by the AuthProvider,
-      // so we don't need to call it here. The listener will pick up the new user.
       router.push('/dashboard');
     } catch (error: any) {
       toast({
@@ -67,62 +63,58 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center items-center">
-          <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary"/>
-          <CardTitle className="font-headline text-3xl font-black text-foreground">
-            Create an Account
-          </CardTitle>
-          <CardDescription>Join Maple Leafs Education to start your journey.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 mb-6">
-            <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon className="mr-2 h-4 w-4" /> Google</Button>
-          </div>
-           <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or sign up with email</span>
-            </div>
-          </div>
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input id="fullName" type="text" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input id="confirmPassword" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-            </div>
-            <Button type="submit" className="w-full font-bold" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </Button>
-          </form>
-          <div className="mt-6 text-center text-sm">
-            Already have an account?{' '}
-            <Link href="/login" className="font-semibold text-primary/90 hover:text-primary hover:underline">
-              Log in
-            </Link>
-          </div>
-           <div className="mt-4 text-center text-sm">
-                 <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary hover:underline">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Home
+    <main className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
+        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+        </Link>
+        <div className="w-full max-w-md">
+            <div className="text-center mb-6 animate-fade-in">
+                <Link href="/">
+                    <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary mx-auto"/>
                 </Link>
+                <h1 className="text-2xl font-bold mt-4">Create your Account</h1>
+                <p className="text-muted-foreground">Start your Canadian education journey today.</p>
             </div>
-        </CardContent>
-      </Card>
+            <Card className="w-full animate-fade-in [animation-delay:200ms]">
+                <CardContent className="p-6">
+                    <div className="grid grid-cols-1 gap-4">
+                        <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon className="mr-2 h-4 w-4" /> Continue with Google</Button>
+                    </div>
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-card px-2 text-muted-foreground">Or with email</span>
+                        </div>
+                    </div>
+                    <form onSubmit={handleSignup} className="space-y-4">
+                        <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input id="fullName" type="text" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                        </div>
+                        <Button type="submit" className="w-full font-semibold" disabled={loading}>
+                        {loading ? 'Creating Account...' : 'Create Account'}
+                        </Button>
+                    </form>
+                    <div className="mt-6 text-center text-sm">
+                        Already have an account?{' '}
+                        <Link href="/login" className="font-semibold text-primary hover:underline">
+                            Log in
+                        </Link>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     </main>
   );
 }

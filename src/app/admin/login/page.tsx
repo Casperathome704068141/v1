@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
@@ -26,14 +26,12 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      // Step 1: Sign in with Firebase Auth on the client.
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Step 2: Get the ID token and check for the `admin` custom claim.
-      // This is the secure way to verify admin privileges.
       const idTokenResult = await userCredential.user.getIdTokenResult();
       
       if (!idTokenResult.claims.admin) {
+         await auth.signOut();
          toast({
            variant: 'destructive',
            title: 'Authorization Failed',
@@ -61,49 +59,49 @@ export default function AdminLoginPage() {
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center items-center">
-            <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary"/>
-          <CardTitle className="font-headline text-3xl font-black text-foreground">
-            Maple Leafs Education
-          </CardTitle>
-          <CardDescription>Staff Portal</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="admin@mapleleafs.edu" 
-                required 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-              />
+        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+        </Link>
+        <div className="w-full max-w-md">
+            <div className="text-center mb-6 animate-fade-in">
+                <Link href="/">
+                    <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary mx-auto"/>
+                </Link>
+                <h1 className="text-2xl font-bold mt-4">Admin Portal</h1>
+                <p className="text-muted-foreground">Please sign in with your staff credentials.</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-              />
-            </div>
-            <Button type="submit" className="w-full font-bold" disabled={loading}>
-              {loading ? 'Authenticating...' : 'Log In'}
-            </Button>
-          </form>
-           <div className="mt-6 text-center text-sm">
-            <Link href="/" className="inline-flex items-center font-semibold text-primary/90 hover:text-primary hover:underline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Student Portal
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+            <Card className="w-full animate-fade-in [animation-delay:200ms]">
+                <CardContent className="p-6">
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                            id="email" 
+                            type="email" 
+                            placeholder="admin@mapleleafs.edu" 
+                            required 
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)} 
+                        />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                            id="password" 
+                            type="password" 
+                            required 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                        />
+                        </div>
+                        <Button type="submit" className="w-full font-semibold" disabled={loading}>
+                        {loading ? 'Authenticating...' : 'Sign In'}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
     </main>
   );
 }

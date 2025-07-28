@@ -51,81 +51,59 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex flex-col lg:flex-row min-h-screen w-full bg-background">
-       <div className="relative flex flex-col justify-end w-full lg:h-auto lg:w-1/2 p-8 lg:p-12 text-primary-foreground min-h-[300px] sm:min-h-[400px]">
-         <Image 
-            src="/login-background.jpg"
-            alt="Students studying in Canada"
-            layout="fill"
-            objectFit="cover"
-            priority
-            data-ai-hint="university students"
-         />
-         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-         <div className="relative z-10">
-            <h1 className="text-3xl lg:text-5xl font-black font-headline tracking-tighter">Your Journey to Canadian Education Starts Here.</h1>
-            <p className="mt-4 text-base lg:text-lg max-w-lg">Access our AI-powered platform to find the perfect college and streamline your application.</p>
-         </div>
-      </div>
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-8 md:p-12">
-        <Card className="w-full max-w-md border-0 shadow-none lg:border lg:shadow-lg animate-fade-in">
-          <Link href="/admin/login" className="absolute top-2 right-2">
-              <Button variant="ghost" size="icon" aria-label="Admin Login">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-              </Button>
-          </Link>
-          <CardHeader className="text-center items-center">
-            <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={72} height={72} className="text-primary"/>
-            <CardTitle className="font-headline text-3xl font-black text-foreground">
-              Maple Leafs Education
-            </CardTitle>
-            <CardDescription>Welcome back! Please enter your details.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="/forgot-password" className="text-sm text-primary/90 hover:text-primary hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-              <Button type="submit" className="w-full font-bold" disabled={loading}>
-                {loading ? 'Logging in...' : 'Log In'}
-              </Button>
-            </form>
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon className="mr-2 h-4 w-4" /> Google</Button>
-            </div>
-            <div className="mt-6 text-center text-sm">
-              Don't have an account?{' '}
-              <Link href="/signup" className="font-semibold text-primary/90 hover:text-primary hover:underline">
-                Sign up
-              </Link>
-            </div>
-            <div className="mt-4 text-center text-sm">
-                 <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-primary hover:underline">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Home
+    <main className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
+        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+        </Link>
+        <div className="w-full max-w-md">
+            <div className="text-center mb-6 animate-fade-in">
+                <Link href="/">
+                    <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary mx-auto"/>
                 </Link>
+                <h1 className="text-2xl font-bold mt-4">Welcome Back</h1>
+                <p className="text-muted-foreground">Sign in to continue your journey.</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="w-full animate-fade-in [animation-delay:200ms]">
+                <CardContent className="p-6">
+                    <div className="grid grid-cols-1 gap-4">
+                        <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon className="mr-2 h-4 w-4" /> Continue with Google</Button>
+                    </div>
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-card px-2 text-muted-foreground">Or with email</span>
+                        </div>
+                    </div>
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                            <Label htmlFor="password">Password</Label>
+                            <Link href="/forgot-password" className="text-sm text-primary/90 hover:text-primary hover:underline">
+                                Forgot password?
+                            </Link>
+                            </div>
+                            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                        </div>
+                        <Button type="submit" className="w-full font-semibold" disabled={loading}>
+                            {loading ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                    </form>
+                    <div className="mt-6 text-center text-sm">
+                        Don't have an account?{' '}
+                        <Link href="/signup" className="font-semibold text-primary hover:underline">
+                            Sign up
+                        </Link>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     </main>
   );
 }

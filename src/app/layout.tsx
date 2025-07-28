@@ -5,7 +5,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
-import { lato, montserrat, roboto_mono } from './fonts';
+import { inter, montserrat, roboto_mono } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Maple Leafs Education',
@@ -52,8 +52,8 @@ export default function RootLayout({
         />
       </head>
       <body className={cn(
-        "font-body antialiased",
-        lato.variable,
+        "font-sans antialiased",
+        inter.variable,
         montserrat.variable,
         roboto_mono.variable
       )}>

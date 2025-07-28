@@ -1,9 +1,9 @@
-import { Lato, Montserrat, Roboto_Mono } from 'next/font/google';
 
-export const lato = Lato({
+import { Inter, Montserrat, Roboto_Mono } from 'next/font/google';
+
+export const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-lato',
+  variable: '--font-inter',
   display: 'swap',
 });
 

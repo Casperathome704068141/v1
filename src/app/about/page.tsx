@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Linkedin, Twitter } from 'lucide-react';
 import Image from 'next/image';
 import { SiteHeader } from '@/components/marketing/site-header';
+import { Badge } from '@/components/ui/badge';
 
 const teamMembers = [
   {
@@ -37,25 +38,24 @@ export default function AboutPage() {
       <SiteHeader />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-20 md:py-32 bg-primary/5">
-          <div className="container mx-auto px-4 md:px-6 text-center">
-            <div className="max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-5xl font-black font-headline tracking-tighter text-foreground">
-                Our Mission: Simplifying Your Path to Canada
-              </h1>
-              <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
-                We believe that every aspiring student deserves a clear, honest, and accessible route to a Canadian education. Maple Leafs Education was founded to replace confusion with clarity, and anxiety with confidence.
-              </p>
-            </div>
+        <section className="w-full py-20 md:py-32">
+          <div className="container mx-auto px-4 md:px-6 text-center animate-fade-in">
+            <Badge variant="outline" className="mb-4">Our Story</Badge>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground text-balance">
+              Simplifying the Path to a Canadian Education.
+            </h1>
+            <p className="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground text-balance">
+              We believe that every aspiring student deserves a clear, honest, and accessible route to studying in Canada. Maple Leafs Education was founded to replace confusion with clarity, and anxiety with confidence.
+            </p>
           </div>
         </section>
         
         {/* Story Section */}
-        <section className="w-full py-12 md:py-24">
+        <section className="w-full py-12 md:py-24 bg-muted/30 dark:bg-card">
             <div className="container mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-4">
                     <span className="text-sm font-semibold uppercase text-primary">The MLE Difference</span>
-                    <h2 className="text-3xl font-bold tracking-tighter">Combining AI Efficiency with Human Empathy</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">Combining AI Efficiency with Human Empathy</h2>
                     <p className="text-muted-foreground">
                         The Canadian study permit process is more competitive than ever. Simple mistakes or a poorly presented case can lead to refusals, dashing dreams and wasting time and money. We saw too many talented students getting rejected for avoidable reasons.
                     </p>
@@ -77,17 +77,17 @@ export default function AboutPage() {
         </section>
 
         {/* Team Section */}
-        <section className="w-full py-12 md:py-24 bg-muted/50">
+        <section className="w-full py-12 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Meet the Team</h2>
-              <p className="max-w-2xl mx-auto mt-4 text-muted-foreground md:text-lg">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Meet the Team</h2>
+              <p className="max-w-2xl mx-auto mt-4 text-muted-foreground md:text-lg text-balance">
                 The experts dedicated to your success.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               {teamMembers.map((member) => (
-                <Card key={member.name} className="text-center">
+                <Card key={member.name} className="text-center border-border/50 bg-muted/30 dark:bg-card">
                   <CardHeader className="items-center">
                     <Avatar className="h-24 w-24 mb-4">
                       <AvatarImage src={member.avatar} alt={member.name} data-ai-hint="professional headshot" />
@@ -111,8 +111,8 @@ export default function AboutPage() {
       </main>
       <footer className="bg-background border-t">
         <div className="container mx-auto px-4 md:px-6 py-8">
-          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
-            <div>
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
+            <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-2">
                 <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={24} height={24} />
                 <span className="font-bold text-lg">Maple Leafs Education</span>
@@ -124,6 +124,7 @@ export default function AboutPage() {
               <nav className="flex flex-col gap-1 text-sm text-muted-foreground">
                 <Link href="/#how-it-works" className="hover:text-primary hover:underline">How It Works</Link>
                 <Link href="/#testimonials" className="hover:text-primary hover:underline">Testimonials</Link>
+                 <Link href="/pricing" className="hover:text-primary hover:underline">Pricing</Link>
               </nav>
             </div>
             <div>

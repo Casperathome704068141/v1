@@ -5,61 +5,84 @@
 
 @layer base {
   :root {
-    --background: 35 100% 97%; /* Cream */
-    --foreground: 212 100% 14%; /* Navy */
+    --background: 240 20% 99%; /* Almost white */
+    --foreground: 224 76% 12%; /* Dark Blue */
+
     --card: 0 0% 100%;
-    --card-foreground: 215 28% 17%;
+    --card-foreground: 224 76% 12%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
-    --primary: 212 100% 31%; /* Brighter Navy */
+    --popover-foreground: 224 76% 12%;
+
+    --primary: 221 83% 53%; /* Apple Blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 175 41% 42%; /* Teal */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 17% 88%;
-    --muted-foreground: 215 20% 45%;
-    --accent: 356 78% 56%; /* Red */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 356 78% 56%; /* Red */
+
+    --secondary: 193 98% 56%; /* Electric Teal */
+    --secondary-foreground: 224 76% 12%;
+
+    --muted: 220 14% 96%; /* Light Gray */
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 14% 96%;
+    --accent-foreground: 224 76% 12%;
+
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 20% 90%;
-    --input: 215 20% 90%;
-    --ring: 212 100% 31%;
-    --radius: 0.5rem;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
     
-    --sidebar-background: 212 100% 14%; /* Navy */
-    --sidebar-foreground: 210 17% 95%; /* Light Gray-ish */
-    --sidebar-border: 212 100% 20%;
-    --sidebar-ring: 356 78% 56%; /* Red */
-    --sidebar-accent: 212 100% 20%;
+    --sidebar-background: 224 76% 12%; /* Dark Blue */
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-border: 224 76% 18%;
+    --sidebar-ring: 193 98% 56%;
+    --sidebar-accent: 224 76% 18%;
     --sidebar-accent-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 215 28% 11%;
-    --foreground: 210 17% 95%;
-    --card: 215 28% 13%;
-    --card-foreground: 210 17% 95%;
-    --popover: 215 28% 11%;
-    --popover-foreground: 210 17% 95%;
-    --primary: 212 100% 41%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 175 41% 52%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 215 28% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 356 78% 66%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 356 78% 66%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 215 28% 25%;
-    --input: 215 28% 25%;
-    --ring: 212 100% 41%;
+    --background: 224 76% 10%; /* Darkest Blue */
+    --foreground: 210 20% 98%;
 
-    --sidebar-background: 212 100% 10%;
-    --sidebar-foreground: 210 17% 95%;
-    --sidebar-border: 212 100% 15%;
-    --sidebar-ring: 356 78% 66%;
-    --sidebar-accent: 212 100% 15%;
+    --card: 224 76% 12%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 224 76% 10%;
+    --popover-foreground: 210 20% 98%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 193 98% 56%;
+    --secondary-foreground: 224 76% 12%;
+
+    --muted: 224 76% 15%;
+    --muted-foreground: 216 12% 74%;
+
+    --accent: 224 76% 15%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 20% 98%;
+    
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 224 76% 15%;
+    --input: 224 76% 15%;
+    --ring: 221 83% 53%;
+    
+    --sidebar-background: 224 76% 10%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-border: 224 76% 12%;
+    --sidebar-ring: 193 98% 56%;
+    --sidebar-accent: 224 76% 15%;
     --sidebar-accent-foreground: 0 0% 100%;
   }
 }
@@ -70,19 +93,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer utilities {
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
+  .text-balance {
+    text-wrap: balance;
   }
 }
