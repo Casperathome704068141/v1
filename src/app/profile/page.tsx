@@ -14,6 +14,24 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { User as UserIcon, Lock, Save } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+
+const ProfileSkeleton = () => (
+    <AppLayout>
+        <main className="flex-1 space-y-8 p-4 md:p-8">
+            <Skeleton className="h-8 w-48" />
+            <div className="grid gap-8 md:grid-cols-3">
+                <div className="md:col-span-1">
+                    <Skeleton className="h-48 w-full" />
+                </div>
+                <div className="md:col-span-2">
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </div>
+        </main>
+    </AppLayout>
+);
 
 export default function ProfilePage() {
   const { user, profile, loading } = useAuth();
@@ -23,98 +41,77 @@ export default function ProfilePage() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-
+    if (!user || displayName === user.displayName) return;
     setIsSaving(true);
     try {
-      // Update Firebase Auth profile
-      await updateProfile(user, { displayName });
-
-      // Update Firestore document
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, { name: displayName });
-
-      toast({
-        title: 'Profile Updated',
-        description: 'Your name has been successfully updated.',
-      });
+      await updateProfile(auth.currentUser, { displayName });
+      await updateDoc(doc(db, 'users', user.uid), { name: displayName });
+      toast({ title: 'Profile Updated', description: 'Your name has been successfully updated.' });
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description: 'Could not update your profile. Please try again.',
-      });
+      toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not update your profile.' });
     } finally {
       setIsSaving(false);
     }
   };
   
-  if (loading) {
-      return (
-          <AppLayout>
-              <main className="flex-1 space-y-6 p-4 md:p-8">
-                  <Skeleton className="h-8 w-48 mb-4" />
-                  <Card>
-                      <CardHeader>
-                          <Skeleton className="h-6 w-1/3" />
-                          <Skeleton className="h-4 w-2/3" />
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                          <Skeleton className="h-10 w-full" />
-                          <Skeleton className="h-10 w-full" />
-                          <Skeleton className="h-10 w-32" />
-                      </CardContent>
-                  </Card>
-              </main>
-          </AppLayout>
-      )
-  }
+  if (loading) return <ProfileSkeleton />;
 
   return (
     <AppLayout>
-      <main className="flex-1 space-y-6 p-4 md:p-8">
+      <main className="flex-1 space-y-8 p-4 md:p-8">
         <div>
-          <h1 className="font-headline text-3xl font-bold">Your Profile</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Your Account</h1>
           <p className="text-muted-foreground">Manage your personal information and account settings.</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Details</CardTitle>
-            <CardDescription>This information is used to populate your applications.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleProfileUpdate} className="space-y-6 max-w-lg">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={user?.photoURL || ''} data-ai-hint="user avatar" />
-                  <AvatarFallback>{profile?.name?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
-                <div className="grid gap-1.5">
-                  <p className="font-semibold">{profile?.name}</p>
-                  <p className="text-sm text-muted-foreground">{profile?.email}</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Full Name</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" value={user?.email || ''} disabled />
-                 <p className="text-xs text-muted-foreground">Email address cannot be changed.</p>
-              </div>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="grid gap-8 md:grid-cols-3">
+            <div className="md:col-span-1">
+                 <Card>
+                    <CardContent className="p-6 flex flex-col items-center text-center">
+                        <Avatar className="h-24 w-24 mb-4">
+                            <AvatarImage src={user?.photoURL || ''} alt={profile?.name}/>
+                            <AvatarFallback className="text-3xl">{profile?.name?.charAt(0) || 'U'}</AvatarFallback>
+                        </Avatar>
+                        <h2 className="text-xl font-semibold">{profile?.name}</h2>
+                        <p className="text-sm text-muted-foreground">{profile?.email}</p>
+                        <Badge className="mt-4" variant={profile?.plan ? 'default' : 'secondary'}>{profile?.plan || 'Free'} Plan</Badge>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="md:col-span-2">
+                <Card>
+                  <CardHeader><CardTitle>Profile Settings</CardTitle><CardDescription>This information is used across the platform.</CardDescription></CardHeader>
+                  <form onSubmit={handleProfileUpdate}>
+                      <CardContent className="space-y-6">
+                         <div className="space-y-2">
+                            <Label htmlFor="displayName">Full Name</Label>
+                            <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                            <FormDescription>Your legal name, as it appears on your passport.</FormDescription>
+                          </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" value={user?.email || ''} disabled />
+                             <FormDescription>Email address cannot be changed.</FormDescription>
+                          </div>
+                      </CardContent>
+                       <CardFooter className="border-t px-6 py-4">
+                            <Button type="submit" disabled={isSaving || displayName === user?.displayName}>
+                                <Save className="mr-2 h-4 w-4" />
+                                {isSaving ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                      </CardFooter>
+                  </form>
+                  <Separator />
+                   <CardHeader><CardTitle>Security</CardTitle><CardDescription>Manage your password.</CardDescription></CardHeader>
+                   <CardContent>
+                       <Button variant="outline" onClick={() => router.push('/forgot-password')}>
+                            <Lock className="mr-2 h-4 w-4" />
+                            Send Password Reset Email
+                        </Button>
+                   </CardContent>
+                </Card>
+            </div>
+        </div>
       </main>
     </AppLayout>
   );

@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BadgeHelp, CalendarCheck, History } from 'lucide-react';
+import { ArrowRight, BadgeHelp, CalendarCheck, History, CheckCircle, XCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useApplication } from '@/context/application-context';
 import { useEffect, useState } from 'react';
@@ -12,9 +12,9 @@ import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from 'fire
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import { ApplicationProgress } from './application-progress';
 import { ApplicationJourney } from './application-journey';
+import { Progress } from '@/components/ui/progress';
 
 type Appointment = {
     id: string;
@@ -32,12 +32,12 @@ type StatusHistoryItem = {
     updatedBy: string;
 }
 
-function getStatusBadgeVariant(status: Appointment['status']) {
+function getStatusBadgeInfo(status: Appointment['status']) {
     switch (status) {
-        case 'confirmed': return 'success';
-        case 'pending': return 'secondary';
-        case 'declined': return 'destructive';
-        default: return 'outline';
+        case 'confirmed': return { variant: 'success', icon: CheckCircle, text: 'Confirmed' };
+        case 'pending': return { variant: 'secondary', icon: Clock, text: 'Pending' };
+        case 'declined': return { variant: 'destructive', icon: XCircle, text: 'Declined' };
+        default: return { variant: 'outline', icon: Clock, text: 'Status' };
     }
 }
 
@@ -47,59 +47,46 @@ function MyAppointments() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user?.uid) {
+        if (!user?.uid) { setLoading(false); return; }
+        const q = query(collection(db, "appointments"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(q, snap => {
+            setMyAppointments(snap.docs.map(d => ({id: d.id, ...d.data()}) as Appointment));
             setLoading(false);
-            return;
-        }
-
-        const myApptsQ = query(
-          collection(db, "appointments"),
-          where("userId", "==", user.uid),
-          orderBy("createdAt", "desc")
-        );
-
-        const unsubscribe = onSnapshot(myApptsQ, snap => {
-            const appts = snap.docs.map(d => ({id: d.id, ...d.data()}) as Appointment);
-            setMyAppointments(appts);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching appointments:", error);
-            setLoading(false);
-        });
-        
+        }, () => setLoading(false));
         return () => unsubscribe();
-
     }, [user]);
 
     return (
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-card to-card-foreground/5">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg"><CalendarCheck className="h-5 w-5 text-primary" />My Appointments</CardTitle>
-                <CardDescription>The status of your appointment requests.</CardDescription>
+                <CardDescription>Status of your appointment requests.</CardDescription>
             </CardHeader>
             <CardContent>
-                {loading ? <Skeleton className="h-10 w-full" /> : myAppointments.length > 0 ? (
-                    <ul className="space-y-3">
-                        {myAppointments.slice(0, 3).map(appt => (
-                            <li key={appt.id} className="text-sm border-b pb-2 last:border-b-0 last:pb-0">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-semibold">{appt.requestedDate}</span>
-                                    <Badge variant={getStatusBadgeVariant(appt.status)} className="capitalize">{appt.status}</Badge>
-                                </div>
-                                <p className="text-muted-foreground">{appt.requestedTime}</p>
-                                {appt.status === 'declined' && appt.rejectionReason && (
-                                    <p className="text-xs text-destructive mt-1">Reason: {appt.rejectionReason}</p>
-                                )}
-                            </li>
-                        ))}
+                {loading ? <Skeleton className="h-12 w-full" /> : myAppointments.length > 0 ? (
+                    <ul className="space-y-4">
+                        {myAppointments.slice(0, 2).map(appt => {
+                            const badge = getStatusBadgeInfo(appt.status);
+                            return (
+                                <li key={appt.id} className="text-sm">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-semibold">{appt.requestedDate} at {appt.requestedTime}</span>
+                                        <Badge variant={badge.variant} className="capitalize"><badge.icon className="h-3 w-3 mr-1"/>{badge.text}</Badge>
+                                    </div>
+                                    {appt.status === 'declined' && appt.rejectionReason && (
+                                        <p className="text-xs text-destructive mt-1">Reason: {appt.rejectionReason}</p>
+                                    )}
+                                </li>
+                            );
+                        })}
                     </ul>
                 ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">You have no appointment requests.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">No appointments scheduled.</p>
                 )}
             </CardContent>
             <CardFooter>
-                 <Button asChild variant="secondary" className="w-full">
-                    <Link href="/appointments">Request a New Appointment</Link>
+                 <Button asChild variant="default" className="w-full">
+                    <Link href="/appointments">Manage Appointments <ArrowRight className="ml-2 h-4 w-4"/></Link>
                 </Button>
             </CardFooter>
         </Card>
@@ -110,36 +97,18 @@ function ApplicationStatus() {
     const { isLoaded, applicationData } = useApplication();
     const [statusHistory, setStatusHistory] = useState<StatusHistoryItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     const submittedApplicationId = applicationData.submittedAppId;
 
     useEffect(() => {
         if (!isLoaded) return;
-        
-        if (!submittedApplicationId) {
+        if (!submittedApplicationId) { setLoading(false); return; }
+        const q = query(collection(db, 'applications', submittedApplicationId, 'statusHistory'), orderBy('timestamp', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setStatusHistory(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StatusHistoryItem)));
             setLoading(false);
-            return;
-        }
-
-        const historyRef = collection(db, 'applications', submittedApplicationId, 'statusHistory');
-        const q = query(historyRef, orderBy('timestamp', 'desc'));
-        
-        const unsubscribeHistory = onSnapshot(q, (snapshot) => {
-            const history: StatusHistoryItem[] = [];
-            snapshot.forEach(doc => {
-                history.push({ id: doc.id, ...doc.data() } as StatusHistoryItem);
-            });
-            setStatusHistory(history);
-            setLoading(false);
-        }, (err) => {
-            console.error("Error fetching status history:", err);
-            setError("Could not load application status.");
-            setLoading(false);
-        });
-
-        return () => unsubscribeHistory();
-
+        }, () => setLoading(false));
+        return () => unsubscribe;
     }, [submittedApplicationId, isLoaded]);
 
     if (!submittedApplicationId) {
@@ -147,30 +116,13 @@ function ApplicationStatus() {
     }
 
     if (!isLoaded || loading) {
-        return (
-             <Card>
-                <CardHeader><CardTitle>Your Application Journey</CardTitle><CardDescription>Updates from our team will appear here.</CardDescription></CardHeader>
-                <CardContent className="space-y-4">
-                    <Skeleton className="h-6 w-1/2" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-6 w-1/2" />
-                    <Skeleton className="h-4 w-4/5" />
-                </CardContent>
-            </Card>
-        );
+        return <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>;
     }
-    
-     if (error) {
-        return <p className="text-destructive">{error}</p>
-     }
 
     return (
-        <Card>
+        <Card className="bg-gradient-to-br from-card to-card-foreground/5">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5 text-primary" />
-                    Your Application Journey
-                </CardTitle>
+                <CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" />Your Application Journey</CardTitle>
                 <CardDescription>
                     {statusHistory.length > 0 ? `Current Status: ${statusHistory[0].status}` : 'Your application has been submitted!'}
                 </CardDescription>
@@ -185,26 +137,53 @@ function ApplicationStatus() {
     )
 }
 
+function EligibilityScoreCard() {
+    const { user } = useUser();
+    const [quizScore, setQuizScore] = useState<number | null>(null);
+    const [loadingQuiz, setLoadingQuiz] = useState(true);
+
+    useEffect(() => {
+        async function fetchScore() {
+            if(user?.uid) {
+                setLoadingQuiz(true);
+                const quizDocRef = doc(db, 'users', user.uid, 'quizResults', 'eligibility');
+                const quizDocSnap = await getDoc(quizDocRef);
+                setQuizScore(quizDocSnap.exists() ? quizDocSnap.data().score : null);
+                setLoadingQuiz(false);
+            }
+        }
+        fetchScore();
+    }, [user]);
+
+    return (
+        <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg"><BadgeHelp className="h-5 w-5 text-primary" />Eligibility Score</CardTitle>
+                 <CardDescription>Your estimated Canadian education eligibility.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loadingQuiz ? <Skeleton className="h-8 w-full" /> : (
+                    quizScore != null ? (
+                        <div className="space-y-2">
+                             <p className="text-2xl font-bold">{quizScore}<span className="text-sm font-normal text-muted-foreground">/100</span></p>
+                            <Progress value={quizScore} className="w-full" />
+                        </div>
+                    ) : (
+                        <p className="text-muted-foreground">Take the quiz to calculate your score.</p>
+                    )
+                )}
+            </CardContent>
+            <CardFooter>
+                 <Button asChild variant="secondary" className="w-full mt-4">
+                    <Link href="/eligibility-quiz">{quizScore != null ? 'Retake Quiz' : 'Take Quiz Now'}</Link>
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}
+
 export function DashboardContent() {
   const { user } = useUser();
-  const [quizScore, setQuizScore] = useState<number | null>(null);
-  const [loadingQuiz, setLoadingQuiz] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      if(user?.uid) {
-        setLoadingQuiz(true);
-        
-        const quizDocRef = doc(db, 'users', user.uid, 'quizResults', 'eligibility');
-        const quizDocSnap = await getDoc(quizDocRef);
-        if (quizDocSnap.exists()) {
-          setQuizScore(quizDocSnap.data().score);
-        }
-        setLoadingQuiz(false);
-      }
-    }
-    fetchData();
-  }, [user]);
 
   return (
     <main className="flex-1 space-y-8 p-4 md:p-8">
@@ -217,29 +196,14 @@ export function DashboardContent() {
           </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-8">
+      <div className="grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-8">
              <ApplicationStatus />
           </div>
 
-          <div className="space-y-8 md:col-span-1">
+          <div className="space-y-8 lg:col-span-1">
               <MyAppointments />
-              
-              <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><BadgeHelp className="h-5 w-5 text-primary" />Eligibility Score</CardTitle></CardHeader>
-                  <CardContent>
-                      {loadingQuiz ? <Skeleton className="h-5 w-3/4" /> : (
-                        quizScore != null ? (
-                          <p className="font-semibold text-muted-foreground">Last Score: <span className="font-bold text-foreground">{quizScore}/100</span></p>
-                        ) : (
-                          <p className="text-muted-foreground">Take the quiz to see your score.</p>
-                        )
-                      )}
-                      <Button asChild variant="secondary" className="w-full mt-4">
-                        <Link href="/eligibility-quiz">{quizScore != null ? 'Retake Quiz' : 'Take Quiz'}</Link>
-                      </Button>
-                  </CardContent>
-              </Card>
+              <EligibilityScoreCard />
           </div>
       </div>
     </main>

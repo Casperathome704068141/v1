@@ -13,117 +13,89 @@ export default function TermsOfServicePage() {
             <h1 className="text-4xl font-bold font-headline mb-4">Terms of Service</h1>
             <p className="text-muted-foreground mb-8">Last updated: July 29, 2024</p>
             
-            <div className="space-y-6 text-muted-foreground leading-relaxed">
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.1 Acceptance</h2>
-                    <p>By creating an account or using any MLE services, you agree to these Terms, our Privacy Policy, and any product-specific agreements.</p>
-                </section>
-                
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.2 Scope of Service</h2>
-                    <ul className="list-disc pl-6 space-y-2">
-                        <li>MLE provides <strong>software tools</strong> for study-permit preparation, college search, and immigration document automation.</li>
-                        <li><strong>Not legal advice:</strong> Unless explicitly stated, information is general. Representation before IRCC is provided <strong>only</strong> when you purchase a package that includes an RCIC retainer and sign <strong>Form IMM5476</strong>.</li>
-                    </ul>
-                </section>
+            <div className="prose dark:prose-invert max-w-none">
+              <h2 id="acceptance">2.1 Acceptance</h2>
+              <p>By creating an account or using any MLE services, you agree to these Terms, our Privacy Policy, and any product-specific agreements.</p>
+              
+              <h2 id="scope">2.2 Scope of Service</h2>
+              <ul>
+                <li>MLE provides <strong>software tools</strong> for study-permit preparation, college search, and immigration document automation.</li>
+                <li><strong>Not legal advice:</strong> Unless explicitly stated, information is general. Representation before IRCC is provided <strong>only</strong> when you purchase a package that includes an RCIC retainer and sign <strong>Form IMM5476</strong>.</li>
+              </ul>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.3 User Obligations</h2>
-                    <ul className="list-disc pl-6 space-y-2">
-                        <li>Provide accurate, lawful information; keep credentials secure.</li>
-                        <li>Upload documents you have the right to share; no malware or copyrighted material you do not own.</li>
-                        <li>Make timely payments; non-payment may suspend services.</li>
-                    </ul>
-                </section>
+              <h2 id="obligations">2.3 User Obligations</h2>
+              <ul>
+                <li>Provide accurate, lawful information; keep credentials secure.</li>
+                <li>Upload documents you have the right to share; no malware or copyrighted material you do not own.</li>
+                <li>Make timely payments; non-payment may suspend services.</li>
+              </ul>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.4 Packages, Add-Ons & Refunds</h2>
-                    <ul className="list-disc pl-6 space-y-2">
-                        <li>Package descriptions and prices are shown on the Pricing page.</li>
-                        <li>Work begins after payment confirmation.</li>
-                        <li><strong>Refunds:</strong>
-                            <ul className="list-circle pl-6 mt-2 space-y-1">
-                                <li>100% if you cancel within 24 hours and no work has begun.</li>
-                                <li>70% for cancellations before document drafting.</li>
-                                <li>0% once final documents are delivered or filing completed.</li>
-                            </ul>
-                        </li>
-                        <li>Government fees (IRCC, VAC, courier) are non-refundable.</li>
-                    </ul>
-                </section>
-                
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.5 No Outcome Guarantee</h2>
-                    <p>Visa issuance is at the sole discretion of IRCC. MLE cannot and does not guarantee approval. Any timelines are estimates.</p>
-                </section>
+              <h2 id="refunds">2.4 Packages, Add-Ons & Refunds</h2>
+              <ul>
+                <li>Package descriptions and prices are shown on the Pricing page.</li>
+                <li>Work begins after payment confirmation.</li>
+                <li><strong>Refunds:</strong>
+                  <ul>
+                    <li>100% if you cancel within 24 hours and no work has begun.</li>
+                    <li>70% for cancellations before document drafting.</li>
+                    <li>0% once final documents are delivered or filing completed.</li>
+                  </ul>
+                </li>
+                <li>Government fees (IRCC, VAC, courier) are non-refundable.</li>
+              </ul>
+              
+              <h2 id="guarantee">2.5 No Outcome Guarantee</h2>
+              <p>Visa issuance is at the sole discretion of IRCC. MLE cannot and does not guarantee approval. Any timelines are estimates.</p>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.6 Intellectual Property</h2>
-                    <ul className="list-disc pl-6 space-y-2">
-                        <li>Platform code, text, graphics: © 2024–2025 MLE. All rights reserved.</li>
-                        <li>You are granted a revocable, non-exclusive license to use generated forms for your personal application only.</li>
-                    </ul>
-                </section>
+              <h2 id="ip">2.6 Intellectual Property</h2>
+              <ul>
+                <li>Platform code, text, graphics: © 2024–2025 MLE. All rights reserved.</li>
+                <li>You are granted a revocable, non-exclusive license to use generated forms for your personal application only.</li>
+              </ul>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.7 Limitation of Liability</h2>
-                    <p>To the maximum extent permitted by law, MLE’s aggregate liability shall not exceed the total fees paid by you in the <strong>12 months</strong> preceding the claim. MLE is not liable for indirect, incidental, or consequential damages, including lost opportunity or migration delays.</p>
-                </section>
+              <h2 id="liability">2.7 Limitation of Liability</h2>
+              <p>To the maximum extent permitted by law, MLE’s aggregate liability shall not exceed the total fees paid by you in the <strong>12 months</strong> preceding the claim. MLE is not liable for indirect, incidental, or consequential damages, including lost opportunity or migration delays.</p>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.8 Indemnity</h2>
-                    <p>You agree to indemnify and hold MLE, its officers, employees, and RCIC contractors harmless from any claims arising from your breach of these Terms or misuse of the Platform.</p>
-                </section>
+              <h2 id="indemnity">2.8 Indemnity</h2>
+              <p>You agree to indemnify and hold MLE, its officers, employees, and RCIC contractors harmless from any claims arising from your breach of these Terms or misuse of the Platform.</p>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.9 Termination</h2>
-                    <ul className="list-disc pl-6 space-y-2">
-                        <li>You may close your account at any time; data retention rules apply.</li>
-                        <li>MLE may suspend or terminate access for violation of Terms, fraud, or non-payment.</li>
-                    </ul>
-                </section>
+              <h2 id="termination">2.9 Termination</h2>
+              <ul>
+                <li>You may close your account at any time; data retention rules apply.</li>
+                <li>MLE may suspend or terminate access for violation of Terms, fraud, or non-payment.</li>
+              </ul>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.10 Dispute Resolution</h2>
-                     <ul className="list-disc pl-6 space-y-2">
-                        <li><strong>Step 1:</strong> Good-faith negotiation (30 days).</li>
-                        <li><strong>Step 2:</strong> If unresolved, binding arbitration under the <strong>Arbitration Act (Ontario)</strong>; venue Toronto; language English.</li>
-                        <li><strong>Step 3:</strong> Either party may seek injunctive relief in Superior Court for IP or confidentiality breaches.</li>
-                    </ul>
-                </section>
+              <h2 id="disputes">2.10 Dispute Resolution</h2>
+               <ul>
+                  <li><strong>Step 1:</strong> Good-faith negotiation (30 days).</li>
+                  <li><strong>Step 2:</strong> If unresolved, binding arbitration under the <strong>Arbitration Act (Ontario)</strong>; venue Toronto; language English.</li>
+                  <li><strong>Step 3:</strong> Either party may seek injunctive relief in Superior Court for IP or confidentiality breaches.</li>
+              </ul>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.11 Governing Law</h2>
-                    <p>These Terms are governed by the laws of the Province of Ontario and the federal laws of Canada, without regard to conflict of law provisions.</p>
-                </section>
+              <h2 id="law">2.11 Governing Law</h2>
+              <p>These Terms are governed by the laws of the Province of Ontario and the federal laws of Canada, without regard to conflict of law provisions.</p>
 
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.12 Force Majeure</h2>
-                    <p>MLE is not liable for failures due to events beyond reasonable control: cyber-attacks, outages, strikes, pandemics, or government actions.</p>
-                </section>
-                
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.13 Changes to Terms</h2>
-                    <p>MLE may modify these Terms; updated version posted 30 days before taking effect. Continued use = acceptance.</p>
-                </section>
-                
-                <section>
-                    <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3">2.14 Contact</h2>
-                    <p>
-                        <a href="mailto:legal@mapleleafseducation.ca" className="text-primary hover:underline">legal@mapleleafseducation.ca</a> | <a href="tel:+14165551234" className="text-primary hover:underline">+1 (416) 555-1234</a>
-                    </p>
-                </section>
+              <h2 id="force-majeure">2.12 Force Majeure</h2>
+              <p>MLE is not liable for failures due to events beyond reasonable control: cyber-attacks, outages, strikes, pandemics, or government actions.</p>
+              
+              <h2 id="changes">2.13 Changes to Terms</h2>
+              <p>MLE may modify these Terms; updated version posted 30 days before taking effect. Continued use = acceptance.</p>
+              
+              <h2 id="contact">2.14 Contact</h2>
+              <p>
+                  <a href="mailto:legal@mapleleafseducation.ca" className="text-primary hover:underline">legal@mapleleafseducation.ca</a> | <a href="tel:+14165551234" className="text-primary hover:underline">+1 (416) 555-1234</a>
+              </p>
             </div>
           </div>
         </div>
       </main>
-      <footer className="bg-background border-t">
+      <footer className="bg-card border-t">
         <div className="container mx-auto px-4 md:px-6 py-8">
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={24} height={24} />
-                <span className="font-bold text-lg">Maple Leafs Education</span>
+                <span className="font-bold text-lg font-headline">Maple Leafs Education</span>
               </div>
               <p className="text-xs text-muted-foreground">&copy; 2024 Maple Leafs Education. <br /> A BENO 1017 Product.</p>
             </div>

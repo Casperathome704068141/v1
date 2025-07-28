@@ -1,7 +1,6 @@
 
 'use client';
 
-export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,17 +12,11 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { Briefcase, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogIn } from 'lucide-react';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
-const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg role="img" viewBox="0 0 24 24" {...props}>
-    <path
-      fill="currentColor"
-      d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.98-4.66 1.98-3.55 0-6.43-2.91-6.43-6.48s2.88-6.48 6.43-6.48c2.05 0 3.32.83 4.1 1.62l2.5-2.5C18.16 3.73 15.66 2.53 12.48 2.53c-5.47 0-9.9 4.43-9.9 9.9s4.43 9.9 9.9 9.9c2.78 0 5.03-1.02 6.7-2.72 1.7-1.7 2.37-4.1 2.37-6.52 0-.65-.07-1.25-.16-1.82z"
-    />
-  </svg>
-);
+const GoogleIcon = (props) => <svg role="img" viewBox="0 0 24 24" {...props}><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.98-4.66 1.98-3.55 0-6.43-2.91-6.43-6.48s2.88-6.48 6.43-6.48c2.05 0 3.32.83 4.1 1.62l2.5-2.5C18.16 3.73 15.66 2.53 12.48 2.53c-5.47 0-9.9 4.43-9.9 9.9s4.43 9.9 9.9 9.9c2.78 0 5.03-1.02 6.7-2.72 1.7-1.7 2.37-4.1 2.37-6.52 0-.65-.07-1.25-.16-1.82z"/></svg>;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -33,77 +26,80 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { signInWithGoogle } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/dashboard');
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: error.message,
-      });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
-        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-muted-foreground hover:text-primary transition-colors">
+    <div className="flex min-h-screen w-full items-center justify-center p-4" 
+        style={{
+            backgroundImage: `url('/login-background.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+        }}>
+         <div className="absolute inset-0 bg-background/50 backdrop-blur-sm"></div>
+        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-white/80 hover:text-white transition-colors z-10">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
         </Link>
-        <div className="w-full max-w-md">
-            <div className="text-center mb-6 animate-fade-in">
-                <Link href="/">
-                    <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary mx-auto"/>
-                </Link>
-                <h1 className="text-2xl font-bold mt-4">Welcome Back</h1>
-                <p className="text-muted-foreground">Sign in to continue your journey.</p>
-            </div>
-            <Card className="w-full animate-fade-in [animation-delay:200ms]">
-                <CardContent className="p-6">
-                    <div className="grid grid-cols-1 gap-4">
-                        <Button variant="outline" onClick={signInWithGoogle}><GoogleIcon className="mr-2 h-4 w-4" /> Continue with Google</Button>
-                    </div>
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-card px-2 text-muted-foreground">Or with email</span>
-                        </div>
-                    </div>
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                            <Label htmlFor="password">Password</Label>
-                            <Link href="/forgot-password" className="text-sm text-primary/90 hover:text-primary hover:underline">
-                                Forgot password?
-                            </Link>
-                            </div>
-                            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-                        </div>
-                        <Button type="submit" className="w-full font-semibold" disabled={loading}>
-                            {loading ? 'Signing in...' : 'Sign In'}
+        <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-md z-10"
+        >
+            <Card className="bg-card/80 dark:bg-card/60 backdrop-blur-lg shadow-2xl">
+                <CardHeader className="text-center">
+                    <Link href="/" className="inline-block mx-auto">
+                        <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} />
+                    </Link>
+                    <CardTitle className="text-2xl font-bold font-headline">Welcome Back</CardTitle>
+                    <CardDescription>Sign in to access your student dashboard.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <Button variant="outline" className="w-full" onClick={signInWithGoogle}>
+                            <GoogleIcon className="mr-2 h-5 w-5" /> Continue with Google
                         </Button>
-                    </form>
-                    <div className="mt-6 text-center text-sm">
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
+                        </div>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div className="space-y-1">
+                                <Label htmlFor="email">Email</Label>
+                                <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">Forgot?</Link>
+                                </div>
+                                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+                            </div>
+                            <Button type="submit" className="w-full font-semibold" disabled={loading}>
+                                {loading ? 'Signing in...' : 'Sign In'} <LogIn className="ml-2 h-4 w-4" />
+                            </Button>
+                        </form>
+                    </div>
+                    <div className="mt-6 text-center text-sm text-muted-foreground">
                         Don't have an account?{' '}
                         <Link href="/signup" className="font-semibold text-primary hover:underline">
-                            Sign up
+                            Sign up now
                         </Link>
                     </div>
                 </CardContent>
             </Card>
-        </div>
-    </main>
+        </motion.div>
+    </div>
   );
 }

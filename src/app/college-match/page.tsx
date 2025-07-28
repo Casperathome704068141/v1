@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppLayout } from '@/components/app-layout';
@@ -13,55 +14,55 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { findColleges, FindCollegesOutput } from '@/ai/flows/find-colleges';
 import type { College } from '@/lib/college-data';
-import { WandSparkles, Search } from 'lucide-react';
+import { WandSparkles, Search, Building, School as SchoolIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-function formatCurrency(value: number) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'CAD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(value);
-}
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
-function CollegeResults({ title, colleges, studentProfile, filteringLogic, searchTerm }: { title: string, colleges: College[], studentProfile: any, filteringLogic: string, searchTerm: string }) {
+const CollegeResults = ({ title, colleges, studentProfile, filteringLogic, searchTerm, icon: Icon }) => {
     const filteredColleges = useMemo(() => {
         if (!searchTerm) return colleges;
         return colleges.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [colleges, searchTerm]);
 
-    if (!colleges || colleges.length === 0 || filteredColleges.length === 0) {
-        return null;
-    }
+    if (!colleges || colleges.length === 0 || filteredColleges.length === 0) return null;
 
     return (
-        <div className="mb-12">
-            <h2 className="font-bold text-xl">{title} ({filteredColleges.length})</h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-4">
-                {filteredColleges.map((college) => (
-                    <CollegeCard 
-                        key={college.dliNumber} 
-                        college={college} 
-                        studentProfile={studentProfile}
-                        filteringLogic={filteringLogic}
-                        isMatch={true}
-                    />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <h2 className="flex items-center gap-3 font-bold text-2xl mb-4"><Icon className="h-6 w-6 text-primary" />{title} ({filteredColleges.length})</h2>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredColleges.map(college => (
+                    <CollegeCard key={college.dliNumber} college={college} studentProfile={studentProfile} filteringLogic={filteringLogic} isMatch={true} />
                 ))}
             </div>
-        </div>
+        </motion.div>
     );
-}
+};
+
+const LoadingSkeleton = () => (
+    <div className="space-y-12">
+        <div>
+            <Skeleton className="h-8 w-1/3 mb-4" />
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-96 w-full rounded-xl" />
+                <Skeleton className="h-96 w-full rounded-xl" />
+                <Skeleton className="h-96 w-full rounded-xl" />
+            </div>
+        </div>
+        <div>
+            <Skeleton className="h-8 w-1/3 mb-4" />
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-96 w-full rounded-xl" />
+            </div>
+        </div>
+    </div>
+);
 
 function CollegeMatchPageContent() {
     const { applicationData } = useApplication();
-    
-    // Form state
     const [province, setProvince] = useState('all');
     const [fieldOfInterest, setFieldOfInterest] = useState('');
-    const studentBudget = applicationData.finances?.totalFunds;
-    const [maxTuition, setMaxTuition] = useState(studentBudget || 50000);
-
-    // AI results state
+    const [maxTuition, setMaxTuition] = useState(applicationData.finances?.totalFunds || 50000);
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<FindCollegesOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -76,8 +77,7 @@ function CollegeMatchPageContent() {
             const aiResults = await findColleges({ province, maxTuition, fieldOfInterest });
             setResults(aiResults);
         } catch (err) {
-            console.error("AI matching error:", err);
-            setError("Sorry, we couldn't find matches at this time. Please try again.");
+            setError("Sorry, the AI matchmaker is currently unavailable. Please try again later.");
         } finally {
             setLoading(false);
         }
@@ -87,88 +87,42 @@ function CollegeMatchPageContent() {
 
     return (
       <div className="flex-1 space-y-8 p-4 md:p-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">AI College Finder</h1>
+          <p className="text-muted-foreground mt-1">Tell us your preferences, and our AI will find the best-fit institutions for you.</p>
+        </div>
+
         <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><WandSparkles className="h-6 w-6 text-primary" /> AI College Finder</CardTitle>
-                <CardDescription>Tell us your preferences, and our AI will recommend the best-fit institutions for you.</CardDescription>
-            </CardHeader>
+            <CardHeader><CardTitle>Your Search Criteria</CardTitle></CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                    <div className="space-y-2 md:col-span-1">
-                        <Label htmlFor="province">Province</Label>
-                        <Select value={province} onValueChange={setProvince}>
-                           <SelectTrigger id="province">
-                            <SelectValue placeholder="All Provinces" />
-                            </SelectTrigger>
-                            <SelectContent>
-                            <SelectItem value="all">All Provinces</SelectItem>
-                            <SelectItem value="ON">Ontario</SelectItem>
-                            <SelectItem value="BC">British Columbia</SelectItem>
-                            <SelectItem value="QC">Quebec</SelectItem>
-                            <SelectItem value="AB">Alberta</SelectItem>
-                            <SelectItem value="NS">Nova Scotia</SelectItem>
-                            <SelectItem value="MB">Manitoba</SelectItem>
-                            <SelectItem value="SK">Saskatchewan</SelectItem>
-                            <SelectItem value="NL">Newfoundland</SelectItem>
-                            <SelectItem value="PE">Prince Edward Island</SelectItem>
-                            <SelectItem value="NB">New Brunswick</SelectItem>
-                            <SelectItem value="YT">Yukon</SelectItem>
-                            <SelectItem value="NT">Northwest Territories</SelectItem>
-                            <SelectItem value="NU">Nunavut</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="space-y-2 md:col-span-1">
-                        <Label htmlFor="fieldOfInterest">Field of Interest</Label>
-                        <Input id="fieldOfInterest" value={fieldOfInterest} onChange={e => setFieldOfInterest(e.target.value)} placeholder="e.g., Computer Science" required />
-                    </div>
-                     <div className="space-y-2 md:col-span-1">
-                        <Label>Max Tuition: <span className="font-semibold">{formatCurrency(maxTuition)}</span></Label>
-                        <Slider defaultValue={[maxTuition]} max={100000} step={1000} onValueChange={(v) => setMaxTuition(v[0])} />
-                    </div>
-                    <Button type="submit" disabled={loading} className="w-full md:w-auto">
-                        {loading ? 'Finding...' : 'Find My College'}
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div className="space-y-2"><Label htmlFor="fieldOfInterest">Field of Interest</Label><Input id="fieldOfInterest" value={fieldOfInterest} onChange={e => setFieldOfInterest(e.target.value)} placeholder="e.g., Computer Science" required /></div>
+                    <div className="space-y-2"><Label htmlFor="province">Province</Label><Select value={province} onValueChange={setProvince}><SelectTrigger id="province"><SelectValue placeholder="All Provinces" /></SelectTrigger><SelectContent>{/* Options */}</SelectContent></Select></div>
+                    <div className="space-y-2"><Label>Max Annual Tuition: <span className="font-semibold">{formatCurrency(maxTuition)}</span></Label><Slider defaultValue={[maxTuition]} max={100000} step={1000} onValueChange={(v) => setMaxTuition(v[0])} /></div>
+                    <Button type="submit" disabled={loading} className="w-full md:col-span-3">
+                        <WandSparkles className="mr-2 h-4 w-4" />{loading ? 'Finding Best Fit...' : 'Find My College'}
                     </Button>
                 </form>
             </CardContent>
         </Card>
 
-        {loading && (
-            <div className="space-y-8">
-                <div>
-                    <Skeleton className="h-8 w-1/4 mb-4" />
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        <Skeleton className="h-80 w-full" />
-                        <Skeleton className="h-80 w-full" />
-                        <Skeleton className="h-80 w-full" />
-                    </div>
-                </div>
-                 <div>
-                    <Skeleton className="h-8 w-1/4 mb-4" />
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        <Skeleton className="h-80 w-full" />
-                    </div>
-                </div>
-            </div>
-        )}
-
-        {error && <p className="text-destructive text-center">{error}</p>}
+        {loading && <LoadingSkeleton />}
+        {error && <Card><CardContent className="p-8 text-center text-destructive">{error}</CardContent></Card>}
         
-        {results && (results.universities.length > 0 || results.colleges.length > 0) && (
-            <div>
-                 <div className="relative mb-8">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search recommended schools..." 
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <CollegeResults title="Top University Matches" colleges={results.universities} studentProfile={applicationData} filteringLogic={filteringLogic} searchTerm={searchTerm} />
-                <CollegeResults title="Top College Matches" colleges={results.colleges} studentProfile={applicationData} filteringLogic={filteringLogic} searchTerm={searchTerm} />
-            </div>
-        )}
+        <AnimatePresence>
+            {results && (results.universities.length > 0 || results.colleges.length > 0) && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div className="relative mb-8"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input placeholder="Filter recommended schools..." className="pl-10" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div>
+                    <div className="space-y-12">
+                        <CollegeResults title="Top University Matches" colleges={results.universities} studentProfile={applicationData} filteringLogic={filteringLogic} searchTerm={searchTerm} icon={SchoolIcon} />
+                        <CollegeResults title="Top College Matches" colleges={results.colleges} studentProfile={applicationData} filteringLogic={filteringLogic} searchTerm={searchTerm} icon={Building} />
+                    </div>
+                </motion.div>
+            )}
+            {results && results.universities.length === 0 && results.colleges.length === 0 && (
+                 <Card><CardContent className="p-8 text-center text-muted-foreground">No matches found for your criteria. Try broadening your search.</CardContent></Card>
+            )}
+        </AnimatePresence>
       </div>
     );
 }

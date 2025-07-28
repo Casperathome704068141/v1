@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { BrainCircuit, CheckCircle, GraduationCap, ShieldCheck, Star, ArrowRight, MessageSquare, Target, BarChart, MoveRight } from 'lucide-react';
+import { BrainCircuit, CheckCircle, GraduationCap, ShieldCheck, Star, ArrowRight, Target, BarChart, MoveRight } from 'lucide-react';
 import Image from 'next/image';
 import { SiteHeader } from '@/components/marketing/site-header';
 import { Badge } from '@/components/ui/badge';
@@ -57,19 +57,19 @@ export default function MarketingPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
           </div>
-          <div className="container mx-auto px-4 md:px-6 text-center relative z-10 animate-fade-in">
-            <Badge variant="secondary" className="mb-6 animate-fade-in [animation-delay:200ms]">
+          <div className="container mx-auto px-4 md:px-6 text-center relative z-10 animate-fade-in-up">
+            <Badge variant="secondary" className="mb-6 animate-fade-in-up [animation-delay:200ms]">
                 Now with PAL & SDS support for 2025
                 <MoveRight className="ml-2 h-4 w-4" />
             </Badge>
             <div className="max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-sans tracking-tight text-foreground text-balance animate-fade-in [animation-delay:400ms]">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tight text-foreground text-balance animate-fade-in-up [animation-delay:400ms]">
                 Your Smartest Path to a Canadian Education
               </h1>
-              <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground text-balance animate-fade-in [animation-delay:600ms]">
+              <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground text-balance animate-fade-in-up [animation-delay:600ms]">
                 Navigate study permit caps and find the perfect college with our AI-powered platform, guided by certified immigration consultants.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center animate-fade-in [animation-delay:800ms]">
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up [animation-delay:800ms]">
                 <Button asChild size="lg" className="font-semibold text-base">
                   <Link href="/signup">Check Eligibility Free <ArrowRight className="ml-2 h-5 w-5" /></Link>
                 </Button>
@@ -82,10 +82,10 @@ export default function MarketingPage() {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="w-full py-12 md:py-24 bg-muted/30 dark:bg-card">
+        <section id="how-it-works" className="w-full py-12 md:py-24 bg-card">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">Your Application Journey, Simplified</h2>
+              <h2 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-balance">Your Application Journey, Simplified</h2>
               <p className="max-w-2xl mx-auto mt-4 text-muted-foreground md:text-lg text-balance">
                 We've distilled the complex study permit process into a clear, intelligent, and guided path to success.
               </p>
@@ -127,14 +127,14 @@ export default function MarketingPage() {
         <section id="testimonials" className="w-full py-12 md:py-24 bg-background">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-balance">Success Stories from Students Like You</h2>
+              <h2 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-balance">Success Stories from Students Like You</h2>
               <p className="max-w-2xl mx-auto mt-4 text-muted-foreground md:text-lg text-balance">
                 See how Maple Leafs Education has helped students from around the world achieve their Canadian dreams.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {testimonials.map((testimonial) => (
-                <Card key={testimonial.name} className="flex flex-col bg-muted/30 dark:bg-card border-border/50 hover:shadow-lg transition-shadow duration-300">
+                <Card key={testimonial.name} className="flex flex-col bg-card border-border/50 hover:shadow-lg transition-shadow duration-300">
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12">
@@ -163,10 +163,10 @@ export default function MarketingPage() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="w-full py-20 md:py-32 bg-muted/30 dark:bg-card">
+        <section className="w-full py-20 md:py-32 bg-card">
            <div className="container mx-auto px-4 md:px-6 text-center">
             <div className="max-w-2xl mx-auto">
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-balance">Ready to Start Your Journey?</h2>
+                <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight text-balance">Ready to Start Your Journey?</h2>
                 <p className="mt-4 text-lg text-muted-foreground text-balance">
                     Your Canadian education is closer than you think. Take the first step today by checking your eligibility. It's free, fast, and gives you a clear action plan.
                 </p>
@@ -180,7 +180,7 @@ export default function MarketingPage() {
         </section>
 
       </main>
-      <footer className="bg-background border-t">
+      <footer className="bg-card border-t">
         <div className="container mx-auto px-4 md:px-6 py-8">
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
             <div className="md:col-span-2">

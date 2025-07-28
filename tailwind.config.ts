@@ -20,7 +20,6 @@ export default {
       fontFamily: {
         sans: ['var(--font-inter)', 'sans-serif'],
         headline: ['var(--font-montserrat)', 'sans-serif'],
-        code: ['var(--font-roboto-mono)', 'monospace'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -44,6 +43,10 @@ export default {
           DEFAULT: 'hsl(var(--success))',
           foreground: 'hsl(var(--success-foreground))',
         },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
@@ -59,16 +62,6 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
         },
       },
       borderRadius: {
@@ -96,6 +89,14 @@ export default {
         'fade-in': {
             '0%': {
                 opacity: '0',
+            },
+            '100%': {
+                opacity: '1',
+            },
+        },
+        'fade-in-up': {
+            '0%': {
+                opacity: '0',
                 transform: 'translateY(10px)'
             },
             '100%': {
@@ -108,6 +109,7 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.5s ease-out forwards',
+        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
       },
     },
   },
