@@ -26,10 +26,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutDashboard, Search, Settings, Wallet, FileText, Calendar, LifeBuoy, LogOut, DollarSign, User, CreditCard } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Search, Settings, FileText, Calendar, LifeBuoy, LogOut, CreditCard, User } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ApplicationProvider } from '@/context/application-context';
 import Image from 'next/image';
+import { ThemeToggle } from './ui/theme-toggle';
 
 function UserMenu() {
   const { user, signOut } = useAuth();
@@ -131,7 +132,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarInset>
               <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
                  <SidebarTrigger className="p-3 text-2xl hover:bg-gray-100 rounded-lg sm:hidden" />
-                <UserMenu />
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <UserMenu />
+                </div>
               </header>
               {children}
             </SidebarInset>

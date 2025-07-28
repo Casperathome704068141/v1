@@ -5,10 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
-import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Sun, Moon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
+import { useState } from 'react';
+import { ThemeToggle } from '../ui/theme-toggle';
 
 const navLinks = [
     { href: "/#how-it-works", label: "How It Works" },
@@ -17,30 +17,6 @@ const navLinks = [
     { href: "/about", label: "About" },
     { href: "/support", label: "Support" },
 ];
-
-function ThemeToggle() {
-    const [theme, setTheme] = useState('light');
-
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        setTheme(savedTheme);
-        document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    }, []);
-
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light';
-        setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    };
-
-    return (
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        </Button>
-    )
-}
 
 export function SiteHeader() {
   const { user, loading } = useAuth();
