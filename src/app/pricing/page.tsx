@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, ArrowRight, Star } from 'lucide-react';
+import { Check, ArrowRight, Star, BarChart, Target, GraduationCap, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ import { SiteHeader } from '@/components/marketing/site-header';
 import { useAuth } from '@/context/auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
 const tiers = [
   { id: 'price_starter_450', name: 'Starter', price: { monthly: 45, annually: 450 }, description: 'For confident students who need compliant paperwork.', features: ['Auto-filled IMM forms', 'Dynamic document checklist', 'AI SOP generator', '1 × 30-min RCIC video call'] },
@@ -105,6 +106,49 @@ export default function PricingPage() {
                       ))}
                     </div>
 
+                    <Separator className="my-16" />
+
+                    {/* How It Works Section */}
+                    <section id="how-it-works" className="w-full">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-balance">Your Journey to a Canadian School</h2>
+                            <p className="max-w-2xl mx-auto mt-4 text-muted-foreground md:text-lg text-balance">
+                                We've distilled the complex study permit process into a clear, intelligent, and guided path to success.
+                            </p>
+                        </div>
+                        <div className="mx-auto grid max-w-5xl gap-10 sm:grid-cols-2 lg:grid-cols-4">
+                            <div className="text-center">
+                                <div className="flex items-center justify-center mb-4 h-16 w-16 rounded-full bg-primary/10 mx-auto">
+                                <BarChart className="h-8 w-8 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-bold">1. Assess Profile</h3>
+                                <p className="text-muted-foreground mt-2">Take our free Eligibility Quiz to instantly see your application strength and get an AI-generated action plan.</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="flex items-center justify-center mb-4 h-16 w-16 rounded-full bg-primary/10 mx-auto">
+                                <Target className="h-8 w-8 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-bold">2. Find Your Match</h3>
+                                <p className="text-muted-foreground mt-2">Our AI analyzes your profile to find Designated Learning Institutions that are a perfect fit for you.</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="flex items-center justify-center mb-4 h-16 w-16 rounded-full bg-primary/10 mx-auto">
+                                <GraduationCap className="h-8 w-8 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-bold">3. Build Application</h3>
+                                <p className="text-muted-foreground mt-2">Use our guided forms and AI-powered SOP generator to build a strong, complete application package.</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="flex items-center justify-center mb-4 h-16 w-16 rounded-full bg-primary/10 mx-auto">
+                                <ShieldCheck className="h-8 w-8 text-primary" />
+                                </div>
+                                <h3 className="text-xl font-bold">4. Expert Review</h3>
+                                <p className="text-muted-foreground mt-2">Before you submit, have your entire application reviewed by a Regulated Canadian Immigration Consultant (RCIC).</p>
+                            </div>
+                        </div>
+                    </section>
+
+
                     <AnimatePresence>
                     {selectedTier && (
                         <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="fixed bottom-4 left-4 right-4 z-50">
@@ -132,8 +176,7 @@ export default function PricingPage() {
                 <div className="container mx-auto px-4 md:px-6 py-8">
                 <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
                     <div className="md:col-span-2">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Image src="/logo.svg" alt="Logo" width={24} height={24} /><span className="font-bold text-lg font-headline">Maple Leafs Education</span></div>
+                    <div className="flex items-center gap-2 mb-2"><Image src="/logo.svg" alt="Logo" width={24} height={24} /><span className="font-bold text-lg font-headline">Maple Leafs Education</span></div>
                     <p className="text-xs text-muted-foreground">&copy; 2024 MLE. A BENO 1017 Product.</p>
                     </div>
                     <div>

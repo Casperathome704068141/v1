@@ -73,8 +73,8 @@ export default function MarketingPage() {
                 <Button asChild size="lg" className="font-semibold text-base">
                   <Link href="/signup">Check Eligibility Free <ArrowRight className="ml-2 h-5 w-5" /></Link>
                 </Button>
-                <Button asChild size="lg" variant="ghost" className="text-base">
-                   <Link href="/login">Log In</Link>
+                <Button asChild size="lg" variant="ghost">
+                   <Link href="/pricing">View Pricing</Link>
                 </Button>
               </div>
             </div>
