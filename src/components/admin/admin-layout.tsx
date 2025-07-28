@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -139,9 +140,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-background">
-        <Sidebar variant="inset" collapsible="icon">
+        <Sidebar>
           <SidebarHeader>
-            <Link href="/admin/dashboard" className="flex items-center gap-2.5">
+            <Link href="/admin/dashboard" className="flex items-center gap-2.5 p-4">
               <Image
                 src="/logo.svg"
                 alt="Maple Leafs Education Logo"
@@ -151,10 +152,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               />
               <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
                 <span className="text-lg font-bold text-sidebar-foreground leading-tight">
-                  Maple Leafs
-                </span>
-                <span className="text-xs text-sidebar-foreground/80 leading-tight">
-                  Education
+                  MLE Admin
                 </span>
               </div>
             </Link>
@@ -177,8 +175,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            <div className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
-              <p>A BENO 1017 PRODUCT</p>
+            <div className="p-4 text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
+              &copy; 2024 Maple Leafs Education
             </div>
           </SidebarFooter>
         </Sidebar>

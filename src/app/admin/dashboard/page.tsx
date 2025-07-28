@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -30,10 +31,10 @@ type Stats = {
 };
 
 const StatCard = ({ title, value, icon: Icon, description, loading }: { title: string, value: number, icon: React.ElementType, description: string, loading: boolean }) => (
-    <Card>
+    <Card className="transition-shadow hover:shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
-            <Icon className="h-4 w-4 text-muted-foreground" />
+            <Icon className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
             {loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{value}</div>}
@@ -45,11 +46,9 @@ const StatCard = ({ title, value, icon: Icon, description, loading }: { title: s
 const Greeting = () => {
     const { user } = useAuth();
     return (
-        <div className="flex items-center justify-between">
-            <div>
-                <h1 className="text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'Admin'}!</h1>
-                <p className="text-muted-foreground">Here's a snapshot of what's happening today.</p>
-            </div>
+        <div className="animate-fade-in-up">
+            <h1 className="text-3xl font-bold font-headline tracking-tight">Welcome back, {user?.displayName?.split(' ')[0] || 'Admin'}!</h1>
+            <p className="text-muted-foreground">Here's a snapshot of what's happening today.</p>
         </div>
     );
 };
@@ -140,11 +139,11 @@ export default function AdminDashboardPage() {
             <div className="flex-1 space-y-8 p-4 md:p-8">
                 <Greeting />
                 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                     {statCards.map(card => <StatCard key={card.title} {...card} loading={loading} />)}
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                     <Card className="lg:col-span-2">
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
@@ -216,7 +215,7 @@ export default function AdminDashboardPage() {
                                     ))
                                 ) : pendingApplications.length > 0 ? (
                                     pendingApplications.map(app => (
-                                        <div key={app.id} className="flex items-center space-x-4 cursor-pointer" onClick={() => router.push(`/admin/applications/${app.id}`)}>
+                                        <div key={app.id} className="flex items-center space-x-4 cursor-pointer p-2 rounded-md hover:bg-muted/50" onClick={() => router.push(`/admin/applications/${app.id}`)}>
                                             <Hourglass className="h-6 w-6 text-muted-foreground" />
                                             <div className="flex-1">
                                                 <p className="font-medium">{app.studentName}</p>
