@@ -5,77 +5,77 @@
 
 @layer base {
   :root {
-    --background: 240 20% 98%; /* Light Gray */
-    --foreground: 0 0% 10%; /* Charcoal Black */
+    --background: 240 25% 98%; /* #F9F9FB - Crisp Off-White */
+    --foreground: 222 66% 18%; /* #0B1D58 - Deep Blue Text */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 222 66% 18%;
  
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 222 66% 18%;
  
-    --primary: 219 87% 31%; /* Deep Blue */
+    --primary: 226 77% 58%; /* #4169E1 - Royal Blue */
     --primary-foreground: 0 0% 100%;
  
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 215.4 16.3% 46.9%;
+    --secondary: 220 13% 91%; /* Slate Gray Light */
+    --secondary-foreground: 222 66% 18%;
  
-    --muted: 220 10% 90%;
-    --muted-foreground: 220 10% 40%;
+    --muted: 220 9% 85%;
+    --muted-foreground: 215 14% 45%;
  
-    --accent: 193 98% 56%; /* Electric Teal */
-    --accent-foreground: 0 0% 10%;
+    --accent: 45 100% 50%; /* #FFD700 - Golden Yellow */
+    --accent-foreground: 222 66% 18%;
  
-    --destructive: 0 72% 51%; /* Clear Red */
+    --destructive: 345 83% 34%; /* #800020 - Wine Red */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%; /* Pleasing Green */
+    --success: 134 61% 41%; /* #28a745 - Pleasing Green */
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%; /* Amber */
-    --warning-foreground: 0 0% 10%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 66% 18%;
 
-    --border: 220 13% 85%;
-    --input: 220 13% 92%;
-    --ring: 219 87% 31%; /* Deep Blue */
+    --border: 220 13% 88%;
+    --input: 220 13% 94%;
+    --ring: 226 77% 58%;
  
     --radius: 0.5rem;
   }
  
   .dark {
-    --background: 0 0% 8%; /* Charcoal Black */
-    --foreground: 0 0% 95%; /* Light Gray */
+    --background: 222 66% 8%; /* Dark Navy/Charcoal, from #0B1D58 */
+    --foreground: 220 15% 88%; /* Light Gray Text */
  
-    --card: 0 0% 12%; /* Lighter Dark Gray */
-    --card-foreground: 0 0% 95%;
+    --card: 222 60% 12%; 
+    --card-foreground: 220 15% 95%;
  
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 222 70% 10%;
+    --popover-foreground: 220 15% 95%;
  
-    --primary: 218 90% 60%; /* Brighter Blue for Dark Mode */
+    --primary: 226 77% 58%; /* Royal Blue remains vibrant */
     --primary-foreground: 0 0% 100%;
  
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 220 15% 95%;
  
-    --muted: 220 10% 20%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 220 10% 25%;
+    --muted-foreground: 220 10% 65%;
  
-    --accent: 193 98% 56%; /* Electric Teal */
-    --accent-foreground: 0 0% 0%;
+    --accent: 45 100% 50%; /* Golden Yellow remains vibrant */
+    --accent-foreground: 222 66% 18%;
  
-    --destructive: 0 63% 51%;
+    --destructive: 345 70% 65%; /* Brighter Wine Red */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 61% 55%;
-    --success-foreground: 0 0% 0%;
+    --success: 134 60% 55%; /* Brighter Green */
+    --success-foreground: 222 66% 10%;
 
     --warning: 38 92% 55%;
-    --warning-foreground: 0 0% 0%;
+    --warning-foreground: 222 66% 10%;
 
-    --border: 220 13% 25%;
-    --input: 220 13% 22%;
-    --ring: 218 90% 60%;
+    --border: 220 15% 25%;
+    --input: 220 15% 22%;
+    --ring: 226 77% 58%;
   }
 }
  

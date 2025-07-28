@@ -28,7 +28,7 @@ const PlanCard = ({ tier, isSelected, onSelect, billingCycle }) => (
         className={cn(`flex flex-col h-full transition-all duration-300 cursor-pointer group`, isSelected ? 'border-primary ring-4 ring-primary/20 shadow-2xl scale-105' : 'hover:shadow-xl hover:-translate-y-1')}
         onClick={() => onSelect(tier)}
     >
-        {tier.popular && <Badge variant="secondary" className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 shadow-lg border text-sm">Most Popular</Badge>}
+        {tier.popular && <Badge variant="accent" className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 shadow-lg border text-sm">Most Popular</Badge>}
         <CardHeader className="pt-12">
             <CardTitle className="text-2xl font-bold font-headline">{tier.name}</CardTitle>
             <CardDescription>{tier.description}</CardDescription>
@@ -90,7 +90,7 @@ export default function PricingPage() {
                           <AnimatePresence>
                           {billingCycle === 'annually' && (
                             <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }}>
-                                <Badge variant="success">Save 25%</Badge>
+                                <Badge variant="success">Save 10%</Badge>
                             </motion.div>
                           )}
                           </AnimatePresence>
@@ -133,10 +133,8 @@ export default function PricingPage() {
                 <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
                     <div className="md:col-span-2">
                     <div className="flex items-center gap-2 mb-2">
-                        <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={24} height={24} />
-                        <span className="font-bold text-lg font-headline">Maple Leafs Education</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">&copy; 2024 Maple Leafs Education. <br /> A BENO 1017 Product.</p>
+                        <Image src="/logo.svg" alt="Logo" width={24} height={24} /><span className="font-bold text-lg font-headline">Maple Leafs Education</span></div>
+                    <p className="text-xs text-muted-foreground">&copy; 2024 MLE. A BENO 1017 Product.</p>
                     </div>
                     <div>
                     <h4 className="font-semibold mb-2">Platform</h4>

@@ -44,14 +44,14 @@ export default function ForgotPasswordPage() {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
         }}>
-      <div className="absolute inset-0 bg-background/50 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-background/80 dark:bg-background/90 backdrop-blur-sm"></div>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
         className="w-full max-w-md z-10"
       >
-        <Card className="bg-card/80 dark:bg-card/60 backdrop-blur-lg shadow-2xl">
+        <Card>
           <CardHeader className="text-center space-y-2">
             {!submitted ? (
               <>

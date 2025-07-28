@@ -46,8 +46,8 @@ export default function LoginPage() {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
         }}>
-         <div className="absolute inset-0 bg-background/50 backdrop-blur-sm"></div>
-        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-white/80 hover:text-white transition-colors z-10">
+         <div className="absolute inset-0 bg-background/80 dark:bg-background/90 backdrop-blur-sm"></div>
+        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-foreground/80 hover:text-foreground transition-colors z-10">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
         </Link>
@@ -57,7 +57,7 @@ export default function LoginPage() {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md z-10"
         >
-            <Card className="bg-card/80 dark:bg-card/60 backdrop-blur-lg shadow-2xl">
+            <Card>
                 <CardHeader className="text-center">
                     <Link href="/" className="inline-block mx-auto">
                         <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} />
