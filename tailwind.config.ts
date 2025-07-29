@@ -19,7 +19,6 @@ export default {
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'sans-serif'],
-        headline: ['var(--font-montserrat)', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -63,6 +62,8 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        'electric-violet': '#8A2BE2',
+        'electric-teal': '#20CFFD',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -103,6 +104,17 @@ export default {
                 opacity: '1',
                 transform: 'translateY(0)'
             },
+        },
+        'background-pan': {
+          '0%': {
+            'background-position': '0% 50%',
+          },
+          '50%': {
+            'background-position': '100% 50%',
+          },
+          '100%': {
+            'background-position': '0% 50%',
+          }
         }
       },
       animation: {
@@ -110,6 +122,7 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.5s ease-out forwards',
         'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+        'background-pan': 'background-pan 15s ease-in-out infinite',
       },
     },
   },

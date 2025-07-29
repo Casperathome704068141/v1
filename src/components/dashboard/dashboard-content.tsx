@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge';
 import { ApplicationProgress } from './application-progress';
 import { ApplicationJourney } from './application-journey';
 import { Progress } from '@/components/ui/progress';
+import { WhatsNext } from './whats-next';
+import { motion } from 'framer-motion';
 
 type Appointment = {
     id: string;
@@ -85,7 +87,7 @@ function MyAppointments() {
                 )}
             </CardContent>
             <CardFooter>
-                 <Button asChild variant="default" className="w-full">
+                 <Button asChild variant="default" className="w-full bg-electric-violet hover:bg-electric-violet/90">
                     <Link href="/appointments">Manage Appointments <ArrowRight className="ml-2 h-4 w-4"/></Link>
                 </Button>
             </CardFooter>
@@ -165,7 +167,7 @@ function EligibilityScoreCard() {
                 {loadingQuiz ? <Skeleton className="h-8 w-full" /> : (
                     quizScore != null ? (
                         <div className="space-y-2">
-                             <p className="text-2xl font-bold">{quizScore}<span className="text-sm font-normal text-muted-foreground">/100</span></p>
+                             <p className="text-4xl font-black">{quizScore}<span className="text-lg font-normal text-muted-foreground">/100</span></p>
                             <Progress value={quizScore} className="w-full" />
                         </div>
                     ) : (
@@ -186,15 +188,22 @@ export function DashboardContent() {
   const { user } = useUser();
 
   return (
-    <main className="flex-1 space-y-8 p-4 md:p-8">
+    <motion.main 
+        className="flex-1 space-y-8 p-4 md:p-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+    >
       <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-4xl font-black tracking-tighter">
               Welcome back, {user?.displayName?.split(' ')[0] || 'Student'}!
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
               Let's continue your journey to studying in Canada. Here's your dashboard.
           </p>
       </div>
+      
+      <WhatsNext />
 
       <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-8">
@@ -206,6 +215,6 @@ export function DashboardContent() {
               <EligibilityScoreCard />
           </div>
       </div>
-    </main>
+    </motion.main>
   );
 }

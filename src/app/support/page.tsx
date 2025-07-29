@@ -1,7 +1,6 @@
 
 'use client';
 
-import { AppLayout } from '@/components/app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { LifeBuoy, Mail, Phone, MessageSquare, Headset, Zap } from 'lucide-react';
@@ -52,8 +51,10 @@ export default function SupportPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <Headset className="mx-auto h-16 w-16 text-primary mb-4" />
-                <h1 className="text-4xl md:text-5xl font-bold font-headline">Help & Support</h1>
+                <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                    <Headset className="h-16 w-16 text-primary" />
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tighter">Help & Support</h1>
                 <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
                     We're here to help you every step of the way. Find answers to common questions or reach out to our dedicated support team.
                 </p>
@@ -61,19 +62,19 @@ export default function SupportPage() {
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    <Card>
+                    <Card className="border-border/50">
                       <CardHeader>
-                        <CardTitle>Frequently Asked Questions</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Frequently Asked Questions</CardTitle>
                         <CardDescription>Find quick answers to the most common questions about our services and the application process.</CardDescription>
                       </CardHeader>
                       <CardContent>
                          <Accordion type="single" collapsible className="w-full">
                             {faqItems.map((item, index) => (
-                                 <AccordionItem key={index} value={`item-${index}`}>
-                                    <AccordionTrigger className="text-left text-lg font-medium hover:no-underline data-[state=open]:text-primary data-[state=open]:font-semibold">
+                                 <AccordionItem key={index} value={`item-${index}`} className="border-b-border/50">
+                                    <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline data-[state=open]:text-primary data-[state=open]:font-bold">
                                         {item.question}
                                     </AccordionTrigger>
-                                    <AccordionContent className="text-muted-foreground leading-relaxed pt-2">
+                                    <AccordionContent className="text-muted-foreground leading-relaxed pt-2 text-base">
                                         {item.answer}
                                     </AccordionContent>
                                 </AccordionItem>
@@ -83,19 +84,19 @@ export default function SupportPage() {
                     </Card>
                 </div>
                 <div className="lg:col-span-1 space-y-8">
-                     <Card>
+                     <Card className="border-border/50">
                       <CardHeader>
-                        <CardTitle>Get In Touch</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Get In Touch</CardTitle>
                         <CardDescription>Couldn't find what you were looking for? Contact us directly.</CardDescription>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-6">
                         {contactOptions.map((option, index) => {
                             const Icon = option.icon;
                             return (
-                                <div key={index} className="flex items-start gap-4">
-                                    <Icon className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                                <div key={index} className="flex items-start gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
+                                    <Icon className="h-8 w-8 text-primary flex-shrink-0 mt-1" />
                                     <div>
-                                        <p className="font-semibold text-lg">{option.title}</p>
+                                        <p className="font-bold text-lg">{option.title}</p>
                                         <p className="text-sm text-muted-foreground mb-2">{option.description}</p>
                                         <Button variant="outline" size="sm" asChild>
                                             <Link href={option.href}>{option.cta}</Link>
@@ -107,18 +108,18 @@ export default function SupportPage() {
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/20">
+                    <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20 shadow-lg">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-primary"><Zap className="h-5 w-5" />Premium Support</CardTitle>
+                            <CardTitle className="flex items-center gap-2 text-primary"><Zap className="h-6 w-6" />Premium Support</CardTitle>
                             <CardDescription className="text-primary/80 dark:text-primary/90">Priority channels for Advantage and Elite plan holders.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <Button size="lg" className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white transition-colors duration-200" asChild>
+                        <CardContent className="flex flex-col gap-3">
+                            <Button size="lg" className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white transition-colors duration-200 shadow-md hover:shadow-lg" asChild>
                                 <a href="https://wa.me/14376063897" target="_blank" rel="noopener noreferrer">
                                     WhatsApp (Elite)
                                 </a>
                             </Button>
-                            <Button size="lg" className="w-full mt-3" variant="outline" asChild>
+                            <Button size="lg" className="w-full" variant="outline" asChild>
                                 <Link href="/appointments">
                                     Book 1-on-1 (Advantage+)
                                 </Link>
@@ -132,10 +133,10 @@ export default function SupportPage() {
       <footer className="bg-card border-t">
         <div className="container mx-auto px-4 md:px-6 py-8">
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
-            <div>
+            <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-2">
                 <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={24} height={24} />
-                <span className="font-bold text-lg font-headline">Maple Leafs Education</span>
+                <span className="font-bold text-lg">Maple Leafs Education</span>
               </div>
               <p className="text-xs text-muted-foreground">&copy; 2024 Maple Leafs Education. <br /> A BENO 1017 Product.</p>
             </div>

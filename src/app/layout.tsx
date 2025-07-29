@@ -5,7 +5,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
-import { inter, montserrat } from './fonts';
+import { inter } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Maple Leafs Education',
@@ -54,7 +54,6 @@ export default function RootLayout({
       <body className={cn(
         "font-sans antialiased",
         inter.variable,
-        montserrat.variable
       )}>
         <AuthProvider>
             {children}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -13,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Send, Check } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 type Answer = string | string[] | null;
 type Answers = Record<string, Answer>;
@@ -28,10 +30,10 @@ const questions = [
   { id: 'q8_program_start', section: 'D — Timing & Docs', text: 'How soon does your program start?', options: [{ value: '>=4', label: 'More than 4 months', points: 5 }, { value: '2-3', label: '2-3 months', points: 3 }, { value: '<2', label: 'Less than 2 months', points: 0 }] },
   { id: 'q9_passport_validity', section: 'D — Timing & Docs', text: 'Does your passport have at least 2 years of validity?', options: [{ value: 'yes', label: 'Yes', points: 3 }, { value: 'no', label: 'No, it needs renewal soon', points: 0 }] },
   { id: 'q10_docs_ready', section: 'D — Timing & Docs', text: 'Are your core documents (passport, LOA, funds proof) scanned and ready?', options: [{ value: 'all', label: 'Yes, all are ready', points: 5 }, { value: 'some', label: 'Some are ready', points: 2 }, { value: 'none', label: 'None are ready', points: 0 }] },
-  { id: 'q11_pal', section: 'E — Provincial Compliance', text: 'If applicable, have you secured a Provincial Attestation Letter (PAL)?', options: [{ value: 'not_needed', label: 'Not needed for my province/program', points: 5 }, { value: 'yes', label: 'Yes, I have it', points: 5 }, { value: 'in_progress', label: 'It\'s in progress', points: 2 }, { value: 'no', label: 'No / Unsure', points: 0 }] },
+  { id: 'q11_pal', section: 'E — Provincial Compliance', text: 'If applicable, have you secured a Provincial Attestation Letter (PAL)?', options: [{ value: 'not_needed', label: 'Not needed for my province/program', points: 5 }, { value: 'yes', label: 'Yes, I have it', points: 5 }, { value: 'in_progress', label: 'It's in progress', points: 2 }, { value: 'no', label: 'No / Unsure', points: 0 }] },
   { id: 'q12_visa_refusals', section: 'F — Risk Factors', text: 'Have you had any previous visa refusals (any country)?', options: [{ value: 'none', label: 'None', points: 5 }, { value: 'one_resolved', label: 'One, with issues addressed', points: 2 }, { value: 'multiple', label: 'Multiple refusals', points: -5 }] },
   { id: 'q13_criminal_record', section: 'F — Risk Factors', text: 'Do you have any criminal record or serious medical issues?', options: [{ value: 'no', label: 'No', points: 5 }, { value: 'yes', label: 'Yes (will require explanation)', points: -10 }] },
-  { id: 'q14_program_alignment', section: 'G — Study Plan Fit', text: 'How well does your chosen program align with your past studies or work?', options: [{ value: 'direct', label: 'Directly aligns', points: 8 }, { value: 'related', label: 'Somewhat related', points: 4 }, { value: 'major_switch', label: 'It\'s a major career switch', points: 0 }] },
+  { id: 'q14_program_alignment', section: 'G — Study Plan Fit', text: 'How well does your chosen program align with your past studies or work?', options: [{ value: 'direct', label: 'Directly aligns', points: 8 }, { value: 'related', label: 'Somewhat related', points: 4 }, { value: 'major_switch', label: 'It's a major career switch', points: 0 }] },
   { id: 'q15_home_ties', section: 'G — Study Plan Fit', text: 'How strong are your financial and family ties to your home country?', options: [{ value: 'strong', label: 'Strong (property, family, job offer)', points: 5 }, { value: 'some', label: 'Some ties', points: 2 }, { value: 'weak', label: 'Weak or minimal ties', points: 0 }] },
 ];
 
@@ -52,6 +54,7 @@ export function EligibilityQuizFlow() {
 
   const visibleQuestions = useMemo(() => questions.filter(q => !q.condition || q.condition(answers)), [answers]);
   const currentQuestion = visibleQuestions[currentQuestionIndex];
+  const currentSection = currentQuestion?.section;
 
   const handleAnswerChange = (questionId: string, value: string) => {
     const newAnswers = { ...answers, [questionId]: value };
@@ -139,26 +142,29 @@ export function EligibilityQuizFlow() {
   const progressPercentage = (currentQuestionIndex / visibleQuestions.length) * 100;
 
   return (
-    <Card className="max-w-3xl mx-auto overflow-hidden">
-      <CardHeader>
-        <CardTitle>Eligibility Quiz</CardTitle>
-        <CardDescription>Answer these questions to get an estimate of your study permit eligibility.</CardDescription>
-        <div className="pt-2">
-            <Progress value={progressPercentage} />
-            <p className="text-sm text-muted-foreground mt-2 text-center">Question {currentQuestionIndex + 1} of {visibleQuestions.length}</p>
+    <Card className="max-w-3xl mx-auto overflow-hidden border-border/50 shadow-xl">
+      <div className="p-6 text-center bg-muted/50 border-b border-border/50">
+        <h1 className="text-2xl font-black tracking-tighter">Eligibility Quiz</h1>
+        <p className="text-muted-foreground mt-1">Answer these questions to estimate your study permit eligibility.</p>
+        <div className="pt-4 space-y-2">
+            <Progress value={progressPercentage} className="h-3"/>
+            <p className="text-sm text-muted-foreground">Question {currentQuestionIndex + 1} of {visibleQuestions.length}</p>
         </div>
-      </CardHeader>
+      </div>
       <AnimatePresence mode="wait">
         <motion.div
           key={currentQuestion.id}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          <CardContent className="py-6">
-            <p className="text-lg font-semibold mb-4">{currentQuestion.text}</p>
-            <div className="space-y-3">
+          <CardContent className="py-8 px-6">
+            <div className="text-center mb-6">
+              <p className="text-sm font-semibold uppercase text-primary mb-2">{currentSection}</p>
+              <p className="text-xl font-bold mb-4">{currentQuestion.text}</p>
+            </div>
+            <div className="space-y-3 max-w-lg mx-auto">
               {currentQuestion.options.map(opt => {
                 if (currentQuestion.type === 'checkbox') {
                   const isSelected = ((answers[currentQuestion.id] as string[]) || []).includes(opt.value);
@@ -166,9 +172,10 @@ export function EligibilityQuizFlow() {
                     <Label
                       key={opt.value}
                       htmlFor={`${currentQuestion.id}-${opt.value}`}
-                      className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-all ${
-                        isSelected ? 'border-primary bg-primary/10' : 'hover:border-primary/50'
-                      }`}
+                      className={cn(
+                        `flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-all duration-200`,
+                        isSelected ? 'border-primary bg-primary/10 ring-2 ring-primary/50' : 'hover:border-primary/50 bg-background'
+                      )}
                     >
                       <Checkbox
                         id={`${currentQuestion.id}-${opt.value}`}
@@ -176,7 +183,7 @@ export function EligibilityQuizFlow() {
                         onCheckedChange={checked => handleCheckboxChange(currentQuestion.id, opt.value, !!checked)}
                         className="h-6 w-6"
                       />
-                      <span className="flex-1 text-base">{opt.label}</span>
+                      <span className="flex-1 text-base font-medium">{opt.label}</span>
                     </Label>
                   );
                 }
@@ -184,12 +191,15 @@ export function EligibilityQuizFlow() {
                   <motion.div key={opt.value} whileTap={{ scale: 0.98 }}>
                     <div
                       onClick={() => handleAnswerChange(currentQuestion.id, opt.value)}
-                      className={`flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-all ${
-                        answers[currentQuestion.id] === opt.value ? 'border-primary bg-primary/10' : 'hover:border-primary/50'
-                      }`}
+                      className={cn(
+                        `flex items-center gap-4 rounded-lg border p-4 cursor-pointer transition-all duration-200`,
+                        answers[currentQuestion.id] === opt.value ? 'border-primary bg-primary/10 ring-2 ring-primary/50' : 'hover:border-primary/50 bg-background'
+                      )}
                     >
-                      <Check className={`h-6 w-6 rounded-full p-1 transition-all ${answers[currentQuestion.id] === opt.value ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} />
-                      <span className="flex-1 text-base">{opt.label}</span>
+                       <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center transition-all">
+                         {answers[currentQuestion.id] === opt.value && <div className="h-3 w-3 rounded-full bg-primary transition-all"/>}
+                       </div>
+                      <span className="flex-1 text-base font-medium">{opt.label}</span>
                     </div>
                   </motion.div>
                 );
@@ -198,7 +208,7 @@ export function EligibilityQuizFlow() {
           </CardContent>
         </motion.div>
       </AnimatePresence>
-      <CardFooter className="flex justify-between border-t bg-muted/50 py-4">
+      <CardFooter className="flex justify-between border-t bg-muted/50 py-4 px-6">
         <Button variant="ghost" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
           <ChevronLeft className="mr-2 h-4 w-4" /> Previous
         </Button>
@@ -206,6 +216,7 @@ export function EligibilityQuizFlow() {
            <Button 
             onClick={handleNextForCheckbox}
             disabled={!answers[currentQuestion.id] || (Array.isArray(answers[currentQuestion.id]) && (answers[currentQuestion.id] as string[]).length === 0)}
+            className="bg-electric-violet hover:bg-electric-violet/90"
            >
              {currentQuestionIndex === visibleQuestions.length - 1 ? 'Finish & See Results' : 'Next'} <Send className="ml-2 h-4 w-4" />
            </Button>

@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { collegeMatchReasoning, CollegeMatchReasoningInput } from '@/ai/flows/college-match-reasoning';
 import { Skeleton } from '@/components/ui/skeleton';
+import { motion } from 'framer-motion';
+import { Zap } from 'lucide-react';
 
 type ReasoningPanelProps = {
   dliDetails: {
@@ -54,10 +56,14 @@ export function ReasoningPanel({ dliDetails, studentProfile, filteringLogic, ini
 
   if (loading) {
     return (
-      <div className="space-y-3">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
+      <div className="flex items-center justify-center space-x-2 p-4">
+        <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+            <Zap className="h-5 w-5 text-primary" />
+        </motion.div>
+        <p className="text-sm font-semibold text-muted-foreground">Analyzing Match...</p>
       </div>
     );
   }

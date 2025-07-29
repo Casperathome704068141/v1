@@ -39,7 +39,7 @@ function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-10 w-10 border-2 border-primary/50">
             <AvatarImage src={user?.photoURL || "https://placehold.co/100x100.png"} alt="User" data-ai-hint="user avatar" />
             <AvatarFallback>{user?.displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
@@ -98,7 +98,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
       <SidebarProvider>
         <div className="flex min-h-screen">
-          <Sidebar>
+          <Sidebar className="bg-card border-r-border/50">
             <SidebarHeader>
               <div className="flex items-center gap-3 p-4">
                 <Image src="/logo.svg" alt="MLE Logo" width={40} height={40} className="text-sidebar-foreground"/>
@@ -113,7 +113,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 {navItems.map((item) => (
                   <SidebarMenuItem key={item.label}>
                     <Link href={item.href} legacyBehavior passHref>
-                      <SidebarMenuButton isActive={pathname.startsWith(item.href)}>
+                      <SidebarMenuButton 
+                        isActive={pathname.startsWith(item.href)}
+                        className="data-[active=true]:bg-electric-violet data-[active=true]:text-white"
+                      >
                         <item.icon />
                         <span>{item.label}</span>
                       </SidebarMenuButton>

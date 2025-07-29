@@ -46,13 +46,14 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-4"
-        style={{
-            backgroundImage: `url('/login-background.jpg')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-        }}>
-        <div className="absolute inset-0 bg-background/80 dark:bg-background/90 backdrop-blur-sm"></div>
+    <div className="flex min-h-screen w-full items-center justify-center p-4 relative overflow-hidden">
+        <div 
+            className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/20 to-primary/20 opacity-30 dark:opacity-50 animate-background-pan"
+            style={{
+                backgroundSize: '200% 200%',
+            }}
+        />
+        <div className="absolute inset-0 bg-background/80 dark:bg-background/90 backdrop-blur-lg"></div>
         <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-foreground/80 hover:text-foreground transition-colors z-10">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
@@ -63,18 +64,18 @@ export default function SignupPage() {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md z-10"
         >
-            <Card>
+            <Card className="border-border/50 shadow-xl">
                 <CardHeader className="text-center">
-                    <Link href="/" className="inline-block mx-auto">
+                    <Link href="/" className="inline-block mx-auto mb-4">
                         <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} />
                     </Link>
-                    <CardTitle className="text-2xl font-bold font-headline">Create an Account</CardTitle>
-                    <CardDescription>Begin your journey to studying in Canada.</CardDescription>
+                    <CardTitle className="text-3xl font-black tracking-tighter">Create an Account</CardTitle>
+                    <CardDescription className="text-lg">Begin your journey to studying in Canada.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        <Button variant="outline" className="w-full" onClick={signInWithGoogle}>
-                            <GoogleIcon className="mr-2 h-5 w-5" /> Continue with Google
+                        <Button variant="outline" className="w-full font-semibold text-lg py-6" onClick={signInWithGoogle}>
+                            <GoogleIcon className="mr-3 h-6 w-6" /> Continue with Google
                         </Button>
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
@@ -83,18 +84,18 @@ export default function SignupPage() {
                         <form onSubmit={handleSignup} className="space-y-4">
                             <div className="space-y-1">
                                 <Label htmlFor="fullName">Full Name</Label>
-                                <Input id="fullName" type="text" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={loading} />
+                                <Input id="fullName" type="text" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={loading} className="py-6"/>
                             </div>
                             <div className="space-y-1">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" placeholder="you@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
+                                <Input id="email" type="email" placeholder="you@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} className="py-6"/>
                             </div>
                             <div className="space-y-1">
                                 <Label htmlFor="password">Password</Label>
-                                <Input id="password" type="password" placeholder="••••••••" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+                                <Input id="password" type="password" placeholder="••••••••" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="py-6"/>
                             </div>
-                            <Button type="submit" className="w-full font-semibold" disabled={loading}>
-                                {loading ? 'Creating Account...' : 'Create Account'} <UserPlus className="ml-2 h-4 w-4" />
+                            <Button type="submit" className="w-full font-semibold text-lg py-6 bg-electric-violet hover:bg-electric-violet/90" disabled={loading}>
+                                {loading ? 'Creating Account...' : 'Create Account'} <UserPlus className="ml-2 h-5 w-5" />
                             </Button>
                         </form>
                     </div>

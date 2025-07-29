@@ -27,7 +27,7 @@ export function SiteHeader() {
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={32} height={32} />
-          <span className="font-bold sm:inline-block font-headline">Maple Leafs Education</span>
+          <span className="font-bold sm:inline-block">Maple Leafs Education</span>
         </Link>
         <nav className="hidden flex-1 items-center gap-6 text-sm md:flex">
           {navLinks.map(link => (
@@ -48,7 +48,7 @@ export function SiteHeader() {
                   <Button asChild variant="ghost">
                      <Link href="/login">Log In</Link>
                   </Button>
-                   <Button asChild>
+                   <Button asChild className="bg-electric-violet hover:bg-electric-violet/90 text-white">
                      <Link href="/signup">Sign Up</Link>
                   </Button>
                 </div>
@@ -66,7 +66,7 @@ export function SiteHeader() {
             <SheetContent side="left">
                 <Link href="/" className="mr-6 flex items-center space-x-2 mb-6" onClick={() => setIsOpen(false)}>
                     <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={32} height={32} />
-                    <span className="font-bold font-headline">Maple Leafs Education</span>
+                    <span className="font-bold">Maple Leafs Education</span>
                 </Link>
                 <div className="flex flex-col gap-4">
                      {navLinks.map(link => (

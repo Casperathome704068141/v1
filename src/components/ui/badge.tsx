@@ -17,6 +17,11 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground",
         success:
           "border-transparent bg-success text-success-foreground",
+        'electric-violet':
+          "border-transparent bg-electric-violet text-white",
+        'electric-teal':
+            "border-transparent bg-electric-teal text-black",
+        glow: "border-primary/50 bg-primary/20 text-primary-foreground dark:bg-primary/10 dark:text-primary dark:shadow-[0_0_10px_theme(colors.primary)]",
         outline: "text-foreground",
       },
     },

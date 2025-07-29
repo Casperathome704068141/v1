@@ -70,31 +70,33 @@ export default function PrivacyPolicyPage() {
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-4xl mx-auto">
             <header className="text-center mb-12">
-              <Shield className="mx-auto h-16 w-16 text-primary" />
-              <h1 className="text-4xl font-bold font-headline mt-4">Privacy Policy</h1>
-              <p className="text-muted-foreground mt-2">Last updated: July 30, 2024</p>
+              <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                <Shield className="h-16 w-16 text-primary" />
+              </div>
+              <h1 className="text-4xl font-black tracking-tighter mt-4">Privacy Policy</h1>
+              <p className="text-muted-foreground mt-2 text-lg">Last updated: July 30, 2024</p>
             </header>
             
             <div className="space-y-10">
                 {content.map(section => (
                     <section key={section.title}>
-                        <h2 className="text-2xl font-semibold font-headline mb-4 border-b pb-2">{section.title}</h2>
-                        {section.text && <p className="text-muted-foreground leading-relaxed">{section.text}</p>}
+                        <h2 className="text-3xl font-bold tracking-tight mb-4 border-b-2 border-primary/20 pb-2">{section.title}</h2>
+                        {section.text && <p className="text-muted-foreground leading-relaxed text-lg">{section.text}</p>}
                         {section.list && (
-                            <ul className="space-y-3 mt-4">
-                                {section.list.map(item => <li key={item} className="flex items-start"><Check className="h-5 w-5 text-success mr-3 mt-1 flex-shrink-0" /><span>{item}</span></li>)}
+                            <ul className="space-y-4 mt-4">
+                                {section.list.map(item => <li key={item} className="flex items-start text-lg"><Check className="h-6 w-6 text-success mr-3 mt-1 flex-shrink-0" /><span>{item}</span></li>)}
                             </ul>
                         )}
                         {section.table && (
-                            <div className="overflow-x-auto rounded-lg border mt-4">
-                                <table className="min-w-full text-sm">
-                                    <thead className="bg-card"><tr className="text-left">
-                                        {section.table.headers.map(h => <th key={h} className="p-3 font-semibold">{h}</th>)}
+                            <div className="overflow-x-auto rounded-lg border border-border/50 mt-4">
+                                <table className="min-w-full text-base">
+                                    <thead className="bg-muted/50"><tr className="text-left">
+                                        {section.table.headers.map(h => <th key={h} className="p-4 font-bold">{h}</th>)}
                                     </tr></thead>
                                     <tbody>
                                         {section.table.rows.map(row => (
-                                            <tr key={row[0]} className="border-t">
-                                                {row.map((cell, i) => <td key={i} className={`p-3 align-top ${i === 0 ? 'font-medium' : 'text-muted-foreground'}`}>{cell}</td>)}
+                                            <tr key={row[0]} className="border-t border-border/50">
+                                                {row.map((cell, i) => <td key={i} className={`p-4 align-top ${i === 0 ? 'font-semibold' : 'text-muted-foreground'}`}>{cell}</td>)}
                                             </tr>
                                         ))}
                                     </tbody>
@@ -102,8 +104,8 @@ export default function PrivacyPolicyPage() {
                             </div>
                         )}
                         {section.contact && (
-                             <p className="text-muted-foreground leading-relaxed mt-4">
-                                To exercise these rights, please contact our privacy officer at <a href="mailto:privacy@mapleleafs.com" className="text-primary hover:underline">privacy@mapleleafs.com</a>.
+                             <p className="text-muted-foreground leading-relaxed mt-4 text-lg">
+                                To exercise these rights, please contact our privacy officer at <a href="mailto:privacy@mapleleafs.com" className="text-primary hover:underline font-semibold">privacy@mapleleafs.com</a>.
                             </p>
                         )}
                     </section>
@@ -116,7 +118,7 @@ export default function PrivacyPolicyPage() {
           <div className="container mx-auto py-10 px-4">
             <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
               <div className="md:col-span-2">
-                <div className="flex items-center gap-2 mb-2"><Image src="/logo.svg" alt="Logo" width={24} height={24} /><span className="font-bold text-lg font-headline">Maple Leafs Education</span></div>
+                <div className="flex items-center gap-2 mb-2"><Image src="/logo.svg" alt="Logo" width={24} height={24} /><span className="font-bold text-lg">Maple Leafs Education</span></div>
                 <p className="text-xs text-muted-foreground">&copy; 2024 MLE. A BENO 1017 Product.</p>
               </div>
               {/* Footer links can be mapped here for consistency */}

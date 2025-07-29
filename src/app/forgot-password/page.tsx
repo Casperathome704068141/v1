@@ -38,32 +38,37 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 p-4"
-        style={{
-            backgroundImage: `url('/login-background.jpg')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-        }}>
-      <div className="absolute inset-0 bg-background/80 dark:bg-background/90 backdrop-blur-sm"></div>
+    <div className="flex min-h-screen w-full items-center justify-center p-4 relative overflow-hidden">
+        <div 
+            className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/20 to-primary/20 opacity-30 dark:opacity-50 animate-background-pan"
+            style={{
+                backgroundSize: '200% 200%',
+            }}
+        />
+        <div className="absolute inset-0 bg-background/80 dark:bg-background/90 backdrop-blur-lg"></div>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
         className="w-full max-w-md z-10"
       >
-        <Card>
+        <Card className="border-border/50 shadow-xl">
           <CardHeader className="text-center space-y-2">
             {!submitted ? (
               <>
-                <Mail className="mx-auto h-12 w-12 text-primary" />
-                <CardTitle className="text-2xl font-bold font-headline">Forgot Your Password?</CardTitle>
-                <CardDescription>No problem. Enter your email below and we'll send you a link to reset it.</CardDescription>
+                <div className="inline-block p-3 bg-primary/10 rounded-full mx-auto">
+                    <Mail className="h-12 w-12 text-primary" />
+                </div>
+                <CardTitle className="text-3xl font-black tracking-tighter">Forgot Your Password?</CardTitle>
+                <CardDescription className="text-lg">No problem. Enter your email below and we'll send you a link to reset it.</CardDescription>
               </>
             ) : (
               <>
-                <CheckCircle className="mx-auto h-12 w-12 text-success" />
-                <CardTitle className="text-2xl font-bold font-headline">Check Your Email</CardTitle>
-                <CardDescription>A password reset link has been sent to <span className="font-semibold text-primary">{email}</span>. Please check your inbox and spam folder.</CardDescription>
+                <div className="inline-block p-3 bg-success/10 rounded-full mx-auto">
+                    <CheckCircle className="h-12 w-12 text-success" />
+                </div>
+                <CardTitle className="text-3xl font-black tracking-tighter">Check Your Email</CardTitle>
+                <CardDescription className="text-lg">A password reset link has been sent to <span className="font-semibold text-primary">{email}</span>. Please check your inbox and spam folder.</CardDescription>
               </>
             )}
           </CardHeader>
@@ -80,14 +85,15 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
+                    className="py-6 text-lg"
                   />
                 </div>
-                <Button type="submit" className="w-full font-semibold" disabled={loading}>
+                <Button type="submit" className="w-full font-semibold text-lg py-6 bg-electric-violet hover:bg-electric-violet/90" disabled={loading}>
                   {loading ? 'Sending...' : 'Send Reset Link'}
                 </Button>
               </form>
             ) : (
-                <Button onClick={() => window.open('mailto:', '_blank')} className="w-full">
+                <Button onClick={() => window.open('mailto:', '_blank')} className="w-full text-lg py-6">
                     Open Email Client
                 </Button>
             )}

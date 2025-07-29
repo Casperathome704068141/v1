@@ -26,12 +26,12 @@ const tiers = [
 
 const PlanCard = ({ tier, isSelected, onSelect, billingCycle }) => (
     <Card 
-        className={cn(`flex flex-col h-full transition-all duration-300 cursor-pointer group`, isSelected ? 'border-primary ring-4 ring-primary/20 shadow-2xl scale-105' : 'hover:shadow-xl hover:-translate-y-1')}
+        className={cn(`flex flex-col h-full transition-all duration-300 cursor-pointer group`, isSelected ? 'border-electric-violet ring-4 ring-electric-violet/20 shadow-2xl scale-105' : 'hover:shadow-xl hover:-translate-y-1')}
         onClick={() => onSelect(tier)}
     >
-        {tier.popular && <Badge variant="accent" className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 shadow-lg border text-sm">Most Popular</Badge>}
+        {tier.popular && <Badge variant="glow" className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 shadow-lg text-sm">Most Popular</Badge>}
         <CardHeader className="pt-12">
-            <CardTitle className="text-2xl font-bold font-headline">{tier.name}</CardTitle>
+            <CardTitle className="text-2xl font-black">{tier.name}</CardTitle>
             <CardDescription>{tier.description}</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-between">
@@ -48,7 +48,7 @@ const PlanCard = ({ tier, isSelected, onSelect, billingCycle }) => (
             </div>
         </CardContent>
         <CardFooter>
-            <Button className="w-full" variant={isSelected ? 'default' : 'outline'}>
+            <Button className={cn("w-full", isSelected && "bg-electric-violet hover:bg-electric-violet/90")} variant={isSelected ? 'default' : 'outline'}>
                 {isSelected ? 'Selected' : 'Choose Plan'}
             </Button>
         </CardFooter>
@@ -82,7 +82,7 @@ export default function PricingPage() {
             <main className="flex-1">
                 <div className="container mx-auto px-4 py-16">
                     <motion.div className="text-center" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-                      <h1 className="text-4xl md:text-5xl font-bold font-headline text-balance">Find the Plan That's Right For You</h1>
+                      <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-balance">Find the Plan That's Right For You</h1>
                       <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground text-balance">Flexible pricing for every stage of your journey to Canada.</p>
                       <div className="flex items-center justify-center gap-4 mt-8">
                           <Label htmlFor="billing-cycle" className={cn(billingCycle === 'monthly' && 'text-primary')}>Monthly</Label>
@@ -111,7 +111,7 @@ export default function PricingPage() {
                     {/* How It Works Section */}
                     <section id="how-it-works" className="w-full">
                         <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-balance">Your Journey to a Canadian School</h2>
+                            <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-balance">Your Journey to a Canadian School</h2>
                             <p className="max-w-2xl mx-auto mt-4 text-muted-foreground md:text-lg text-balance">
                                 We've distilled the complex study permit process into a clear, intelligent, and guided path to success.
                             </p>
@@ -163,7 +163,7 @@ export default function PricingPage() {
                                              <p className="text-2xl font-bold">${selectedTier.price[billingCycle]}</p>
                                              <p className="text-xs text-muted-foreground">Total (CAD)</p>
                                         </div>
-                                        <Button size="lg" onClick={handleCheckout}>Get Started <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                                        <Button size="lg" onClick={handleCheckout} className="bg-electric-violet hover:bg-electric-violet/90">Get Started <ArrowRight className="ml-2 h-4 w-4" /></Button>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -176,7 +176,7 @@ export default function PricingPage() {
                 <div className="container mx-auto px-4 md:px-6 py-8">
                 <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
                     <div className="md:col-span-2">
-                    <div className="flex items-center gap-2 mb-2"><Image src="/logo.svg" alt="Logo" width={24} height={24} /><span className="font-bold text-lg font-headline">Maple Leafs Education</span></div>
+                    <div className="flex items-center gap-2 mb-2"><Image src="/logo.svg" alt="Logo" width={24} height={24} /><span className="font-bold text-lg">Maple Leafs Education</span></div>
                     <p className="text-xs text-muted-foreground">&copy; 2024 MLE. A BENO 1017 Product.</p>
                     </div>
                     <div>

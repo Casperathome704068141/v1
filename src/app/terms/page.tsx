@@ -2,6 +2,7 @@
 import { SiteHeader } from '@/components/marketing/site-header';
 import Image from 'next/image';
 import Link from 'next/link';
+import { FileText } from 'lucide-react';
 
 export default function TermsOfServicePage() {
   return (
@@ -10,10 +11,15 @@ export default function TermsOfServicePage() {
       <main className="flex-1">
         <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-bold font-headline mb-4">Terms of Service</h1>
-            <p className="text-muted-foreground mb-8">Last updated: July 29, 2024</p>
+            <header className="text-center mb-12">
+                <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                    <FileText className="h-16 w-16 text-primary" />
+                </div>
+                <h1 className="text-4xl font-black tracking-tighter">Terms of Service</h1>
+                <p className="text-muted-foreground mt-2 text-lg">Last updated: July 29, 2024</p>
+            </header>
             
-            <div className="prose dark:prose-invert max-w-none">
+            <div className="prose dark:prose-invert max-w-none prose-lg prose-headings:font-bold prose-headings:tracking-tight prose-headings:border-b-2 prose-headings:border-primary/20 prose-headings:pb-2 prose-a:text-primary prose-a:font-semibold hover:prose-a:underline">
               <h2 id="acceptance">2.1 Acceptance</h2>
               <p>By creating an account or using any MLE services, you agree to these Terms, our Privacy Policy, and any product-specific agreements.</p>
               
@@ -83,7 +89,7 @@ export default function TermsOfServicePage() {
               
               <h2 id="contact">2.14 Contact</h2>
               <p>
-                  <a href="mailto:legal@mapleleafseducation.ca" className="text-primary hover:underline">legal@mapleleafseducation.ca</a> | <a href="tel:+14165551234" className="text-primary hover:underline">+1 (416) 555-1234</a>
+                  <a href="mailto:legal@mapleleafseducation.ca">legal@mapleleafseducation.ca</a> | <a href="tel:+14165551234">+1 (416) 555-1234</a>
               </p>
             </div>
           </div>
@@ -95,7 +101,7 @@ export default function TermsOfServicePage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={24} height={24} />
-                <span className="font-bold text-lg font-headline">Maple Leafs Education</span>
+                <span className="font-bold text-lg">Maple Leafs Education</span>
               </div>
               <p className="text-xs text-muted-foreground">&copy; 2024 Maple Leafs Education. <br /> A BENO 1017 Product.</p>
             </div>

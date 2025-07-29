@@ -18,6 +18,8 @@ import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 interface QuizResultsProps {
   totalScore: number;
@@ -35,6 +37,7 @@ const getResultDetails = (score: number) => {
       ctaText: 'Create Your Application',
       ctaLink: '/application',
       ctaVariant: 'default' as const,
+      pieColor: 'hsl(var(--success))',
     };
   }
   if (score >= 50) {
@@ -44,6 +47,7 @@ const getResultDetails = (score: number) => {
       ctaText: 'Start Your Application',
       ctaLink: '/application',
       ctaVariant: 'secondary' as const,
+      pieColor: 'hsl(var(--warning))',
     };
   }
   return {
@@ -52,6 +56,7 @@ const getResultDetails = (score: number) => {
     ctaText: 'Book a 1-on-1 Consultation',
     ctaLink: '/appointments',
     ctaVariant: 'destructive' as const,
+    pieColor: 'hsl(var(--destructive))',
   };
 };
 
@@ -68,6 +73,12 @@ export function QuizResults({
   const { toast } = useToast();
 
   useEffect(() => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+
     const saveScore = async () => {
       if (user?.uid) {
         try {
@@ -101,7 +112,7 @@ export function QuizResults({
     { name: 'Remaining', value: 100 - totalScore },
   ];
   
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
+  const COLORS = [resultDetails.pieColor, 'hsl(var(--muted))'];
   
   const handleCtaClick = () => {
     router.push(resultDetails.ctaLink);
@@ -114,73 +125,85 @@ export function QuizResults({
   };
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader className="text-center items-center">
-        <div className="relative h-40 w-40">
-            <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={70}
-                    startAngle={90}
-                    endAngle={450}
-                    paddingAngle={0}
-                    dataKey="value"
-                    stroke="none"
-                >
-                    {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                </Pie>
-                </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="text-4xl font-bold">{totalScore}</span>
-                <span className="text-sm text-muted-foreground">/ 100</span>
-            </div>
-        </div>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+    >
+        <Card className="max-w-4xl mx-auto overflow-hidden border-border/50 shadow-xl">
+        <CardHeader className="text-center items-center bg-muted/30 p-8">
+            <motion.div 
+                className="relative h-48 w-48"
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 100 }}
+            >
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                    <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={85}
+                        startAngle={90}
+                        endAngle={450}
+                        paddingAngle={0}
+                        dataKey="value"
+                        stroke="none"
+                    >
+                        {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                    </Pie>
+                    </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex items-center justify-center flex-col">
+                    <span className="text-6xl font-black tracking-tighter">{totalScore}</span>
+                    <span className="text-sm text-muted-foreground font-bold">/ 100</span>
+                </div>
+            </motion.div>
 
-        <CardTitle className="text-2xl mt-4">{resultDetails.status}</CardTitle>
-        <CardDescription className="max-w-md">
-          {resultDetails.description}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <h3 className="text-lg font-semibold mb-4 text-center">Score Breakdown</h3>
-        <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 30, bottom: 5 }}>
-                    <XAxis type="number" hide />
-                    <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip 
-                         contentStyle={{
-                            background: "hsl(var(--background))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                        }}
-                        formatter={(value, name) => [`${value} / ${sectionMaxPoints[name as string]}`, 'Score']}
-                    />
-                    <Bar dataKey="score" fill="hsl(var(--primary))" radius={[4, 4, 4, 4]} barSize={20}>
-                        <LabelList dataKey="score" position="right" offset={10} className="fill-foreground font-semibold" />
-                    </Bar>
-                </BarChart>
-            </ResponsiveContainer>
-        </div>
-      </CardContent>
-      <CardFooter className="flex-col gap-4 border-t pt-6">
-        <Button onClick={handleCtaClick} size="lg" variant={resultDetails.ctaVariant} className="w-full">
-          {resultDetails.ctaText}
-        </Button>
-        <Button variant="secondary" onClick={handleActionPlanClick} className="w-full">
-          View Your AI-Generated Action Plan
-        </Button>
-        <Button variant="outline" onClick={onReset} className="w-full">
-          Take the Quiz Again
-        </Button>
-      </CardFooter>
-    </Card>
+            <CardTitle className="text-4xl font-black tracking-tighter mt-4">{resultDetails.status}</CardTitle>
+            <CardDescription className="max-w-md text-lg">
+            {resultDetails.description}
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="p-8">
+            <h3 className="text-2xl font-bold mb-6 text-center">Score Breakdown</h3>
+            <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
+                        <XAxis type="number" hide />
+                        <YAxis type="category" dataKey="name" width={120} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" className="font-semibold"/>
+                        <Tooltip 
+                            contentStyle={{
+                                background: "hsl(var(--background))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "var(--radius)",
+                                boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                            }}
+                            formatter={(value, name) => [`${value} / ${sectionMaxPoints[name as string]}`, 'Score']}
+                        />
+                        <Bar dataKey="score" fill="hsl(var(--primary))" radius={[4, 4, 4, 4]} barSize={25}>
+                            <LabelList dataKey="score" position="right" offset={10} className="fill-foreground font-bold text-lg" />
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </CardContent>
+        <CardFooter className="flex-col gap-4 border-t bg-muted/30 p-8">
+            <Button onClick={handleActionPlanClick} size="lg" className="w-full text-lg py-7 bg-electric-violet hover:bg-electric-violet/90 font-bold">
+                View Your AI-Generated Action Plan
+            </Button>
+            <Button onClick={handleCtaClick} size="lg" variant={resultDetails.ctaVariant} className="w-full text-lg py-7 font-bold">
+                {resultDetails.ctaText}
+            </Button>
+            <Button variant="ghost" onClick={onReset} className="w-full text-base">
+                Take the Quiz Again
+            </Button>
+        </CardFooter>
+        </Card>
+    </motion.div>
   );
 }

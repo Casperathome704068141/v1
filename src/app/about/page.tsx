@@ -40,8 +40,8 @@ export default function AboutPage() {
         {/* Hero Section */}
         <section className="w-full py-20 md:py-32">
           <div className="container mx-auto px-4 md:px-6 text-center animate-fade-in-up">
-            <Badge variant="secondary" className="mb-4">Our Story</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight text-foreground text-balance">
+            <Badge variant="glow" className="mb-4">Our Story</Badge>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground text-balance">
               Simplifying the Path to a Canadian Education.
             </h1>
             <p className="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground text-balance">
@@ -55,7 +55,7 @@ export default function AboutPage() {
             <div className="container mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-4">
                     <span className="text-sm font-semibold uppercase text-primary">The MLE Difference</span>
-                    <h2 className="text-3xl font-bold font-headline tracking-tight">Combining AI Efficiency with Human Empathy</h2>
+                    <h2 className="text-3xl font-black tracking-tight">Combining AI Efficiency with Human Empathy</h2>
                     <p className="text-muted-foreground">
                         The Canadian study permit process is more competitive than ever. Simple mistakes or a poorly presented case can lead to refusals, dashing dreams and wasting time and money. We saw too many talented students getting rejected for avoidable reasons.
                     </p>
@@ -64,14 +64,16 @@ export default function AboutPage() {
                     </p>
                 </div>
                 <div>
-                     <Image
-                        src="https://placehold.co/600x400.png"
-                        alt="Team working collaboratively"
-                        width={600}
-                        height={400}
-                        className="rounded-xl shadow-lg"
-                        data-ai-hint="diverse team working"
-                    />
+                     <div className="rounded-xl shadow-lg overflow-hidden">
+                        <Image
+                            src="/login-background.jpg"
+                            alt="Team working collaboratively"
+                            width={600}
+                            height={400}
+                            className="w-full h-full object-cover"
+                            data-ai-hint="diverse team working"
+                        />
+                     </div>
                 </div>
             </div>
         </section>
@@ -80,20 +82,20 @@ export default function AboutPage() {
         <section className="w-full py-12 md:py-24">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl">Meet the Team</h2>
+              <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Meet the Team</h2>
               <p className="max-w-2xl mx-auto mt-4 text-muted-foreground md:text-lg text-balance">
                 The experts dedicated to your success.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               {teamMembers.map((member) => (
-                <Card key={member.name} className="text-center bg-card border-border/50">
+                <Card key={member.name} className="text-center bg-card border-border/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                   <CardHeader className="items-center">
-                    <Avatar className="h-24 w-24 mb-4">
+                    <Avatar className="h-24 w-24 mb-4 border-4 border-primary/20">
                       <AvatarImage src={member.avatar} alt={member.name} data-ai-hint="professional headshot" />
                       <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
-                    <CardTitle className="text-lg font-headline">{member.name}</CardTitle>
+                    <CardTitle className="text-lg font-bold">{member.name}</CardTitle>
                     <CardDescription className="text-primary font-semibold">{member.role}</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -115,7 +117,7 @@ export default function AboutPage() {
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-2">
                 <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={24} height={24} />
-                <span className="font-bold text-lg font-headline">Maple Leafs Education</span>
+                <span className="font-bold text-lg">Maple Leafs Education</span>
               </div>
               <p className="text-xs text-muted-foreground">&copy; 2024 Maple Leafs Education. <br /> A BENO 1017 Product.</p>
             </div>

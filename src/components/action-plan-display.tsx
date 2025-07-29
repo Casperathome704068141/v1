@@ -5,19 +5,20 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { generateActionPlan } from '@/ai/flows/generate-action-plan';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Terminal, Lightbulb, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // A simple markdown-to-HTML converter
 const toHtml = (text: string) => {
     return text
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-6 mb-2">$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold mt-4 mb-2 text-primary">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-black tracking-tight mt-8 mb-4 border-b-2 border-primary/20 pb-2">$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1 class="text-4xl font-black tracking-tighter mb-4">$1</h1>')
         .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
         .replace(/\*(.*)\*/gim, '<em>$1</em>')
-        .replace(/^- (.*$)/gim, '<li class="ml-4 mb-2 list-disc">$1</li>')
-        .replace(/\n/g, '<br />');
+        .replace(/^- (.*$)/gim, '<li class="ml-6 mb-3 list-disc text-lg">$1</li>')
+        .replace(/
+/g, '<br />');
 };
 
 
@@ -58,17 +59,16 @@ export function ActionPlanDisplay() {
 
   if (loading) {
     return (
-       <div className="space-y-6">
-            <div className="space-y-2">
-                <Skeleton className="h-6 w-1/2" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-            </div>
-             <div className="space-y-2">
-                <Skeleton className="h-6 w-1/2" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-            </div>
+       <div className="text-center p-8">
+            <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="inline-block"
+            >
+                <Zap className="h-16 w-16 text-primary" />
+            </motion.div>
+            <h2 className="text-2xl font-bold mt-4">Generating Your AI Action Plan...</h2>
+            <p className="text-muted-foreground">This may take a few moments. Please wait.</p>
         </div>
     );
   }
@@ -84,8 +84,10 @@ export function ActionPlanDisplay() {
   }
 
   return (
-    <div 
-        className="prose prose-lg max-w-none text-foreground"
+    <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="prose prose-lg dark:prose-invert max-w-none"
         dangerouslySetInnerHTML={{ __html: toHtml(actionPlan) }} 
     />
   );
