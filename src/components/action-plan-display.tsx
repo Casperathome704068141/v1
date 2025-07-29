@@ -17,8 +17,7 @@ const toHtml = (text: string) => {
         .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
         .replace(/\*(.*)\*/gim, '<em>$1</em>')
         .replace(/^- (.*$)/gim, '<li class="ml-6 mb-3 list-disc text-lg">$1</li>')
-        .replace(/
-/g, '<br />');
+        .replace(/\n/g, '<br />');
 };
 
 
