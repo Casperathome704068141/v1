@@ -185,7 +185,7 @@ function EligibilityScoreCard() {
 }
 
 export function DashboardContent() {
-  const { user } = useUser();
+  const { user, profile } = useUser();
 
   return (
     <motion.main 
@@ -201,6 +201,11 @@ export function DashboardContent() {
           <p className="text-lg text-muted-foreground">
               Let's continue your journey to studying in Canada. Here's your dashboard.
           </p>
+          {profile?.adminMessage && (
+            <Card className="border-l-4 border-primary bg-primary/10">
+              <CardContent className="py-2 text-sm">{profile.adminMessage}</CardContent>
+            </Card>
+          )}
       </div>
       
       <WhatsNext />

@@ -130,7 +130,7 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
                 {statusData?.files?.length > 0 && (
                     <div className="mt-4 pl-10 space-y-2">
                         {statusData.files.map((file: UploadedFile) => (
-                            <div key={file.path} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded-md">
+                            <div key={file.path} className={cn("flex items-center justify-between text-sm p-2 rounded-md", statusInfo.badgeVariant === 'default' ? 'bg-success/10' : 'bg-muted/50')}>
                                 <div className="flex items-center gap-2 truncate">
                                     <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                     <Link href={file.url} target="_blank" rel="noopener noreferrer" className="font-mono text-xs truncate hover:underline" title={file.fileName}>{file.fileName}</Link>

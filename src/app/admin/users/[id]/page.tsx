@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { UserProfile } from '@/context/auth-context';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 
 type Application = {
@@ -49,6 +50,7 @@ export default function UserDetailPage() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [adminMessage, setAdminMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
     const router = useRouter();
@@ -64,7 +66,9 @@ export default function UserDetailPage() {
                 const userDocSnap = await getDoc(userDocRef);
 
                 if (userDocSnap.exists()) {
-                    setUser(userDocSnap.data() as UserProfile);
+                    const data = userDocSnap.data() as UserProfile;
+                    setUser(data);
+                    setAdminMessage(data.adminMessage || '');
                 } else {
                     setError("No user found with this ID.");
                     setLoading(false);
@@ -104,7 +108,7 @@ export default function UserDetailPage() {
         getUserData();
     }, [id]);
     
-    const handlePlanUpdate = async (newPlan: string) => {
+const handlePlanUpdate = async (newPlan: string) => {
         if (!user) return;
         setIsUpdating(true);
         const docRef = doc(db, 'users', user.uid);
@@ -122,6 +126,21 @@ export default function UserDetailPage() {
                 title: 'Update Failed',
                 description: 'Could not update the user plan.',
             });
+        } finally {
+            setIsUpdating(false);
+        }
+};
+
+    const handleMessageSave = async () => {
+        if (!user) return;
+        setIsUpdating(true);
+        const docRef = doc(db, 'users', user.uid);
+        try {
+            await updateDoc(docRef, { adminMessage });
+            toast({ title: 'Message Saved', description: 'User will see the updated message on their dashboard.' });
+        } catch (error) {
+            console.error('Error saving message: ', error);
+            toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save the message.' });
         } finally {
             setIsUpdating(false);
         }
@@ -210,6 +229,11 @@ export default function UserDetailPage() {
                                         </SelectContent>
                                     </Select>
                                     <p className="text-xs text-muted-foreground pt-2">Changing the plan will grant or revoke access to paid features.</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Dashboard Message</Label>
+                                    <Textarea value={adminMessage} onChange={(e) => setAdminMessage(e.target.value)} placeholder="Optional message for this user" />
+                                    <Button size="sm" className="mt-2" onClick={handleMessageSave} disabled={isUpdating}>Save Message</Button>
                                 </div>
                                 <Separator/>
                                  <dl>

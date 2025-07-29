@@ -14,11 +14,10 @@ service cloud.firestore {
       allow read, write: if request.auth.uid == userId;
       allow get, list: if isAdmin();
 
-      // Users can write their own application draft.
-      // Admins can read any draft.
-      match /application/draft {
-        allow read, write: if request.auth.uid == userId;
-        allow get: if isAdmin();
+      // Users can manage their own draft. Admins can read any document.
+      match /application/{appId} {
+        allow read, write: if request.auth.uid == userId && appId == 'draft';
+        allow get, list: if isAdmin();
       }
       
       // Users can write to their own payments subcollection. Admins can read.
