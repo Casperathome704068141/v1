@@ -148,14 +148,15 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
 
   const updateStepData = useCallback(async (step: keyof Omit<ApplicationData, 'selectedCollege'>, data: any) => {
     if (!user?.uid) return;
-    
+
     // Optimistic UI update
     setApplicationData(prevData => ({ ...prevData, [step]: data }));
 
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
       // Add updatedAt timestamp to track changes for drafts
-      await setDoc(docRef, { [step]: data, updatedAt: serverTimestamp() }, { merge: true });
+      const sanitized = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+      await setDoc(docRef, { [step]: sanitized, updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
       console.error("Error updating application step data:", error);
       // Optional: Revert state on failure by refetching or storing old state.

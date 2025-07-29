@@ -114,7 +114,9 @@ export default function BillingPage() {
     
     const totalAmount = useMemo(() => {
         const tierPrice = selectedTier?.name !== currentPlan ? selectedTier?.price || 0 : 0;
-        const addonsPrice = selectedAddons.reduce((acc, addon) => acc + addon.price, 0);
+        const addonsPrice = selectedTier?.name === 'Elite Concierge'
+            ? 0
+            : selectedAddons.reduce((acc, addon) => acc + addon.price, 0);
         return tierPrice + addonsPrice;
     }, [selectedTier, selectedAddons, currentPlan]);
     

@@ -16,6 +16,7 @@ export interface UserProfile {
     plan: string;
     contactPreference?: 'email' | 'whatsapp';
     signedUp?: any;
+    adminMessage?: string;
     admin?: boolean;
 }
 

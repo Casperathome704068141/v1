@@ -66,10 +66,9 @@ function ApplicationPageContent() {
             <aside className="lg:col-span-1">
                 <nav className="space-y-1">
                     {steps.map((step, index) => (
-                        <button 
-                          key={step.id} 
+                        <button
+                          key={step.id}
                           onClick={() => goToStep(step.id)}
-                          disabled={index > currentStepIndex}
                           className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors ${
                               currentStepId === step.id 
                                 ? 'bg-primary text-primary-foreground' 

@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 240 5% 98%;    /* Light Mode: Almost White */
+    --background: 240 5% 96%;    /* Light Mode: Soft Gray */
     --foreground: 240 10% 3.9%; /* Light Mode: Dark Charcoal Text */
 
     --card: 240 5% 100%;
