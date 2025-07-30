@@ -1,12 +1,11 @@
-rules_version = '2';
 
+rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Match any file in the 'users' directory
+    // Allow users to read, write, and delete files only within their own user-specific folder.
+    // The path segments ensure that a user can only access /users/{their-own-id}/*
     match /users/{userId}/{allPaths=**} {
-      // Users can manage their own files. Admins can read any user's files.
-      allow write: if request.auth != null && request.auth.uid == userId;
-      allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.admin == true);
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

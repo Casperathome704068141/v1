@@ -8,7 +8,6 @@ import { useAuth } from '@/context/auth-context';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
-import { ThemeToggle } from '../ui/theme-toggle';
 
 const navLinks = [
     { href: "/#how-it-works", label: "How It Works" },
@@ -48,14 +47,13 @@ export function SiteHeader() {
                   <Button asChild variant="ghost">
                      <Link href="/login">Log In</Link>
                   </Button>
-                   <Button asChild className="bg-electric-violet hover:bg-electric-violet/90 text-white">
+                   <Button asChild>
                      <Link href="/signup">Sign Up</Link>
                   </Button>
                 </div>
               )}
             </>
           )}
-          <ThemeToggle />
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
@@ -63,7 +61,7 @@ export function SiteHeader() {
                     <span className="sr-only">Toggle Menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent side="left" className="bg-card">
                 <Link href="/" className="mr-6 flex items-center space-x-2 mb-6" onClick={() => setIsOpen(false)}>
                     <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={32} height={32} />
                     <span className="font-bold">Maple Leafs Education</span>

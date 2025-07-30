@@ -32,7 +32,6 @@ import Image from 'next/image';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '../ui/skeleton';
 import { Card, CardHeader, CardContent } from '../ui/card';
-import { ThemeToggle } from '../ui/theme-toggle';
 
 function UserMenu() {
   const { signOut, user } = useAuth();
@@ -185,7 +184,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
             <SidebarTrigger className="sm:hidden" />
              <div className="flex items-center gap-2">
-                <ThemeToggle />
                 <UserMenu />
             </div>
           </header>

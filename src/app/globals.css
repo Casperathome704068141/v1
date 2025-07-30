@@ -5,77 +5,41 @@
 
 @layer base {
   :root {
-    --background: 240 5% 96%;    /* Light Mode: Soft Gray */
-    --foreground: 240 10% 3.9%; /* Light Mode: Dark Charcoal Text */
+    --background: 222 84% 4.9%; /* Dark Mode: Charcoal Black */
+    --foreground: 210 40% 98%;     /* Dark Mode: Almost White Text */
+ 
+    --card: 222 74% 9.5%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+ 
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47.4% 11.2%;
+ 
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
 
-    --card: 240 5% 100%;
-    --card-foreground: 240 10% 3.9%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
- 
-    --primary: 265 79% 51%;         /* Electric Violet */
-    --primary-foreground: 0 0% 100%;
- 
-    --secondary: 190 95% 53%;       /* Electric Teal */
-    --secondary-foreground: 240 10% 3.9%;
- 
-    --muted: 240 5% 96.1%;
-    --muted-foreground: 240 4% 46.1%;
- 
-    --accent: 265 79% 51%; /* Re-using Electric Violet for general accents */
-    --accent-foreground: 0 0% 100%;
- 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --success: 142.1 70.2% 30%;
+    --success-foreground: 0 0% 98%;
 
-    --success: 142.1 76.2% 36.3%; /* Vibrant Green */
-    --success-foreground: 0 0% 100%;
-
-    --warning: 40 92% 50%;   /* Amber */
+    --warning: 40 92% 50%;
     --warning-foreground: 240 10% 3.9%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 93%;
-    --ring: 265 79% 51%; /* Ring matches Electric Violet */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 210 40% 98%;
  
     --radius: 0.5rem;
-  }
- 
-  .dark {
-    --background: 240 10% 3.9%; /* Dark Mode: Charcoal Black */
-    --foreground: 0 0% 98%;     /* Dark Mode: Almost White Text */
- 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
- 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
- 
-    --primary: 265 79% 61%;         /* Lighter Electric Violet */
-    --primary-foreground: 0 0% 100%;
- 
-    --secondary: 190 95% 63%;       /* Lighter Electric Teal */
-    --secondary-foreground: 240 10% 3.9%;
- 
-    --muted: 240 4% 12.9%;
-    --muted-foreground: 240 5% 64.9%;
- 
-    --accent: 265 79% 61%;
-    --accent-foreground: 0 0% 100%;
- 
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142.1 70.2% 46.3%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 40 92% 60%;
-    --warning-foreground: 240 10% 3.9%;
-
-    --border: 240 4% 12.9%;
-    --input: 240 4% 15.9%;
-    --ring: 265 79% 61%;
   }
 }
  
@@ -84,40 +48,13 @@
     @apply border-border;
   }
   body {
-    @apply bg-offWhite text-deepNavy antialiased;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  .dark body {
-    @apply bg-deepNavy text-offWhite;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
-  }
-  .card {
-    @apply bg-white dark:bg-[#15204A] rounded-2xl shadow-xl p-6;
-  }
-  .btn-primary {
-    @apply bg-electricViolet text-white font-semibold py-3 px-6 rounded-full transform transition hover:scale-105 hover:shadow-2xl hover:animate-glow-pulse;
-  }
-  .btn-accent {
-    @apply bg-electricTeal text-white font-semibold py-3 px-6 rounded-full transform transition hover:scale-105;
-  }
-  .link-futuristic {
-    @apply inline-block text-electricViolet dark:text-electricTeal relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-electricViolet dark:after:bg-electricTeal after:transition after:duration-300 hover:after:w-full;
-  }
-  .loader-shimmer {
-    @apply bg-gradient-to-r from-transparent via-slateGray to-transparent bg-[length:200%_100%] animate-gradient-pan;
-  }
-  .bg-texture {
-    background-image: repeating-linear-gradient(
-      45deg,
-      rgba(0,0,0,0.05) 0,
-      rgba(0,0,0,0.05) 2px,
-      transparent 2px,
-      transparent 4px
-    );
   }
 }
