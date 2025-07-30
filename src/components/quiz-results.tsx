@@ -193,7 +193,7 @@ export function QuizResults({
             </div>
         </CardContent>
         <CardFooter className="flex-col gap-4 border-t bg-muted/30 p-8">
-            <Button onClick={handleActionPlanClick} size="lg" className="w-full text-lg py-7 bg-electric-violet hover:bg-electric-violet/90 font-bold">
+            <Button onClick={handleActionPlanClick} size="lg" className="w-full text-lg py-7 bg-electric-violet hover:bg-[#8A2BE2]/90 font-bold">
                 View Your AI-Generated Action Plan
             </Button>
             <Button onClick={handleCtaClick} size="lg" variant={resultDetails.ctaVariant} className="w-full text-lg py-7 font-bold">

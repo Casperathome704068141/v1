@@ -127,7 +127,7 @@ function CollegeMatchPageContent() {
                         <Label>Max Annual Tuition: <span className="font-semibold text-primary">{formatCurrency(maxTuition)}</span></Label>
                         <Slider defaultValue={[maxTuition]} max={100000} step={1000} onValueChange={(v) => setMaxTuition(v[0])} />
                     </div>
-                    <Button type="submit" disabled={loading || !fieldOfInterest} className="w-full md:col-span-2 lg:col-span-4 text-lg py-7 bg-electric-violet hover:bg-electric-violet/90 font-bold" size="lg">
+                    <Button type="submit" disabled={loading || !fieldOfInterest} className="w-full md:col-span-2 lg:col-span-4 text-lg py-7 bg-electric-violet hover:bg-[#8A2BE2]/90 font-bold" size="lg">
                         <WandSparkles className="mr-2 h-5 w-5" />
                         {loading ? 'Finding Best Fit...' : 'Find My College'}
                     </Button>

@@ -216,7 +216,7 @@ export function EligibilityQuizFlow() {
            <Button 
             onClick={handleNextForCheckbox}
             disabled={!answers[currentQuestion.id] || (Array.isArray(answers[currentQuestion.id]) && (answers[currentQuestion.id] as string[]).length === 0)}
-            className="bg-electric-violet hover:bg-electric-violet/90"
+            className="bg-electric-violet hover:bg-[#8A2BE2]/90"
            >
              {currentQuestionIndex === visibleQuestions.length - 1 ? 'Finish & See Results' : 'Next'} <Send className="ml-2 h-4 w-4" />
            </Button>

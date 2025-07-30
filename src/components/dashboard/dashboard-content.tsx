@@ -94,7 +94,7 @@ function MyAppointments() {
                 )}
             </CardContent>
             <CardFooter>
-                 <Button asChild variant="default" className="w-full bg-electric-violet hover:bg-electric-violet/90">
+                 <Button asChild variant="default" className="w-full bg-electric-violet hover:bg-[#8A2BE2]/90">
                     <Link href="/appointments">Manage Appointments <ArrowRight className="ml-2 h-4 w-4"/></Link>
                 </Button>
             </CardFooter>

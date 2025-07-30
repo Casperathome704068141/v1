@@ -108,7 +108,7 @@ export function CollegeCard({ college, studentProfile, filteringLogic, isMatch, 
 
             <div className="flex flex-col space-y-2 mt-4 pt-4 border-t">
                 {isMatch ? (
-                    <Button asChild className="w-full text-lg py-6 bg-electric-violet hover:bg-electric-violet/90 font-bold" variant={isSelected ? "secondary" : "default"}>
+                    <Button asChild className="w-full text-lg py-6 bg-electric-violet hover:bg-[#8A2BE2]/90 font-bold" variant={isSelected ? "secondary" : "default"}>
                         <Link href={selectionUrl}>
                             <Send className="h-4 w-4 mr-2" />
                             {isSelected ? 'Change Program' : 'Select & Continue'}

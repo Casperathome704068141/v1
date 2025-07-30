@@ -48,7 +48,7 @@ const PlanCard = ({ tier, isSelected, onSelect, billingCycle }) => (
             </div>
         </CardContent>
         <CardFooter>
-            <Button className={cn("w-full", isSelected && "bg-electric-violet hover:bg-electric-violet/90")} variant={isSelected ? 'default' : 'outline'}>
+            <Button className={cn("w-full", isSelected && "bg-electric-violet hover:bg-[#8A2BE2]/90")} variant={isSelected ? 'default' : 'outline'}>
                 {isSelected ? 'Selected' : 'Choose Plan'}
             </Button>
         </CardFooter>
@@ -163,7 +163,7 @@ export default function PricingPage() {
                                              <p className="text-2xl font-bold">${selectedTier.price[billingCycle]}</p>
                                              <p className="text-xs text-muted-foreground">Total (CAD)</p>
                                         </div>
-                                        <Button size="lg" onClick={handleCheckout} className="bg-electric-violet hover:bg-electric-violet/90">Get Started <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                                        <Button size="lg" onClick={handleCheckout} className="bg-electric-violet hover:bg-[#8A2BE2]/90">Get Started <ArrowRight className="ml-2 h-4 w-4" /></Button>
                                     </div>
                                 </CardContent>
                             </Card>

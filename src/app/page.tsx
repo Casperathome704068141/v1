@@ -70,7 +70,7 @@ export default function MarketingPage() {
                 Navigate study permit caps and find the perfect college with our AI-powered platform, guided by certified immigration consultants.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up [animation-delay:800ms]">
-                <Button asChild size="lg" className="font-semibold text-base bg-electric-violet hover:bg-electric-violet/90 text-white shadow-lg transition-transform duration-200 hover:scale-105">
+                <Button asChild size="lg" className="font-semibold text-base bg-electric-violet hover:bg-[#8A2BE2]/90 text-white shadow-lg transition-transform duration-200 hover:scale-105">
                   <Link href="/signup">Check Eligibility Free <ArrowRight className="ml-2 h-5 w-5" /></Link>
                 </Button>
                 <Button asChild size="lg" variant="ghost" className="transition-colors duration-200 hover:bg-primary/10">
@@ -171,7 +171,7 @@ export default function MarketingPage() {
                     Your Canadian education is closer than you think. Take the first step today by checking your eligibility. It's free, fast, and gives you a clear action plan.
                 </p>
                 <div className="mt-8">
-                    <Button asChild size="lg" className="font-semibold text-base w-full sm:w-auto bg-electric-violet hover:bg-electric-violet/90 text-white shadow-lg transition-transform duration-200 hover:scale-105">
+                    <Button asChild size="lg" className="font-semibold text-base w-full sm:w-auto bg-electric-violet hover:bg-[#8A2BE2]/90 text-white shadow-lg transition-transform duration-200 hover:scale-105">
                         <Link href="/signup">Get Started for Free</Link>
                     </Button>
                 </div>

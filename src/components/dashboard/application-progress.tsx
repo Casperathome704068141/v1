@@ -120,7 +120,7 @@ export function ApplicationProgress() {
                 </div>
             </CardContent>
              <CardFooter>
-                <Button asChild className="w-full text-lg py-6 bg-electric-violet hover:bg-electric-violet/90">
+                <Button asChild className="w-full text-lg py-6 bg-electric-violet hover:bg-[#8A2BE2]/90">
                     <Link href="/application">
                         {progressPercentage === 100 ? 'Review Application' : 'Continue Application'} <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
