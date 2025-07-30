@@ -12,6 +12,7 @@ import type { BackgroundFormValues } from '@/components/forms/background-form';
 import { useAuth } from './auth-context';
 import type { College } from '@/lib/college-data';
 import { db } from '@/lib/firebase';
+import { removeUndefinedFields } from '@/lib/utils';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export interface UploadedFile {
@@ -181,11 +182,15 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
 
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
-      await setDoc(docRef, {
-        selectedCollege: college,
-        studyPlan: newStudyPlanForDb!,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(
+        docRef,
+        {
+          selectedCollege: college,
+          studyPlan: removeUndefinedFields(newStudyPlanForDb!),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
     } catch (error) {
       console.error("Error updating college/program:", error);
     }
@@ -199,7 +204,13 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
 
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
-      await setDoc(docRef, { ...initialApplicationData, updatedAt: serverTimestamp() });
+      await setDoc(
+        docRef,
+        {
+          ...removeUndefinedFields(initialApplicationData),
+          updatedAt: serverTimestamp(),
+        }
+      );
     } catch (error) {
       console.error("Error resetting application data:", error);
     }
