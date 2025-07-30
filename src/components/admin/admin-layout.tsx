@@ -144,11 +144,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <SidebarHeader>
             <Link href="/admin/dashboard" className="flex items-center gap-2.5 p-4">
               <Image
-                src="/logo.svg"
-                alt="Maple Leafs Education Logo"
-                width={32}
-                height={32}
-                className="shrink-0"
+                src="/logo-full.svg"
+                alt="Maple Leafs Education"
+                width={40}
+                height={40}
+                className="shrink-0 transform transition hover:scale-110"
               />
               <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
                 <span className="text-lg font-bold text-sidebar-foreground leading-tight">

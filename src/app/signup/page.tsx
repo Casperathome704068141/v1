@@ -13,7 +13,7 @@ import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import Image from 'next/image';
-import { ArrowLeft, UserPlus } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const GoogleIcon = (props) => <svg role="img" viewBox="0 0 24 24" {...props}><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.98-4.66 1.98-3.55 0-6.43-2.91-6.43-6.48s2.88-6.48 6.43-6.48c2.05 0 3.32.83 4.1 1.62l2.5-2.5C18.16 3.73 15.66 2.53 12.48 2.53c-5.47 0-9.9 4.43-9.9 9.9s4.43 9.9 9.9 9.9c2.78 0 5.03-1.02 6.7-2.72 1.7-1.7 2.37-4.1 2.37-6.52 0-.65-.07-1.25-.16-1.82z"/></svg>;
@@ -66,8 +66,8 @@ export default function SignupPage() {
         >
             <Card className="border-border/50 shadow-xl">
                 <CardHeader className="text-center">
-                    <Link href="/" className="inline-block mx-auto mb-4">
-                        <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} />
+                    <Link href="/" className="inline-block mx-auto mb-4" aria-label="Maple Leafs Education logo">
+                        <Image src="/logo-full.svg" alt="Maple Leafs Education" width={80} height={80} />
                     </Link>
                     <CardTitle className="text-3xl font-black tracking-tighter">Create an Account</CardTitle>
                     <CardDescription className="text-lg">Begin your journey to studying in Canada.</CardDescription>
@@ -94,9 +94,9 @@ export default function SignupPage() {
                                 <Label htmlFor="password">Password</Label>
                                 <Input id="password" type="password" placeholder="••••••••" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="py-6"/>
                             </div>
-                            <Button type="submit" className="w-full font-semibold text-lg py-6 bg-electric-violet hover:bg-electric-violet/90" disabled={loading}>
-                                {loading ? 'Creating Account...' : 'Create Account'} <UserPlus className="ml-2 h-5 w-5" />
-                            </Button>
+                            <button type="submit" className="btn-primary w-full text-center mt-6" disabled={loading}>
+                                {loading ? 'Creating Account...' : 'Create Account →'}
+                            </button>
                         </form>
                     </div>
                     <div className="mt-6 text-center text-sm text-muted-foreground">

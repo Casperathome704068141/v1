@@ -100,7 +100,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Sidebar className="bg-card border-r-border/50">
             <SidebarHeader>
               <div className="flex items-center gap-3 p-4">
-                <Image src="/logo.svg" alt="MLE Logo" width={40} height={40} className="text-sidebar-foreground"/>
+                <Image
+                  src="/logo-full.svg"
+                  alt="Maple Leafs Education"
+                  width={40}
+                  height={40}
+                  className="text-sidebar-foreground transform transition hover:scale-110"
+                />
                 <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
                     <h1 className="text-lg font-bold text-sidebar-foreground leading-tight">MLE</h1>
                     <span className="text-xs text-sidebar-foreground/80 leading-tight">Maple Leafs Education</span>

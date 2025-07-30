@@ -65,8 +65,8 @@ export default function AdminLoginPage() {
         </Link>
         <div className="w-full max-w-md">
             <div className="text-center mb-6 animate-fade-in">
-                <Link href="/">
-                    <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={56} height={56} className="text-primary mx-auto"/>
+                <Link href="/" aria-label="Maple Leafs Education logo">
+                    <Image src="/logo-full.svg" alt="Maple Leafs Education" width={80} height={80} className="text-primary mx-auto"/>
                 </Link>
                 <h1 className="text-2xl font-bold mt-4">Admin Portal</h1>
                 <p className="text-muted-foreground">Please sign in with your staff credentials.</p>
