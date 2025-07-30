@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,6 +51,7 @@ export default function UserDetailPage() {
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
     const [adminMessage, setAdminMessage] = useState('');
+    const [newMessage, setNewMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
     const router = useRouter();
@@ -130,6 +131,25 @@ const handlePlanUpdate = async (newPlan: string) => {
             setIsUpdating(false);
         }
 };
+
+    const handleSendUserMessage = async () => {
+        if (!user || !newMessage.trim()) return;
+        setIsUpdating(true);
+        try {
+            await addDoc(collection(db, 'users', user.uid, 'messages'), {
+                text: newMessage,
+                sentAt: serverTimestamp(),
+                sender: 'admin'
+            });
+            setNewMessage('');
+            toast({ title: 'Message Sent' });
+        } catch (error) {
+            console.error('Error sending message:', error);
+            toast({ variant: 'destructive', title: 'Send Failed' });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     const handleMessageSave = async () => {
         if (!user) return;
@@ -234,6 +254,11 @@ const handlePlanUpdate = async (newPlan: string) => {
                                     <Label className="text-sm font-medium">Dashboard Message</Label>
                                     <Textarea value={adminMessage} onChange={(e) => setAdminMessage(e.target.value)} placeholder="Optional message for this user" />
                                     <Button size="sm" className="mt-2" onClick={handleMessageSave} disabled={isUpdating}>Save Message</Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Send New Message</Label>
+                                    <Textarea value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message to send" />
+                                    <Button size="sm" className="mt-2" onClick={handleSendUserMessage} disabled={isUpdating}>Send Message</Button>
                                 </div>
                                 <Separator/>
                                  <dl>

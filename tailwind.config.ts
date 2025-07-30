@@ -2,7 +2,7 @@
 import type {Config} from 'tailwindcss';
 
 export default {
-  darkMode: ['class'],
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -62,8 +62,13 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        'electric-violet': '#8A2BE2',
-        'electric-teal': '#20CFFD',
+        electricViolet: '#8A2BE2',
+        electricTeal: '#20CFFD',
+        neonPink: '#FF49DB',
+        cyberYellow: '#FFD300',
+        deepNavy: '#0B1D58',
+        slateGray: '#708090',
+        offWhite: '#F2F4F8',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -105,23 +110,32 @@ export default {
                 transform: 'translateY(0)'
             },
         },
+        'slide-up': {
+          '0%': { transform: 'translateY(20px)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        'glow-pulse': {
+          '0%,100%': { boxShadow: '0 0 8px #8A2BE2' },
+          '50%': { boxShadow: '0 0 20px #8A2BE2' },
+        },
+        'gradient-pan': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '100%': { backgroundPosition: '100% 50%' },
+        },
         'background-pan': {
-          '0%': {
-            'background-position': '0% 50%',
-          },
-          '50%': {
-            'background-position': '100% 50%',
-          },
-          '100%': {
-            'background-position': '0% 50%',
-          }
-        }
+          '0%': { 'background-position': '0% 50%' },
+          '50%': { 'background-position': '100% 50%' },
+          '100%': { 'background-position': '0% 50%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in': 'fade-in 0.5s ease-out forwards',
-        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+        'fade-in': 'fade-in 0.5s ease-out',
+        'fade-in-up': 'fade-in-up 0.5s ease-out',
+        'slide-up': 'slide-up 0.6s ease-out',
+        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+        'gradient-pan': 'gradient-pan 12s ease infinite',
         'background-pan': 'background-pan 15s ease-in-out infinite',
       },
     },

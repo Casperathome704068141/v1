@@ -156,7 +156,7 @@ export const ApplicationProvider = ({ children }: { children: ReactNode }) => {
     const docRef = doc(db, 'users', user.uid, 'application', 'draft');
     try {
       // Add updatedAt timestamp to track changes for drafts
-      const sanitized = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+      const sanitized = removeUndefinedFields(data);
       await setDoc(docRef, { [step]: sanitized, updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
       console.error("Error updating application step data:", error);

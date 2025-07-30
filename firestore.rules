@@ -17,9 +17,19 @@ service cloud.firestore {
 
       // Users can manage their own draft. Admins can read any document.
       match /application/{appId} {
-        // Allow users to manage their own draft and admins to read any draft.
+        // Allow users to manage their own draft and admins to read or write any draft.
         allow read: if (request.auth.uid == userId && appId == 'draft') || isAdmin();
-        allow write: if request.auth.uid == userId && appId == 'draft';
+        allow write: if (request.auth.uid == userId && appId == 'draft') || isAdmin();
+      }
+
+      // Allow users and admins to access uploaded documents
+      match /documents/{docId} {
+        allow read, write: if request.auth.uid == userId || isAdmin();
+      }
+
+      // Messages between user and admin
+      match /messages/{msgId} {
+        allow read, write: if request.auth.uid == userId || isAdmin();
       }
       
       // Users can write to their own payments subcollection. Admins can read.
