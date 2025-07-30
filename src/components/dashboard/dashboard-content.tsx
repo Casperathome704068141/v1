@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useUser } from '@/hooks/use-user';
-import { ArrowRight, BadgeHelp, CalendarCheck, History, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowRight, BadgeHelp, CalendarCheck, History, CheckCircle, XCircle, Clock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useApplication } from '@/context/application-context';
 import { useEffect, useState } from 'react';
@@ -24,6 +24,13 @@ type Appointment = {
     requestedTime: string;
     status: 'pending' | 'confirmed' | 'declined';
     rejectionReason?: string;
+};
+
+type UserMessage = {
+    id: string;
+    text: string;
+    sentAt: any;
+    sender: string;
 };
 
 type StatusHistoryItem = {
@@ -91,6 +98,41 @@ function MyAppointments() {
                     <Link href="/appointments">Manage Appointments <ArrowRight className="ml-2 h-4 w-4"/></Link>
                 </Button>
             </CardFooter>
+        </Card>
+    );
+}
+
+function MessagesPanel() {
+    const { user } = useUser();
+    const [messages, setMessages] = useState<UserMessage[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!user?.uid) { setLoading(false); return; }
+        const q = query(collection(db, 'users', user.uid, 'messages'), orderBy('sentAt', 'desc'));
+        const unsubscribe = onSnapshot(q, snap => {
+            setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() }) as UserMessage));
+            setLoading(false);
+        }, () => setLoading(false));
+        return () => unsubscribe();
+    }, [user]);
+
+    return (
+        <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg"><Mail className="h-5 w-5 text-primary" />Messages</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {loading ? <Skeleton className="h-12 w-full" /> : messages.length > 0 ? (
+                    <ul className="space-y-2 text-sm">
+                        {messages.slice(0,3).map(m => (
+                            <li key={m.id}>{m.text}</li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-muted-foreground">No messages.</p>
+                )}
+            </CardContent>
         </Card>
     );
 }
@@ -216,6 +258,7 @@ export function DashboardContent() {
           </div>
 
           <div className="space-y-8 lg:col-span-1">
+              <MessagesPanel />
               <MyAppointments />
               <EligibilityScoreCard />
           </div>
