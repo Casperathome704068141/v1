@@ -12,7 +12,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { ArrowLeft, LogIn, Briefcase } from 'lucide-react';
+import { ArrowLeft, Briefcase } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -61,8 +61,8 @@ export default function LoginPage() {
         >
             <Card className="border-border/50 shadow-xl">
                 <CardHeader className="text-center">
-                    <Link href="/" className="inline-block mx-auto mb-4">
-                        <Image src="/logo.svg" alt="Maple Leafs Education Logo" width={48} height={48} />
+                    <Link href="/" className="inline-block mx-auto mb-4" aria-label="Maple Leafs Education logo">
+                        <Image src="/logo-full.svg" alt="Maple Leafs Education" width={80} height={80} />
                     </Link>
                     <CardTitle className="text-3xl font-black tracking-tighter">Welcome Back</CardTitle>
                     <CardDescription className="text-lg">Sign in to access your student dashboard.</CardDescription>
@@ -88,9 +88,9 @@ export default function LoginPage() {
                                 </div>
                                 <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="py-6"/>
                             </div>
-                            <Button type="submit" className="w-full font-semibold text-lg py-6 bg-electric-violet hover:bg-electric-violet/90" disabled={loading}>
-                                {loading ? 'Signing in...' : 'Sign In'} <LogIn className="ml-2 h-5 w-5" />
-                            </Button>
+                            <button type="submit" className="btn-primary w-full text-center mt-6" disabled={loading}>
+                                {loading ? 'Signing in...' : 'Sign In →'}
+                            </button>
                         </form>
                     </div>
                     <div className="mt-6 text-center text-sm text-muted-foreground">
