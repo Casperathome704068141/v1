@@ -81,7 +81,7 @@ const navItems = [
   { href: '/admin/appointments', icon: Calendar, label: 'Appointments' },
   { href: '/admin/payments', icon: CreditCard, label: 'Payments' },
   { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
-  { href: '/admin/cms', icon: Newspaper, label: 'News CMS' },
+  { href: '/admin/cms', icon: Newspaper, label: 'Content Management' },
   { href: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
