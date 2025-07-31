@@ -67,3 +67,24 @@
     @apply bg-electric-violet text-white font-semibold py-3 px-4 rounded-md transition-colors hover:bg-electric-violet;
   }
 }
+@layer components {
+  .hub-card {
+    @apply bg-white dark:bg-[#15204A] rounded-2xl shadow-md p-6 transition transform hover:scale-105 animate-fade-in;
+  }
+  .hub-card-icon {
+    @apply text-electricTeal text-4xl mb-4;
+  }
+  .hub-card-title {
+    @apply text-xl font-semibold mb-2;
+  }
+  .hub-card-desc {
+    @apply text-base leading-relaxed;
+  }
+  .hub-input {
+    @apply bg-white dark:bg-[#15204A] border border-slateGray text-foreground rounded-md px-3 py-2;
+  }
+  .post-card { @apply bg-white dark:bg-[#15204A] rounded-xl shadow p-4 animate-slide-up; }
+  .post-author { @apply font-semibold text-electricViolet; }
+  .post-time   { @apply text-sm text-slateGray; }
+  .post-body   { @apply mt-2 text-base; }
+}
