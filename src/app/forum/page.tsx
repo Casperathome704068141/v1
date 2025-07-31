@@ -1,3 +1,4 @@
+
 'use client';
 import { AppLayout } from '@/components/app-layout';
 import { useEffect, useState } from 'react';
@@ -59,7 +60,6 @@ export default function ForumPage() {
             <li key={p.id} className="post-card">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={p.avatar || `https://avatar.vercel.sh/${p.author}.png`} alt={p.author} />
                   <AvatarFallback>{p.author.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>

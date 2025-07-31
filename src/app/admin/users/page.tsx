@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -145,7 +146,6 @@ export default function AdminUsersPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
-                                                        <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} alt={user.name} />
                                                         <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                                                     </Avatar>
                                                     <div>

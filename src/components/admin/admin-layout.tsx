@@ -47,7 +47,6 @@ function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user?.photoURL || `https://avatar.vercel.sh/${user?.email}.png`} alt="Admin" />
             <AvatarFallback>{user?.displayName?.charAt(0) || 'A'}</AvatarFallback>
           </Avatar>
         </Button>

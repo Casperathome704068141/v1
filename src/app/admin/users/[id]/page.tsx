@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -217,7 +218,6 @@ const handlePlanUpdate = async (newPlan: string) => {
                     </Button>
                     <div className="flex items-center gap-4">
                         <Avatar className="h-16 w-16">
-                            <AvatarImage src={`https://avatar.vercel.sh/${user.email}.png`} data-ai-hint="user avatar" />
                             <AvatarFallback>{user.name ? user.name.charAt(0) : 'U'}</AvatarFallback>
                         </Avatar>
                         <div>

@@ -4,100 +4,81 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for the admin custom claim on the user's token.
+    // Helper function to check for admin role
     function isAdmin() {
-      return request.auth.token.admin == true;
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.admin == true;
     }
 
-<<<<<<< HEAD
-    // Rules for the 'users' collection and all sub-documents.
-    match /users/{userId}/{path=**} {
-      // A user can always read and write to their own documents.
-      // An admin can read and write to any user's documents.
-      allow read, write: if request.auth.uid == userId || isAdmin();
-=======
-    // Rules for the 'users' collection
+    // Users can only read/write their own data. Admins can read/write any user data.
     match /users/{userId} {
-      // Users can create their own profile.
-      allow create: if request.auth.uid == userId;
-      // Users can read and update their own profile. Admins can read/update any user profile.
-      allow read, update: if request.auth.uid == userId || isAdmin();
+      allow read, write: if request.auth.uid == userId || isAdmin();
 
-      // Rules for subcollections within a user document
-      match /application/draft {
+      // Subcollections for users
+      match /application/{docId} {
         allow read, write: if request.auth.uid == userId || isAdmin();
-      }
-      match /documents/{docId} {
-        allow read, write: if request.auth.uid == userId || isAdmin();
-      }
-      match /messages/{messageId} {
-        // Users and Admins can create and read messages.
-        allow read, create: if request.auth.uid == userId || isAdmin();
-      }
-      match /payments/{paymentId} {
-        // Users can only read their own payment history. Admins can read anyone's.
-        allow read: if request.auth.uid == userId || isAdmin();
       }
       match /quizResults/{resultId} {
-        // Users can read/write their own quiz results. Admins can too.
         allow read, write: if request.auth.uid == userId || isAdmin();
       }
-      match /auditLogs/{logId} {
-        // Users can create audit log entries and read their own logs. Admins can read all.
-        allow read: if request.auth.uid == userId || isAdmin();
-        allow create: if request.auth.uid == userId;
+      match /notifications/{notificationId} {
+        allow read, write: if request.auth.uid == userId || isAdmin();
       }
->>>>>>> 7c30f66482da59a66d9bea758a6130ee327868cb
+      match /payments/{paymentId} {
+        allow read: if request.auth.uid == userId || isAdmin();
+        // Prevent users from creating their own payment records
+        allow create: if false;
+      }
+      match /messages/{messageId} {
+        allow read, create: if request.auth.uid == userId || isAdmin();
+      }
+      match /auditLogs/{logId} {
+        allow read, create: if request.auth.uid == userId || isAdmin();
+      }
     }
 
-    // Rules for the top-level 'applications' collection (for submitted apps).
+    // Submitted applications can be read by the user who owns it and any admin.
+    // Only admins can create, update, or delete them.
     match /applications/{appId} {
-      // A user can create their application document upon final submission.
-      // The userId on the new document must match the user's own uid.
-      allow create: if request.auth.uid == request.resource.data.userId;
-
-      // An admin can perform any action on submitted applications.
-      // A user can also read their own submitted application.
       allow read: if resource.data.userId == request.auth.uid || isAdmin();
-      allow update, delete: if isAdmin();
+      allow create, update, delete: if isAdmin();
+
+      // The status history subcollection needs to inherit read access from its parent.
+      match /statusHistory/{historyId} {
+        allow read: if get(/databases/$(database)/documents/applications/$(appId)).data.userId == request.auth.uid || isAdmin();
+        allow create, update, delete: if isAdmin();
+      }
     }
 
-    // Rules for top-level 'appointments' collection.
+    // Appointments can be created by any authenticated user.
+    // They can only be read or updated by the user who created them or an admin.
     match /appointments/{appointmentId} {
-      // Admins can list the entire collection and delete any appointment.
-      allow list, delete: if isAdmin();
-
-      // Authenticated users can create their own appointments.
-      // The `userId` field in the document must match their own UID.
-      allow create: if request.auth.uid == request.resource.data.userId;
-
-      // An individual appointment can be read or updated if the user is the owner OR is an admin.
-      allow get, update: if request.auth.uid == resource.data.userId || isAdmin();
-    }
-
-    // Rules for other admin-only or specific collections.
-    match /settings/{docId} {
-        // Any authenticated user can read settings (e.g., appointment availability).
-        allow read: if request.auth != null;
-        // Only admins can change settings.
-        allow write: if isAdmin();
-    }
-
-    match /news/{docId} {
-      allow read, write: if isAdmin();
-    }
-
-    // Rules for the 'forumPosts' collection
-    match /forumPosts/{postId} {
-      allow read: if true;
       allow create: if request.auth.uid != null;
-      allow delete, update: if request.auth.token.admin == true;
+      allow read, update, delete: if request.auth.uid == resource.data.userId || isAdmin();
+    }
+    
+    // News articles can be read by anyone, but only written by admins.
+    match /news/{newsId} {
+      allow get: if true;
+      allow list, create, update, delete: if isAdmin();
     }
 
-    // Rules for the 'learningHub' collection
+    // Forum posts can be created and read by any authenticated user.
+    // Only admins can delete posts.
+    match /forumPosts/{postId} {
+        allow read, create: if request.auth.uid != null;
+        allow update, delete: if isAdmin();
+    }
+
+    // Learning hub content can be read by anyone, but only written by admins.
     match /learningHub/{docId} {
-      allow read: if true;
-      allow write: if request.auth.token.admin == true;
+       allow get: if true;
+       allow list, create, update, delete: if isAdmin();
+    }
+
+    // General platform settings can be read by anyone, written by admin.
+    match /settings/general {
+        allow get: if true;
+        allow create, update, delete: if isAdmin();
     }
   }
 }
