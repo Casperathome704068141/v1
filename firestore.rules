@@ -9,11 +9,45 @@ service cloud.firestore {
       return request.auth.token.admin == true;
     }
 
+<<<<<<< HEAD
     // Rules for the 'users' collection and all sub-documents.
     match /users/{userId}/{path=**} {
       // A user can always read and write to their own documents.
       // An admin can read and write to any user's documents.
       allow read, write: if request.auth.uid == userId || isAdmin();
+=======
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      // Users can create their own profile.
+      allow create: if request.auth.uid == userId;
+      // Users can read and update their own profile. Admins can read/update any user profile.
+      allow read, update: if request.auth.uid == userId || isAdmin();
+
+      // Rules for subcollections within a user document
+      match /application/draft {
+        allow read, write: if request.auth.uid == userId || isAdmin();
+      }
+      match /documents/{docId} {
+        allow read, write: if request.auth.uid == userId || isAdmin();
+      }
+      match /messages/{messageId} {
+        // Users and Admins can create and read messages.
+        allow read, create: if request.auth.uid == userId || isAdmin();
+      }
+      match /payments/{paymentId} {
+        // Users can only read their own payment history. Admins can read anyone's.
+        allow read: if request.auth.uid == userId || isAdmin();
+      }
+      match /quizResults/{resultId} {
+        // Users can read/write their own quiz results. Admins can too.
+        allow read, write: if request.auth.uid == userId || isAdmin();
+      }
+      match /auditLogs/{logId} {
+        // Users can create audit log entries and read their own logs. Admins can read all.
+        allow read: if request.auth.uid == userId || isAdmin();
+        allow create: if request.auth.uid == userId;
+      }
+>>>>>>> 7c30f66482da59a66d9bea758a6130ee327868cb
     }
 
     // Rules for the top-level 'applications' collection (for submitted apps).
@@ -53,9 +87,17 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // Rules for the 'forum' collection
-    match /forum/{postId} {
-      allow read, write: if request.auth != null;
+    // Rules for the 'forumPosts' collection
+    match /forumPosts/{postId} {
+      allow read: if true;
+      allow create: if request.auth.uid != null;
+      allow delete, update: if request.auth.token.admin == true;
+    }
+
+    // Rules for the 'learningHub' collection
+    match /learningHub/{docId} {
+      allow read: if true;
+      allow write: if request.auth.token.admin == true;
     }
   }
 }

@@ -90,7 +90,7 @@ const navItems = [
   { href: '/application', icon: GraduationCap, label: 'Application' },
   { href: '/documents', icon: FileText, label: 'Documents' },
   { href: '/appointments', icon: Calendar, label: 'Appointments' },
-  { href: '/learning-hub', icon: Lightbulb, label: 'Learning Hub' },
+  { href: '/hub', icon: Lightbulb, label: 'Learning Hub' },
   { href: '/forum', icon: MessageCircle, label: 'Forum' },
   { href: '/billing', icon: CreditCard, label: 'Billing & Plan' },
   { href: '/support', icon: LifeBuoy, label: 'Support' },
