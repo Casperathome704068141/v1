@@ -26,11 +26,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, LayoutDashboard, Search, Settings, FileText, Calendar, LifeBuoy, LogOut, CreditCard, User } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Search, Settings, FileText, Calendar, LifeBuoy, LogOut, CreditCard, User, Lightbulb, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ApplicationProvider } from '@/context/application-context';
 import Image from 'next/image';
 import { LanguageToggle } from './language-toggle';
+import { NotificationsBell } from './notifications-bell';
+import BottomNav from './bottom-nav';
 
 function UserMenu() {
   const { user, signOut } = useAuth();
@@ -88,6 +90,8 @@ const navItems = [
   { href: '/application', icon: GraduationCap, label: 'Application' },
   { href: '/documents', icon: FileText, label: 'Documents' },
   { href: '/appointments', icon: Calendar, label: 'Appointments' },
+  { href: '/learning-hub', icon: Lightbulb, label: 'Learning Hub' },
+  { href: '/forum', icon: MessageCircle, label: 'Forum' },
   { href: '/billing', icon: CreditCard, label: 'Billing & Plan' },
   { href: '/support', icon: LifeBuoy, label: 'Support' },
 ];
@@ -142,10 +146,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                  <SidebarTrigger className="p-3 text-2xl hover:bg-gray-100 rounded-lg sm:hidden" />
                 <div className="flex items-center gap-2">
                     <LanguageToggle />
+                    <NotificationsBell />
                     <UserMenu />
                 </div>
               </header>
               {children}
+              <BottomNav />
             </SidebarInset>
           </ApplicationProvider>
         </div>

@@ -5,6 +5,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 import { LocaleProvider } from '@/context/locale-context';
+import { NotificationsProvider } from '@/context/notifications-context';
 import { cn } from '@/lib/utils';
 import { inter } from './fonts';
 
@@ -58,7 +59,9 @@ export default function RootLayout({
       )}>
         <AuthProvider>
           <LocaleProvider>
-            {children}
+            <NotificationsProvider>
+              {children}
+            </NotificationsProvider>
           </LocaleProvider>
         </AuthProvider>
         <Toaster />
