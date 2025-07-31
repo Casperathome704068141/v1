@@ -36,4 +36,20 @@ export const learningModules: LearningModule[] = [
       { question: 'How many hours per week can you work on a study permit?', options: ['10', '20', '40'], answer: 1 },
     ],
   },
+  {
+    id: 'healthcare-insurance',
+    title: 'Health Insurance for Students',
+    content: `Discover the healthcare coverage options available for international students in Canada, including provincial plans and private insurance.`,
+    quiz: [
+      { question: 'What document typically grants access to provincial health coverage?', options: ['Study Permit', 'Driver License', 'Work Contract'], answer: 0 },
+    ],
+  },
+  {
+    id: 'permanent-residency',
+    title: 'Pathways to Permanent Residency',
+    content: `Learn about programs like the Post-Graduation Work Permit and Express Entry that can lead to staying in Canada permanently.`,
+    quiz: [
+      { question: 'Which program lets you work after you finish studies?', options: ['Working Holiday', 'Post-Graduation Work Permit', 'Visitor Visa'], answer: 1 },
+    ],
+  },
 ];

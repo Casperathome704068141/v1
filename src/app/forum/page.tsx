@@ -1,14 +1,14 @@
 'use client';
 import { AppLayout } from '@/components/app-layout';
 import { useEffect, useState } from 'react';
-import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/auth-context';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-interface Post { id: string; author: string; content: string; timestamp: any; }
+interface Post { id: string; author: string; content: string; timestamp: any; likes?: number; }
 
 export default function ForumPage() {
   const { user } = useAuth();
@@ -29,8 +29,13 @@ export default function ForumPage() {
       author: user.displayName || user.email,
       content: newPost.trim(),
       timestamp: serverTimestamp(),
+      likes: 0,
     });
     setNewPost('');
+  };
+
+  const likePost = async (id: string) => {
+    await updateDoc(doc(db, 'forum', id), { likes: increment(1) });
   };
 
   return (
@@ -45,11 +50,17 @@ export default function ForumPage() {
           {posts.map(p => (
             <Card key={p.id}>
               <CardHeader>
-                <CardTitle className="text-sm">{p.author} <span className="text-xs text-muted-foreground">{p.timestamp?.toDate?.().toLocaleString?.()}</span></CardTitle>
+                <CardTitle className="text-sm">{p.author}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>{p.content}</p>
               </CardContent>
+              <CardFooter className="justify-between">
+                <span className="text-xs text-muted-foreground">{p.timestamp?.toDate?.().toLocaleString?.()}</span>
+                <Button variant="ghost" size="sm" onClick={() => likePost(p.id)}>
+                  👍 {p.likes ?? 0}
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>

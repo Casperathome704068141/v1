@@ -52,5 +52,10 @@ service cloud.firestore {
     match /news/{docId} {
       allow read, write: if isAdmin();
     }
+
+    // Rules for the 'forum' collection
+    match /forum/{postId} {
+      allow read, write: if request.auth != null;
+    }
   }
 }

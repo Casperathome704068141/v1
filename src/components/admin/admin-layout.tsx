@@ -128,14 +128,18 @@ function AdminPageSkeleton() {
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { loading: isAuthLoading, user } = useAuth();
+  const { loading: isAuthLoading, user, isAdmin } = useAuth();
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!isAuthLoading && !user) {
+    if (isAuthLoading) return;
+
+    if (!user) {
       router.replace('/admin/login');
+    } else if (!isAdmin) {
+      router.replace('/dashboard');
     }
-  }, [isAuthLoading, user, router]);
+  }, [isAuthLoading, user, isAdmin, router]);
 
   return (
     <SidebarProvider>
