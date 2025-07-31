@@ -13,6 +13,8 @@ import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 const getStatusInfo = (files?: UploadedFile[]) => {
@@ -54,6 +56,12 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
             newDocumentsData[docInfo.id] = currentDoc;
 
             await updateStepData('documents', newDocumentsData);
+            await addDoc(collection(db, 'users', user.uid, 'auditLogs'), {
+                action: 'upload',
+                docId: docInfo.id,
+                fileName: file.name,
+                timestamp: serverTimestamp(),
+            });
 
             toast({ title: 'File Uploaded', description: `${file.name} was successfully uploaded.` });
         } catch (error: any) {
@@ -86,6 +94,12 @@ function DocumentItem({ docInfo }: { docInfo: typeof documentList[0] }) {
                     currentDoc.status = 'Pending';
                 }
                 await updateStepData('documents', newDocumentsData);
+                await addDoc(collection(db, 'users', user.uid, 'auditLogs'), {
+                    action: 'delete',
+                    docId: docInfo.id,
+                    fileName: fileToDelete.fileName,
+                    timestamp: serverTimestamp(),
+                });
             }
             toast({ title: 'File Deleted', description: `${fileToDelete.fileName} has been deleted.` });
         } catch (error: any) {

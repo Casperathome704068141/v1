@@ -31,6 +31,11 @@ service cloud.firestore {
         // Users can read/write their own quiz results. Admins can too.
         allow read, write: if request.auth.uid == userId || isAdmin();
       }
+      match /auditLogs/{logId} {
+        // Users can create audit log entries and read their own logs. Admins can read all.
+        allow read: if request.auth.uid == userId || isAdmin();
+        allow create: if request.auth.uid == userId;
+      }
     }
     
     // Rules for the top-level 'applications' collection
