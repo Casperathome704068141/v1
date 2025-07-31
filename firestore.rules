@@ -1,79 +1,56 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check for admin custom claim
+
+    // Helper function to check for the admin custom claim on the user's token.
     function isAdmin() {
       return request.auth.token.admin == true;
     }
 
-    // Rules for the 'users' collection
-    match /users/{userId} {
-      // Users can create their own profile.
-      allow create: if request.auth.uid == userId;
-      // Users can read and update their own profile. Admins can read/update any user profile.
-      allow read, update: if request.auth.uid == userId || isAdmin();
-
-      // Rules for subcollections within a user document
-      match /application/{docId} {
-        // Users can read/write their own application draft. Admins can also read/write.
-        allow read, write: if request.auth.uid == userId || isAdmin();
-      }
-      match /messages/{messageId} {
-        // Users and Admins can create and read messages.
-        allow read, create: if request.auth.uid == userId || isAdmin();
-      }
-      match /payments/{paymentId} {
-        // Users can only read their own payment history. Admins can read anyone's.
-        allow read: if request.auth.uid == userId || isAdmin();
-      }
-      match /quizResults/{resultId} {
-        // Users can read/write their own quiz results. Admins can too.
-        allow read, write: if request.auth.uid == userId || isAdmin();
-      }
-      match /auditLogs/{logId} {
-        // Users can create audit log entries and read their own logs. Admins can read all.
-        allow read: if request.auth.uid == userId || isAdmin();
-        allow create: if request.auth.uid == userId;
-      }
+    // Rules for the 'users' collection and all sub-documents.
+    match /users/{userId}/{path=**} {
+      // A user can always read and write to their own documents.
+      // An admin can read and write to any user's documents.
+      allow read, write: if request.auth.uid == userId || isAdmin();
     }
-    
-    // Rules for the top-level 'applications' collection
+
+    // Rules for the top-level 'applications' collection (for submitted apps).
     match /applications/{appId} {
-      // Only admins can create, read, update, or delete submitted applications.
-      allow read, write: if isAdmin();
+      // A user can create their application document upon final submission.
+      // The userId on the new document must match the user's own uid.
+      allow create: if request.auth.uid == request.resource.data.userId;
 
-      // Rules for the status history subcollection
-      match /statusHistory/{historyId} {
-        // An application's owner can read its status history. Admins can also read it.
-        allow read: if isAdmin() || get(/databases/$(database)/documents/applications/$(appId)).data.userId == request.auth.uid;
-        // Only admins can write to the status history.
-        allow write: if isAdmin();
-      }
+      // An admin can perform any action on submitted applications.
+      // A user can also read their own submitted application.
+      allow read: if resource.data.userId == request.auth.uid || isAdmin();
+      allow update, delete: if isAdmin();
     }
 
-    // Rules for the 'appointments' collection
+    // Rules for top-level 'appointments' collection.
     match /appointments/{appointmentId} {
-      // Users can create their own appointments.
-      allow create: if request.resource.data.userId == request.auth.uid;
-      // Users can read/update their own appointments. Admins can read/update any appointment.
-      allow read, update: if isAdmin() || get(/databases/$(database)/documents/appointments/$(appointmentId)).data.userId == request.auth.uid;
-    }
-    
-    // Rules for the 'news' collection
-    match /news/{newsId} {
-      // Any authenticated user can read news.
-      allow read: if request.auth != null;
-      // Only admins can write news.
-      allow write: if isAdmin();
+      // Admins can list the entire collection and delete any appointment.
+      allow list, delete: if isAdmin();
+
+      // Authenticated users can create their own appointments.
+      // The `userId` field in the document must match their own UID.
+      allow create: if request.auth.uid == request.resource.data.userId;
+
+      // An individual appointment can be read or updated if the user is the owner OR is an admin.
+      allow get, update: if request.auth.uid == resource.data.userId || isAdmin();
     }
 
-    // Rules for the 'settings' collection
-    match /settings/general {
-      // Anyone can read general settings (for maintenance mode, etc.).
-      allow read: if true;
-      // Only admins can change general settings.
-      allow write: if isAdmin();
+    // Rules for other admin-only or specific collections.
+    match /settings/{docId} {
+        // Any authenticated user can read settings (e.g., appointment availability).
+        allow read: if request.auth != null;
+        // Only admins can change settings.
+        allow write: if isAdmin();
+    }
+
+    match /news/{docId} {
+      allow read, write: if isAdmin();
     }
   }
 }
