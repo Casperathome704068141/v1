@@ -2,7 +2,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Check, Circle, Loader, Milestone, X } from 'lucide-react';
+import { Check, Circle, Loader, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const journeySteps = [
     { key: 'Pending Review', label: 'Application Submitted' },
@@ -36,7 +37,13 @@ export function ApplicationJourney({ currentStatus, statusHistory }: { currentSt
                 const isActive = index === currentStepIndex;
 
                 return (
-                    <div key={step.key} className="flex items-start gap-4 pb-8 last:pb-0">
+                    <motion.div
+                        key={step.key}
+                        className="flex items-start gap-4 pb-8 last:pb-0"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
                         {index < journeySteps.length - 1 && (
                             <div className={cn(
                                 "absolute left-4 top-5 -ml-px mt-1 h-full w-0.5",
@@ -70,7 +77,7 @@ export function ApplicationJourney({ currentStatus, statusHistory }: { currentSt
                                 <p className="text-sm text-muted-foreground mt-1">{statusHistory[0].notes}</p>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
                 )
             })}
         </div>

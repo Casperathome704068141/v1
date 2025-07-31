@@ -57,4 +57,13 @@
   .text-balance {
     text-wrap: balance;
   }
+  .text-electric-violet {
+    color: theme('colors.electricViolet');
+  }
+  .bg-electric-violet {
+    background-color: theme('colors.electricViolet');
+  }
+  .btn-primary {
+    @apply bg-electric-violet text-white font-semibold py-3 px-4 rounded-md transition-colors hover:bg-electric-violet;
+  }
 }
