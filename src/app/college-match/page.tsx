@@ -13,6 +13,7 @@ import { useApplication } from '@/context/application-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { findColleges, FindCollegesOutput } from '@/ai/flows/find-colleges';
+import { suggestPrograms, SuggestProgramsOutput } from '@/ai/flows/suggest-programs';
 import type { College } from '@/lib/college-data';
 import { WandSparkles, Search, Building, School as SchoolIcon, Frown, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -66,6 +67,7 @@ function CollegeMatchPageContent() {
     const [maxTuition, setMaxTuition] = useState(applicationData.finances?.totalFunds || 50000);
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<FindCollegesOutput | null>(null);
+    const [suggestions, setSuggestions] = useState<SuggestProgramsOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -74,9 +76,13 @@ function CollegeMatchPageContent() {
         setLoading(true);
         setError(null);
         setResults(null);
+        setSuggestions(null);
         try {
             const aiResults = await findColleges({ province, maxTuition, fieldOfInterest });
             setResults(aiResults);
+            const profileSummary = JSON.stringify(applicationData);
+            const prog = await suggestPrograms({ profile: profileSummary });
+            setSuggestions(prog);
         } catch (err) {
             setError("Sorry, the AI matchmaker is currently unavailable. Please try again later.");
         } finally {
@@ -146,6 +152,27 @@ function CollegeMatchPageContent() {
                         <CollegeResults title="Top University Matches" colleges={results.universities} studentProfile={applicationData} filteringLogic={filteringLogic} searchTerm={searchTerm} icon={SchoolIcon} />
                         <CollegeResults title="Top College & Polytechnic Matches" colleges={results.colleges} studentProfile={applicationData} filteringLogic={filteringLogic} searchTerm={searchTerm} icon={Building} />
                     </div>
+                    {suggestions && (
+                        <div className="bg-muted/50 p-6 rounded-lg space-y-4">
+                            <h3 className="font-bold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary" />Additional Recommendations</h3>
+                            {suggestions.bridgingCourses.length > 0 && (
+                                <div>
+                                    <p className="font-semibold">Bridging Courses</p>
+                                    <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                        {suggestions.bridgingCourses.map(c => <li key={c}>{c}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+                            {suggestions.scholarships.length > 0 && (
+                                <div>
+                                    <p className="font-semibold">Scholarships</p>
+                                    <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                        {suggestions.scholarships.map(s => <li key={s}>{s}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </motion.div>
             )}
             {results && results.universities.length === 0 && results.colleges.length === 0 && (
