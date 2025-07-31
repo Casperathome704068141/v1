@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle, FileText, UploadCloud, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useApplication, UploadedFile, documentList } from '@/context/application-context';
-import { format } from 'date-fns';
+import { format, addYears, differenceInDays } from 'date-fns';
+import { DocumentPreviewDialog } from '@/components/document-preview-dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -54,12 +55,21 @@ const DocumentTable = ({ docs, uploadedData, title, description, icon: Icon }) =
                                     <TableCell className="text-xs text-muted-foreground">
                                         {docData?.files?.length > 0 ? (
                                             <ul className="space-y-1.5">
-                                                {docData.files.map((file: UploadedFile) => (
-                                                    <li key={file.date} className="font-mono flex items-center gap-2">
-                                                        <FileText className="h-3 w-3" />
-                                                        <span>{file.fileName} - {format(new Date(file.date), 'MMM d, yyyy')}</span>
-                                                    </li>
-                                                ))}
+                                                {docData.files.map((file: UploadedFile) => {
+                                                    const expiry = addYears(new Date(file.date), 1);
+                                                    const daysLeft = differenceInDays(expiry, new Date());
+                                                    return (
+                                                        <li key={file.date} className="font-mono flex items-center gap-2">
+                                                            <FileText className="h-3 w-3" />
+                                                            <span className="truncate max-w-[140px]" title={file.fileName}>{file.fileName}</span>
+                                                            <span className="text-muted-foreground">{format(new Date(file.date), 'MMM d, yyyy')}</span>
+                                                            <DocumentPreviewDialog file={file} />
+                                                            {daysLeft <= 30 && (
+                                                                <Badge variant="destructive">Expires Soon</Badge>
+                                                            )}
+                                                        </li>
+                                                    );
+                                                })}
                                             </ul>
                                         ) : 'N/A'}
                                     </TableCell>

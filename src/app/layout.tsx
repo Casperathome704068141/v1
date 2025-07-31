@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
+import { LocaleProvider } from '@/context/locale-context';
 import { cn } from '@/lib/utils';
 import { inter } from './fonts';
 
@@ -56,7 +57,9 @@ export default function RootLayout({
         inter.variable,
       )}>
         <AuthProvider>
+          <LocaleProvider>
             {children}
+          </LocaleProvider>
         </AuthProvider>
         <Toaster />
       </body>

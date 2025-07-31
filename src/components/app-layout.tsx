@@ -30,6 +30,7 @@ import { GraduationCap, LayoutDashboard, Search, Settings, FileText, Calendar, L
 import { useAuth } from '@/context/auth-context';
 import { ApplicationProvider } from '@/context/application-context';
 import Image from 'next/image';
+import { LanguageToggle } from './language-toggle';
 
 function UserMenu() {
   const { user, signOut } = useAuth();
@@ -140,6 +141,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
                  <SidebarTrigger className="p-3 text-2xl hover:bg-gray-100 rounded-lg sm:hidden" />
                 <div className="flex items-center gap-2">
+                    <LanguageToggle />
                     <UserMenu />
                 </div>
               </header>
