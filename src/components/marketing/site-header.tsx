@@ -11,9 +11,9 @@ import { useState } from 'react';
 
 const navLinks = [
     { href: "/#how-it-works", label: "How It Works" },
-    { href: "/#testimonials", label: "Testimonials" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/about", label: "About" },
+    { href: "/#success-stories", label: "Success Stories" },
+    { href: "/resources", label: "Resources" },
     { href: "/support", label: "Support" },
 ];
 
@@ -51,10 +51,10 @@ export function SiteHeader() {
               ) : (
                 <div className="hidden md:flex md:items-center md:space-x-2">
                   <Button asChild variant="ghost">
-                     <Link href="/login">Log In</Link>
+                     <Link href="/login">Sign In</Link>
                   </Button>
                    <Button asChild>
-                     <Link href="/signup">Sign Up</Link>
+                     <Link href="/signup">Get Started</Link>
                   </Button>
                 </div>
               )}
@@ -87,8 +87,8 @@ export function SiteHeader() {
                     {!user && !loading && (
                         <>
                             <hr className="my-2" />
-                             <Link href="/login" className="text-muted-foreground transition-colors hover:text-foreground text-lg" onClick={() => setIsOpen(false)}>Log In</Link>
-                             <Link href="/signup" className="text-muted-foreground transition-colors hover:text-foreground text-lg" onClick={() => setIsOpen(false)}>Sign Up</Link>
+                             <Link href="/login" className="text-muted-foreground transition-colors hover:text-foreground text-lg" onClick={() => setIsOpen(false)}>Sign In</Link>
+                             <Link href="/signup" className="text-muted-foreground transition-colors hover:text-foreground text-lg" onClick={() => setIsOpen(false)}>Get Started</Link>
                         </>
                     )}
                 </div>

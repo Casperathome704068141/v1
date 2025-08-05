@@ -13,12 +13,14 @@ export default {
       center: true,
       padding: '2rem',
       screens: {
-        '2xl': '1400px',
+        '2xl': '1280px',
       },
     },
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'sans-serif'],
+        heading: ['var(--font-inter-tight)', 'sans-serif'],
+        ui: ['var(--font-space-grotesk)', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -62,13 +64,13 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        electricViolet: '#8A2BE2',
-        electricTeal: '#20CFFD',
-        neonPink: '#FF49DB',
-        cyberYellow: '#FFD300',
-        deepNavy: '#0B1D58',
-        slateGray: '#708090',
-        offWhite: '#F2F4F8',
+        midnightNavy: '#0B1529',
+        carbon: '#151E2E',
+        snow: '#F8FAFC',
+        polar: '#E2E8F0',
+        mapleRed: '#E63946',
+        violetElectric: '#8E2AFF',
+        limeIce: '#3EF29D',
       },
       borderRadius: {
         lg: 'var(--radius)',
