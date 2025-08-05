@@ -7,7 +7,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { LocaleProvider } from '@/context/locale-context';
 import { NotificationsProvider } from '@/context/notifications-context';
 import { cn } from '@/lib/utils';
-import { inter, interTight, spaceGrotesk } from './fonts';
+import { anton, inter, spaceGrotesk } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Maple Leafs Education',
@@ -54,9 +54,9 @@ export default function RootLayout({
         />
       </head>
       <body className={cn(
-        "font-sans antialiased",
+        "font-body antialiased",
         inter.variable,
-        interTight.variable,
+        anton.variable,
         spaceGrotesk.variable,
       )}>
         <AuthProvider>

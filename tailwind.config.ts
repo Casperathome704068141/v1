@@ -18,8 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
-        heading: ['var(--font-inter-tight)', 'sans-serif'],
+        body: ['var(--font-inter)', 'sans-serif'],
+        display: ['var(--font-anton)', 'sans-serif'],
         ui: ['var(--font-space-grotesk)', 'sans-serif'],
       },
       colors: {
@@ -64,13 +64,14 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        midnightNavy: '#0B1529',
-        carbon: '#151E2E',
-        snow: '#F8FAFC',
-        polar: '#E2E8F0',
+        offBlack: '#0F0F0F',
+        white: '#FFFFFF',
+        techBlue: '#1A3CFF',
+        gridGray: '#C5C6D0',
         mapleRed: '#E63946',
+        signalYellow: '#FFCC00',
         violetElectric: '#8E2AFF',
-        limeIce: '#3EF29D',
+        'electric-violet': '#8E2AFF',
       },
       borderRadius: {
         lg: 'var(--radius)',
