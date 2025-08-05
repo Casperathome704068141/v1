@@ -72,6 +72,7 @@ export default {
         signalYellow: '#FFCC00',
         violetElectric: '#8E2AFF',
         'electric-violet': '#8E2AFF',
+        polar: '#F0F2F5',
       },
       borderRadius: {
         lg: 'var(--radius)',

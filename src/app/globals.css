@@ -85,6 +85,6 @@
   }
   .post-card { @apply bg-white dark:bg-card rounded-xl shadow p-4 animate-slide-up; }
   .post-author { @apply font-semibold text-violet-electric; }
-  .post-time   { @apply text-sm text-polar; }
+  .post-time   { @apply text-sm text-muted-foreground; }
   .post-body   { @apply mt-2 text-base; }
 }
