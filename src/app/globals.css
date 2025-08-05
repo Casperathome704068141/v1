@@ -5,40 +5,40 @@
 
 @layer base {
   :root {
-    --background: 222 84% 4.9%; /* Dark Mode: Charcoal Black */
-    --foreground: 210 40% 98%;     /* Dark Mode: Almost White Text */
- 
-    --card: 222 74% 9.5%;
+    --background: 220 58% 10%; /* Midnight Navy */
+    --foreground: 210 40% 98%; /* Snow */
+
+    --card: 218 37% 13%; /* Carbon */
     --card-foreground: 210 40% 98%;
- 
-    --popover: 222 84% 4.9%;
+
+    --popover: 218 37% 13%;
     --popover-foreground: 210 40% 98%;
- 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47.4% 11.2%;
- 
-    --secondary: 217.2 32.6% 17.5%;
+
+    --primary: 355 78% 56%; /* Maple Red */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 268 100% 58%; /* Violet Electric */
     --secondary-foreground: 210 40% 98%;
- 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 217.2 32.6% 17.5%;
+
+    --muted: 218 37% 13%;
+    --muted-foreground: 214 32% 91%; /* Polar */
+
+    --accent: 268 100% 58%;
     --accent-foreground: 210 40% 98%;
- 
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --success: 142.1 70.2% 30%;
-    --success-foreground: 0 0% 98%;
+    --success: 152 87% 60%; /* Lime Ice */
+    --success-foreground: 0 0% 15%;
 
     --warning: 40 92% 50%;
     --warning-foreground: 240 10% 3.9%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 210 40% 98%;
- 
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 268 100% 58%;
+
     --radius: 0.5rem;
   }
 }
@@ -57,22 +57,22 @@
   .text-balance {
     text-wrap: balance;
   }
-  .text-electric-violet {
-    color: theme('colors.electricViolet');
+  .text-violet-electric {
+    color: theme('colors.violetElectric');
   }
-  .bg-electric-violet {
-    background-color: theme('colors.electricViolet');
+  .bg-violet-electric {
+    background-color: theme('colors.violetElectric');
   }
   .btn-primary {
-    @apply bg-electric-violet text-white font-semibold py-3 px-4 rounded-md transition-colors hover:bg-electric-violet;
+    @apply bg-violet-electric text-white font-semibold py-3 px-4 rounded-md transition-colors hover:bg-violet-electric;
   }
 }
 @layer components {
   .hub-card {
-    @apply bg-white dark:bg-[#15204A] rounded-2xl shadow-md p-6 transition transform hover:scale-105 animate-fade-in;
+    @apply bg-white dark:bg-card rounded-2xl shadow-md p-6 transition transform hover:scale-105 animate-fade-in;
   }
   .hub-card-icon {
-    @apply text-electricTeal text-4xl mb-4;
+    @apply text-violet-electric text-4xl mb-4;
   }
   .hub-card-title {
     @apply text-xl font-semibold mb-2;
@@ -81,10 +81,10 @@
     @apply text-base leading-relaxed;
   }
   .hub-input {
-    @apply bg-white dark:bg-[#15204A] border border-slateGray text-foreground rounded-md px-3 py-2;
+    @apply bg-white dark:bg-card border border-border text-foreground rounded-md px-3 py-2;
   }
-  .post-card { @apply bg-white dark:bg-[#15204A] rounded-xl shadow p-4 animate-slide-up; }
-  .post-author { @apply font-semibold text-electricViolet; }
-  .post-time   { @apply text-sm text-slateGray; }
+  .post-card { @apply bg-white dark:bg-card rounded-xl shadow p-4 animate-slide-up; }
+  .post-author { @apply font-semibold text-violet-electric; }
+  .post-time   { @apply text-sm text-polar; }
   .post-body   { @apply mt-2 text-base; }
 }
