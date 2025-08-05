@@ -5,39 +5,39 @@
 
 @layer base {
   :root {
-    --background: 220 58% 10%; /* Midnight Navy */
-    --foreground: 210 40% 98%; /* Snow */
+    --background: 0 0% 6%; /* Off-Black */
+    --foreground: 0 0% 100%; /* White */
 
-    --card: 218 37% 13%; /* Carbon */
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 218 37% 13%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
 
     --primary: 355 78% 56%; /* Maple Red */
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 268 100% 58%; /* Violet Electric */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 231 100% 55%; /* Tech Blue */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 218 37% 13%;
-    --muted-foreground: 214 32% 91%; /* Polar */
+    --muted: 0 0% 20%;
+    --muted-foreground: 234 11% 79%; /* Grid Gray */
 
-    --accent: 268 100% 58%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 48 100% 50%; /* Signal Yellow */
+    --accent-foreground: 0 0% 0%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 355 78% 40%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 152 87% 60%; /* Lime Ice */
+    --success: 152 87% 60%;
     --success-foreground: 0 0% 15%;
 
-    --warning: 40 92% 50%;
+    --warning: 48 100% 50%;
     --warning-foreground: 240 10% 3.9%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 268 100% 58%;
+    --border: 234 11% 79%; /* Grid Gray */
+    --input: 234 11% 79%;
+    --ring: 231 100% 55%;
 
     --radius: 0.5rem;
   }
@@ -48,7 +48,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased font-body;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

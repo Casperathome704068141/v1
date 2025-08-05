@@ -1,10 +1,17 @@
 
-import { Inter, Inter_Tight, Space_Grotesk } from 'next/font/google';
+import { Anton, Inter, Inter_Tight, Space_Grotesk } from 'next/font/google';
 
 export const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500'],
   variable: '--font-inter',
+  display: 'swap',
+});
+
+export const anton = Anton({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-anton',
   display: 'swap',
 });
 
