@@ -26,11 +26,13 @@
     --accent: 48 100% 50%; /* Signal Yellow */
     --accent-foreground: 0 0% 0%;
 
+    --gold: 51 100% 50%;
+
     --destructive: 355 78% 40%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 87% 60%;
-    --success-foreground: 0 0% 15%;
+    --success: 231 100% 55%;
+    --success-foreground: 0 0% 100%;
 
     --warning: 48 100% 50%;
     --warning-foreground: 240 10% 3.9%;
@@ -57,14 +59,8 @@
   .text-balance {
     text-wrap: balance;
   }
-  .text-violet-electric {
-    color: theme('colors.violetElectric');
-  }
-  .bg-violet-electric {
-    background-color: theme('colors.violetElectric');
-  }
   .btn-primary {
-    @apply bg-violet-electric text-white font-semibold py-3 px-4 rounded-md transition-colors hover:bg-violet-electric;
+    @apply bg-techBlue text-white font-semibold py-3 px-4 rounded-md transition-colors hover:bg-techBlue;
   }
 }
 @layer components {
@@ -72,7 +68,7 @@
     @apply bg-white dark:bg-card rounded-2xl shadow-md p-6 transition transform hover:scale-105 animate-fade-in;
   }
   .hub-card-icon {
-    @apply text-violet-electric text-4xl mb-4;
+    @apply text-techBlue text-4xl mb-4;
   }
   .hub-card-title {
     @apply text-xl font-semibold mb-2;

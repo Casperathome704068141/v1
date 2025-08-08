@@ -73,6 +73,7 @@ export default {
         violetElectric: '#8E2AFF',
         'electric-violet': '#8E2AFF',
         polar: '#F0F2F5',
+        gold: '#FFD700',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -131,6 +132,18 @@ export default {
           '50%': { 'background-position': '100% 50%' },
           '100%': { 'background-position': '0% 50%' },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+        meteor: {
+          '0%': { transform: 'translateX(0) translateY(0)', opacity: '1' },
+          '100%': { transform: 'translateX(-100vw) translateY(50vh)', opacity: '0' },
+        },
+        pixelate: {
+          '0%': { imageRendering: 'pixelated', filter: 'blur(2px)' },
+          '100%': { imageRendering: 'auto', filter: 'blur(0)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -141,6 +154,10 @@ export default {
         'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
         'gradient-pan': 'gradient-pan 12s ease infinite',
         'background-pan': 'background-pan 15s ease-in-out infinite',
+        marquee: 'marquee 20s linear infinite',
+        'spin-slow': 'spin 20s linear infinite',
+        meteor: 'meteor 5s linear infinite',
+        pixelate: 'pixelate 1s ease-out forwards',
       },
     },
   },
