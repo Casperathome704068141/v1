@@ -4,7 +4,8 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { doc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, Timestamp, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions, auth } from '@/lib/firebase';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ export default function UserDetailPage() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [role, setRole] = useState<'user' | 'staff' | 'admin'>('user');
     const [adminMessage, setAdminMessage] = useState('');
     const [newMessage, setNewMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export default function UserDetailPage() {
                 if (userDocSnap.exists()) {
                     const data = userDocSnap.data() as UserProfile;
                     setUser(data);
+                    setRole((data as any).role || 'user');
                     setAdminMessage(data.adminMessage || '');
                 } else {
                     setError("No user found with this ID.");
@@ -131,7 +134,24 @@ const handlePlanUpdate = async (newPlan: string) => {
         } finally {
             setIsUpdating(false);
         }
-};
+    };
+
+    const handleRoleUpdate = async (newRole: 'user' | 'staff' | 'admin') => {
+        setIsUpdating(true);
+        try {
+            if (!functions) throw new Error('functions not initialized');
+            const call = httpsCallable(functions, 'setUserRole');
+            await call({ uid: id, role: newRole });
+            await auth?.currentUser?.getIdToken(true);
+            setRole(newRole);
+            toast({ title: 'Role Updated' });
+        } catch (error) {
+            console.error('Error updating role', error);
+            toast({ variant: 'destructive', title: 'Update Failed' });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     const handleSendUserMessage = async () => {
         if (!user || !newMessage.trim()) return;
@@ -235,9 +255,9 @@ const handlePlanUpdate = async (newPlan: string) => {
                                 <CardDescription>Manage user plan and details.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                               <div className="space-y-2">
-                                     <Label className="text-sm font-medium">Subscription Plan</Label>
-                                     <Select defaultValue={user.plan} onValueChange={handlePlanUpdate} disabled={isUpdating}>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Subscription Plan</Label>
+                                    <Select defaultValue={user.plan} onValueChange={handlePlanUpdate} disabled={isUpdating}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Set new plan" />
                                         </SelectTrigger>
@@ -249,6 +269,20 @@ const handlePlanUpdate = async (newPlan: string) => {
                                         </SelectContent>
                                     </Select>
                                     <p className="text-xs text-muted-foreground pt-2">Changing the plan will grant or revoke access to paid features.</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium">Role</Label>
+                                    <Select value={role} onValueChange={(r: 'user' | 'staff' | 'admin') => handleRoleUpdate(r)} disabled={isUpdating}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="user">User</SelectItem>
+                                            <SelectItem value="staff">Staff</SelectItem>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-xs text-muted-foreground pt-2">Changes require the user to sign in again.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium">Dashboard Message</Label>

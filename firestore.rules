@@ -1,79 +1,69 @@
-
 rules_version = '2';
-
 service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // Helper functions to make rules cleaner
-    function isSignedIn() {
-      return request.auth != null;
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.role == 'admin'; }
+    function isStaff() { return signedIn() && (request.auth.token.role == 'staff' || isAdmin()); }
+    function ownsApp(appId) {
+      return signedIn() &&
+        get(/databases/$(db)/documents/applications/$(appId)).data.userId == request.auth.uid;
     }
 
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // Check for admin custom claim
-    function isAdmin() {
-      return request.auth.token.admin == true;
-    }
-
-    // USER DATA
-    // Users can read and update their own profile.
-    // Admins can read and update any user profile.
-    match /users/{userId} {
-      allow read, update: if isOwner(userId) || isAdmin();
-      allow create: if isSignedIn();
-    }
-
-    // USER SUBCOLLECTIONS
-    match /users/{userId}/{subcollection}/{docId} {
-      // Users can manage their own application drafts, notifications, messages, etc.
-      allow read, write, create, delete: if isOwner(userId);
-    }
-    
-    // ADMIN-ONLY LISTS
-    // Admins need list access for the main admin tables.
-    match /applications/{applicationId} {
-      allow list: if isAdmin();
-      allow read: if isAdmin() || get(/databases/$(database)/documents/applications/$(applicationId)).data.userId == request.auth.uid;
-      allow create: if isSignedIn();
-      allow update: if isAdmin();
-      
-      // STATUS HISTORY SUBCOLLECTION
-      match /statusHistory/{historyId} {
-         allow read: if isAdmin() || get(/databases/$(database)/documents/applications/$(applicationId)).data.userId == request.auth.uid;
-         allow create, update: if isAdmin();
-      }
-    }
-    
-    match /appointments/{appointmentId} {
-        allow list: if isAdmin();
-        allow read: if isAdmin() || resource.data.userId == request.auth.uid;
-        allow create: if isOwner(resource.data.userId);
-        allow update: if isAdmin();
-    }
-
-    // PUBLIC/AUTHENTICATED-READ COLLECTIONS
-    match /news/{newsId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    
-    match /forumPosts/{postId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
+    match /users/{uid} {
+      allow read: if isAdmin() || isStaff() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid);
       allow delete: if isAdmin();
     }
 
-    match /learningHub/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+    match /applications/{appId} {
+      allow read: if isAdmin() || isStaff() || ownsApp(appId);
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() || isStaff() ||
+                    (ownsApp(appId) && request.resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+
+      match /{sub=**}/{docId} {
+        allow read, create, update, delete: if isAdmin() || isStaff() || ownsApp(appId);
+      }
     }
-    
-    match /settings/general {
+
+    match /appointments/{id} {
+      allow read: if isAdmin() || isStaff() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin() || isStaff() ||
+                            (signedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /messages/{id} {
+      allow read, create: if isAdmin() || isStaff() ||
+                          (signedIn() && (request.resource.data.userId == request.auth.uid ||
+                                          resource.data.userId == request.auth.uid));
+      allow update, delete: if isAdmin() || (signedIn() && resource.data.authorId == request.auth.uid);
+    }
+
+    match /forumPosts/{postId} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      match /replies/{replyId} {
         allow read: if true;
-        allow write: if isAdmin();
+        allow create: if signedIn();
+        allow update, delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      }
     }
+
+    match /learningModules/{moduleId} {
+      allow read: if true;
+      allow write: if isAdmin() || isStaff();
+    }
+
+    match /adminLogs/{logId} {
+      allow read, create: if isAdmin() || isStaff();
+      allow update, delete: if isAdmin();
+    }
+
+    match /{document=**} { allow read, write: if false; }
   }
 }
+
