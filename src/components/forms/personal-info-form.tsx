@@ -52,7 +52,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
   
   const defaultValues = {
     surname: '',
-    givenNames: '',
+    givenNames: user?.displayName?.split(' ').slice(1).join(' ') || '',
     gender: '',
     countryOfBirth: '',
     countryOfCitizenship: '',
@@ -101,8 +101,8 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
     <Form {...form}>
       <form id="form-profile" onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Please provide your personal details exactly as they appear on your passport.</CardDescription>
+          <CardTitle className="font-display">Personal Information</CardTitle>
+          <CardDescription className="text-slateMuted">Please provide your personal details exactly as they appear on your passport.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -170,7 +170,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                           variant={"outline"}
                           className={cn(
                             "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-slateMuted"
                           )}
                         >
                           {field.value ? (
@@ -248,7 +248,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                   <FormLabel>Country of Citizenship</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Canada" {...field} />
-                  </FormControl>
+                  FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -270,7 +270,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
 
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Passport Details</h3>
-            <hr/>
+            <hr className="border-white/10"/>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -300,7 +300,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                           variant={"outline"}
                           className={cn(
                             "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-slateMuted"
                           )}
                         >
                           {field.value ? (
@@ -342,7 +342,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                           variant={"outline"}
                           className={cn(
                             "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-slateMuted"
                           )}
                         >
                           {field.value ? (
@@ -388,7 +388,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
 
            <div className="space-y-2">
             <h3 className="text-lg font-medium">Contact Information</h3>
-            <hr/>
+            <hr className="border-white/10"/>
           </div>
            <FormField
               control={form.control}
@@ -458,3 +458,4 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
     </Form>
   );
 }
+

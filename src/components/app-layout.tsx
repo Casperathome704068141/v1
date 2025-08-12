@@ -23,15 +23,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { GraduationCap, LayoutDashboard, Search, Settings, FileText, Calendar, LifeBuoy, LogOut, CreditCard, User, Lightbulb, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ApplicationProvider } from '@/context/application-context';
 import Image from 'next/image';
-import { LanguageToggle } from './language-toggle';
 import { NotificationsBell } from './notifications-bell';
+import { NotificationsProvider } from '@/context/notifications-context';
+import { LocaleProvider } from '@/context/locale-context';
 import BottomNav from './bottom-nav';
 
 function UserMenu() {
@@ -84,36 +85,36 @@ function UserMenu() {
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/eligibility-quiz', icon: FileText, label: 'Eligibility Quiz' },
-  { href: '/college-match', icon: Search, label: 'College Match' },
   { href: '/application', icon: GraduationCap, label: 'Application' },
+  { href: '/college-match', icon: Search, label: 'College Match' },
   { href: '/documents', icon: FileText, label: 'Documents' },
   { href: '/appointments', icon: Calendar, label: 'Appointments' },
+  { href: '/messages', icon: MessageCircle, label: 'Messages' },
+  { href: '/forum', icon: LifeBuoy, label: 'Forum' },
   { href: '/hub', icon: Lightbulb, label: 'Learning Hub' },
-  { href: '/forum', icon: MessageCircle, label: 'Forum' },
   { href: '/billing', icon: CreditCard, label: 'Billing & Plan' },
-  { href: '/support', icon: LifeBuoy, label: 'Support' },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
+    <LocaleProvider>
+    <NotificationsProvider>
       <SidebarProvider>
         <div className="flex min-h-screen">
-          <Sidebar className="bg-card border-r-border/50">
+          <Sidebar className="bg-surface1 border-r-white/10 hidden md:flex">
             <SidebarHeader>
               <div className="flex items-center gap-3 p-4">
                 <Image
-                  src="/logo-full.svg"
+                  src="/logo.svg"
                   alt="Maple Leafs Education"
-                  width={40}
-                  height={40}
+                  width={32}
+                  height={32}
                   className="text-sidebar-foreground transform transition hover:scale-110"
                 />
                 <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
                     <h1 className="text-lg font-bold text-sidebar-foreground leading-tight">MLE</h1>
-                    <span className="text-xs text-sidebar-foreground/80 leading-tight">Maple Leafs Education</span>
                 </div>
               </div>
             </SidebarHeader>
@@ -124,6 +125,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <Link href={item.href} legacyBehavior passHref>
                       <SidebarMenuButton 
                         isActive={pathname.startsWith(item.href)}
+                        tooltip={{children: item.label}}
                       >
                         <item.icon />
                         <span>{item.label}</span>
@@ -135,16 +137,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarContent>
             <SidebarFooter>
               <div className="px-4 py-2 text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">
-                <p>A BENO 1017 PRODUCT. ALL RIGHTS RESERVED</p>
+                <p>&copy; 2024 MLE</p>
               </div>
             </SidebarFooter>
           </Sidebar>
           <ApplicationProvider>
             <SidebarInset>
-              <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:justify-end">
-                 <SidebarTrigger className="p-3 text-2xl hover:bg-gray-100 rounded-lg sm:hidden" />
+              <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-white/10 bg-navy/80 px-4 backdrop-blur-sm sm:justify-end">
+                 <SidebarTrigger className="p-3 text-2xl hover:bg-white/10 rounded-lg md:hidden" />
                 <div className="flex items-center gap-2">
-                    <LanguageToggle />
                     <NotificationsBell />
                     <UserMenu />
                 </div>
@@ -155,5 +156,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </ApplicationProvider>
         </div>
       </SidebarProvider>
+    </NotificationsProvider>
+    </LocaleProvider>
   );
 }

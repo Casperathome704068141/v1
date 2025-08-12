@@ -16,8 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check } from 'lucide-react';
 import { useApplication } from '@/context/application-context';
 import { cn } from '@/lib/utils';
-import { isStepCompleted } from '@/lib/utils';
-import { applicationStepsConfig } from '@/lib/application-steps-config';
+import { applicationStepsConfig, isStepCompleted } from '@/lib/application-steps-config';
 
 const forms = {
   profile: PersonalInfoForm,
@@ -61,8 +60,7 @@ export default function ApplicationPage() {
     }
   };
 
-  const CurrentForm = forms[currentStepId as keyof typeof forms];
-  const currentIsCompleted = steps[currentStepIndex].completed;
+  const CurrentForm = forms[currentStepId as keyof typeof forms] || PersonalInfoForm;
 
   return (
       <main className="flex-1 space-y-6 p-4 md:p-8">
@@ -88,7 +86,7 @@ export default function ApplicationPage() {
                               ? 'bg-surface2 text-white/80 hover:bg-surface2/80'
                               : 'text-slateMuted hover:bg-surface1',
                           )}
-                          disabled={!isCompleted && index > currentStepIndex && !steps[index-1].completed}
+                          disabled={!isCompleted && index > currentStepIndex && !steps[index-1]?.completed}
                         >
                             {isCompleted ? <Check className="h-5 w-5 text-green" /> : <ChevronRight className="h-5 w-5" />}
                             <span>{step.name}</span>
@@ -128,4 +126,3 @@ export default function ApplicationPage() {
       </main>
   );
 }
-
