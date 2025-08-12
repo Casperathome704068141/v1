@@ -3,6 +3,7 @@ import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
+import { getFunctions, type Functions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,6 +22,7 @@ let auth: Auth | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
+let functions: Functions | null = null;
 
 if (isFirebaseConfigured) {
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -28,9 +30,10 @@ if (isFirebaseConfigured) {
     googleProvider = new GoogleAuthProvider();
     db = getFirestore(app);
     storage = getStorage(app);
+    functions = getFunctions(app);
 } else {
     console.warn("Firebase configuration is missing. Please create a .env.local file with your Firebase project keys.");
 }
 
 
-export { app, auth, googleProvider, db, storage };
+export { app, auth, googleProvider, db, storage, functions };
