@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -12,10 +12,8 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { ArrowLeft, Briefcase } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const GoogleIcon = (props) => <svg role="img" viewBox="0 0 24 24" {...props}><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.98-4.66 1.98-3.55 0-6.43-2.91-6.43-6.48s2.88-6.48 6.43-6.48c2.05 0 3.32.83 4.1 1.62l2.5-2.5C18.16 3.73 15.66 2.53 12.48 2.53c-5.47 0-9.9 4.43-9.9 9.9s4.43 9.9 9.9 9.9c2.78 0 5.03-1.02 6.7-2.72 1.7-1.7 2.37-4.1 2.37-6.52 0-.65-.07-1.25-.16-1.82z"/></svg>;
 
@@ -35,87 +33,57 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error) {
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
-    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-4 relative overflow-hidden">
-        <div 
-            className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/20 to-primary/20 opacity-30 dark:opacity-50 animate-background-pan"
-            style={{
-                backgroundSize: '200% 200%',
-            }}
-        />
-        <div className="absolute inset-0 bg-background/80 dark:bg-background/90 backdrop-blur-lg"></div>
-        <Link href="/" className="absolute top-4 left-4 inline-flex items-center text-foreground/80 hover:text-foreground transition-colors z-10">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-        </Link>
+    <div className="flex min-h-screen w-full items-center justify-center p-4 bg-navy">
         <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-md z-10"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-md"
         >
-            <Card className="border-border/50 shadow-xl">
+            <Card className="bg-surface2 border-white/10 shadow-card">
                 <CardHeader className="text-center">
-                    <Link href="/" className="inline-block mx-auto mb-4" aria-label="Maple Leafs Education logo">
-                        <Image src="/logo-full.svg" alt="Maple Leafs Education" width={80} height={80} />
+                    <Link href="/" className="inline-block mx-auto mb-4">
+                        <Image src="/logo.svg" alt="Maple Leafs Education" width={48} height={48} />
                     </Link>
-                    <CardTitle className="text-3xl font-black tracking-tighter">Welcome Back</CardTitle>
-                    <CardDescription className="text-lg">Sign in to access your student dashboard.</CardDescription>
+                    <CardTitle className="font-display text-3xl">Welcome Back</CardTitle>
+                    <CardDescription className="text-slateMuted">Sign in to access your dashboard.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <Button variant="outline" className="w-full font-semibold text-lg py-6" onClick={signInWithGoogle}>
-                            <GoogleIcon className="mr-3 h-6 w-6" /> Continue with Google
-                        </Button>
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
-                        </div>
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="space-y-1">
-                                <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} className="py-6"/>
-                            </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="password">Password</Label>
-                                    <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">Forgot?</Link>
-                                </div>
-                                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="py-6"/>
-                            </div>
-                            <button type="submit" className="btn-primary w-full text-center mt-6" disabled={loading}>
-                                {loading ? 'Signing in...' : 'Sign In →'}
-                            </button>
-                        </form>
+                <CardContent className="space-y-4">
+                    <Button variant="outline" className="w-full h-12 text-base bg-white text-black hover:bg-white/90" onClick={signInWithGoogle}>
+                        <GoogleIcon className="mr-3 h-5 w-5" /> Continue with Google
+                    </Button>
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10" /></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-surface2 px-2 text-slateMuted">Or continue with</span></div>
                     </div>
-                    <div className="mt-6 text-center text-sm text-muted-foreground">
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} className="h-12 bg-surface1 border-white/10 focus:ring-yellow"/>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="password">Password</Label>
+                                <Link href="/forgot-password" className="text-sm font-medium text-blue hover:underline">Forgot?</Link>
+                            </div>
+                            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="h-12 bg-surface1 border-white/10 focus:ring-yellow"/>
+                        </div>
+                        <Button type="submit" className="w-full h-12 bg-red text-lg font-bold hover:bg-red/90" disabled={loading}>
+                            {loading ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                    </form>
+                    <div className="mt-4 text-center text-sm text-slateMuted">
                         Don't have an account?{' '}
-                        <Link href="/signup" className="font-semibold text-primary hover:underline">
+                        <Link href="/signup" className="font-semibold text-blue hover:underline">
                             Sign up now
                         </Link>
                     </div>
                 </CardContent>
-                <CardFooter className="justify-center pt-4">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" asChild>
-                                    <Link href="/admin/login" aria-label="Admin Login">
-                                        <Briefcase className="h-5 w-5 text-muted-foreground" />
-                                    </Link>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Admin Portal</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </CardFooter>
             </Card>
         </motion.div>
     </div>
