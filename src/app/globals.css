@@ -1,46 +1,41 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 220 50% 5%; /* #0B1726 - Navy */
-    --foreground: 0 0% 100%; /* #FFFFFF - White */
-
-    --card: 216 43% 9%; /* #0E1420 - Surface 1 */
-    --card-foreground: 0 0% 100%;
-
-    --popover: 220 40% 12%; /* #141C2A - Surface 2 */
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 355 78% 56%; /* #E63946 - Maple Red */
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 231 100% 55%; /* #1A3CFF - Blue */
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 220 13% 57%; /* #94A3B8 - Slate */
-    --muted-foreground: 220 13% 57%;
-
-    --accent: 48 100% 50%; /* #FFCC00 - Signal Yellow */
-    --accent-foreground: 220 50% 5%;
-
-    --destructive: 355 78% 56%; /* Maple Red */
-    --destructive-foreground: 0 0% 100%;
+    --background: 222.2 84% 4.9%; /* navy */
+    --foreground: 210 40% 98%; /* white */
     
-    --success: 158 82% 41%; /* #10B981 - Success Green */
-    --success-foreground: 0 0% 100%;
+    --card: 222.2 47.4% 11.2%; /* surface1 */
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 221.2 83.2% 53.3%; /* blue */
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 217.2 32.6% 17.5%; /* surface2 */
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%; /* slateMuted */
+    
+    --accent: 45 100% 50%; /* yellow */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    --destructive: 356 74% 56%; /* red */
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 25%;
-    --input: 220 13% 25%;
-    --ring: 48 100% 50%; /* Signal Yellow */
-
+    --success: 142.1 76.2% 36.3%; /* green */
+    --success-foreground: 210 40% 98%;
+    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 221.2 83.2% 53.3%;
+    
     --radius: 0.75rem;
-  }
-
-  .dark {
-    /* Keeping the same variables for a dark-only theme */
   }
 }
  
@@ -49,11 +44,12 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: theme('fontFamily.body');
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
+    @apply font-display;
   }
 }
 

@@ -7,8 +7,6 @@ import { admin } from '@/lib/firebaseAdmin';
 // This function should be protected by an admin check on the calling page/route.
 // A more robust solution would use a middleware or higher-order function to verify admin claims.
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 export type Payment = {
     id: string;
     amount: string;
@@ -21,6 +19,9 @@ export type Payment = {
 };
 
 export async function getPayments(): Promise<Payment[]> {
+    // FIX: Instantiate Stripe inside the function to ensure it only runs on the server.
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
     try {
         const paymentIntents = await stripe.paymentIntents.list({
             limit: 100, // Fetch up to 100 recent payments

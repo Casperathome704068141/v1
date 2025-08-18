@@ -12,11 +12,14 @@ import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from 'fire
 import { db } from '@/lib/firebase';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { ApplicationProgress } from './application-progress';
 import { ApplicationJourney } from './application-journey';
 import { Progress } from '@/components/ui/progress';
 import { WhatsNext } from './whats-next';
 import { motion } from 'framer-motion';
+
+// --- Existing Child Components (MyAppointments, MessagesPanel, etc.) ---
+// These components remain unchanged. For brevity, I'll omit their code here,
+// assuming they are defined in the same file or imported.
 
 type Appointment = {
     id: string;
@@ -66,12 +69,12 @@ function MyAppointments() {
     }, [user]);
 
     return (
-        <Card className="hover:shadow-lg transition-shadow bg-gradient-to-br from-card to-card-foreground/5">
+        <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg"><CalendarCheck className="h-5 w-5 text-primary" />My Appointments</CardTitle>
-                <CardDescription>Status of your appointment requests.</CardDescription>
+                <CardTitle className="flex items-center gap-2 text-lg"><CalendarCheck className="h-5 w-5 text-primary" />Appointments</CardTitle>
+                <CardDescription>Your upcoming meetings.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
                 {loading ? <Skeleton className="h-12 w-full" /> : myAppointments.length > 0 ? (
                     <ul className="space-y-4">
                         {myAppointments.slice(0, 2).map(appt => {
@@ -82,9 +85,6 @@ function MyAppointments() {
                                         <span className="font-semibold">{appt.requestedDate} at {appt.requestedTime}</span>
                                         <Badge variant={badge.variant} className="capitalize"><badge.icon className="h-3 w-3 mr-1"/>{badge.text}</Badge>
                                     </div>
-                                    {appt.status === 'declined' && appt.rejectionReason && (
-                                        <p className="text-xs text-destructive mt-1">Reason: {appt.rejectionReason}</p>
-                                    )}
                                 </li>
                             );
                         })}
@@ -94,7 +94,7 @@ function MyAppointments() {
                 )}
             </CardContent>
             <CardFooter>
-                 <Button asChild variant="default" className="w-full bg-electric-violet hover:bg-electric-violet/90">
+                 <Button asChild variant="default" className="w-full">
                     <Link href="/appointments">Manage Appointments <ArrowRight className="ml-2 h-4 w-4"/></Link>
                 </Button>
             </CardFooter>
@@ -118,19 +118,19 @@ function MessagesPanel() {
     }, [user]);
 
     return (
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow h-full">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg"><Mail className="h-5 w-5 text-primary" />Messages</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-lg"><Mail className="h-5 w-5 text-primary" />Recent Messages</CardTitle>
             </CardHeader>
             <CardContent>
                 {loading ? <Skeleton className="h-12 w-full" /> : messages.length > 0 ? (
                     <ul className="space-y-2 text-sm">
                         {messages.slice(0,3).map(m => (
-                            <li key={m.id}>{m.text}</li>
+                            <li key={m.id} className="truncate">{m.text}</li>
                         ))}
                     </ul>
                 ) : (
-                    <p className="text-sm text-muted-foreground">No messages.</p>
+                    <p className="text-sm text-muted-foreground">No new messages.</p>
                 )}
             </CardContent>
         </Card>
@@ -154,24 +154,24 @@ function ApplicationStatus() {
         }, () => setLoading(false));
         return () => unsubscribe;
     }, [submittedApplicationId, isLoaded]);
-
-    if (!submittedApplicationId) {
-        return <ApplicationProgress />;
-    }
+    
+    // The component now returns null if application is not submitted,
+    // as the progress is handled by the WhatsNext component.
+    if (!submittedApplicationId) return null;
 
     if (!isLoaded || loading) {
-        return <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>;
+        return <Card className="col-span-1 md:col-span-2"><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-48 w-full" /></CardContent></Card>;
     }
 
     return (
-        <Card className="bg-gradient-to-br from-card to-card-foreground/5">
+        <Card className="col-span-1 md:col-span-2 row-span-1 md:row-span-2 hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" />Your Application Journey</CardTitle>
                 <CardDescription>
                     {statusHistory.length > 0 ? `Current Status: ${statusHistory[0].status}` : 'Your application has been submitted!'}
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
                 <ApplicationJourney 
                     currentStatus={statusHistory.length > 0 ? statusHistory[0].status : 'Pending Review'} 
                     statusHistory={statusHistory} 
@@ -200,20 +200,20 @@ function EligibilityScoreCard() {
     }, [user]);
 
     return (
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg"><BadgeHelp className="h-5 w-5 text-primary" />Eligibility Score</CardTitle>
-                 <CardDescription>Your estimated Canadian education eligibility.</CardDescription>
+                 <CardDescription>Your estimated eligibility.</CardDescription>
             </CardHeader>
-            <CardContent>
-                {loadingQuiz ? <Skeleton className="h-8 w-full" /> : (
+            <CardContent className="flex-grow flex items-center">
+                {loadingQuiz ? <Skeleton className="h-12 w-full" /> : (
                     quizScore != null ? (
-                        <div className="space-y-2">
-                             <p className="text-4xl font-black">{quizScore}<span className="text-lg font-normal text-muted-foreground">/100</span></p>
+                        <div className="space-y-2 w-full">
+                             <p className="text-5xl font-black text-center">{quizScore}<span className="text-lg font-normal text-muted-foreground">/100</span></p>
                             <Progress value={quizScore} className="w-full" />
                         </div>
                     ) : (
-                        <p className="text-muted-foreground">Take the quiz to calculate your score.</p>
+                        <p className="text-muted-foreground text-center w-full">Take the quiz to find out your score.</p>
                     )
                 )}
             </CardContent>
@@ -226,43 +226,78 @@ function EligibilityScoreCard() {
     );
 }
 
+// --- Main Dashboard Content Component ---
+
 export function DashboardContent() {
   const { user, profile } = useUser();
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
+
   return (
-    <motion.main 
-        className="flex-1 space-y-8 p-4 md:p-8"
+    <main className="flex-1 space-y-8 p-4 md:p-8">
+      <motion.div 
+        className="space-y-2"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-    >
-      <div className="space-y-2">
+      >
           <h1 className="text-4xl font-black tracking-tighter">
               Welcome back, {user?.displayName?.split(' ')[0] || 'Student'}!
           </h1>
           <p className="text-lg text-muted-foreground">
-              Let's continue your journey to studying in Canada. Here's your dashboard.
+              Here's a snapshot of your journey to studying in Canada.
           </p>
-          {profile?.adminMessage && (
-            <Card className="border-l-4 border-primary bg-primary/10">
-              <CardContent className="py-2 text-sm">{profile.adminMessage}</CardContent>
-            </Card>
-          )}
-      </div>
+      </motion.div>
       
-      <WhatsNext />
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Large item taking up significant space */}
+        <motion.div variants={itemVariants} className="lg:col-span-2">
+            <WhatsNext />
+        </motion.div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-8">
-             <ApplicationStatus />
-          </div>
+        {/* Smaller item */}
+        <motion.div variants={itemVariants}>
+            <EligibilityScoreCard />
+        </motion.div>
 
-          <div className="space-y-8 lg:col-span-1">
-              <MessagesPanel />
-              <MyAppointments />
-              <EligibilityScoreCard />
-          </div>
-      </div>
-    </motion.main>
+        {/* Application status, only shows if submitted */}
+        <motion.div variants={itemVariants} className="lg:col-span-2">
+            <ApplicationStatus />
+        </motion.div>
+        
+        <motion.div variants={itemVariants}>
+            <MyAppointments />
+        </motion.div>
+        
+        <motion.div variants={itemVariants} className="lg:col-span-3">
+            <MessagesPanel />
+        </motion.div>
+
+      </motion.div>
+    </main>
   );
 }

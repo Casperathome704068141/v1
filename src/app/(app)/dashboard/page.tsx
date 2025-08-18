@@ -1,6 +1,7 @@
 
 'use client';
 
+import AppLayout from '@/components/app-layout';
 import { Suspense } from 'react';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,8 +29,10 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardContent />
-    </Suspense>
+    <AppLayout>
+        <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent />
+        </Suspense>
+    </AppLayout>
   );
 }

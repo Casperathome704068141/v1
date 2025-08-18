@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { CheckCircle, Search, FileSignature } from 'lucide-react';
 import Image from 'next/image';
+import { TestimonialMarquee } from '@/components/marketing/testimonial-marquee';
 
 const featureVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -96,6 +97,10 @@ export default function HomePage() {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      <section className="py-24">
+          <TestimonialMarquee />
       </section>
       
        <section className="py-24">

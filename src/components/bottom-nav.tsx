@@ -1,34 +1,32 @@
 
-'use client';
+"use client";
 
+import { useUser } from '@/hooks/use-user';
+import { studentMenuItems, adminMenuItems } from '@/lib/menu-items';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FileText, Search, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
-const navItems = [
-  { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/application', icon: FileText, label: 'Apply' },
-  { href: '/college-match', icon: Search, label: 'Match' },
-  { href: '/profile', icon: User, label: 'Profile' },
-];
-
-export default function BottomNav() {
+export function BottomNav() {
+  const { profile } = useUser();
   const pathname = usePathname();
+  const menuItems = profile?.role === 'admin' ? adminMenuItems.slice(0, 4) : studentMenuItems.slice(0, 4);
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-surface2 border-t border-white/10 p-2 flex justify-around md:hidden z-20">
-      {navItems.map(item => (
-        <Link 
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border p-2 flex justify-around">
+      {menuItems.map((item) => (
+        <Link
           key={item.href}
-          href={item.href} 
+          href={item.href}
           className={cn(
-            "flex flex-col items-center text-xs w-1/4 py-1 rounded-md transition-colors",
-            pathname === item.href ? 'text-blue bg-blue/10' : 'text-slateMuted'
-            )}
+            'flex flex-col items-center w-full p-2 rounded-lg transition-colors',
+            pathname === item.href
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-accent hover:text-accent-foreground'
+          )}
         >
-          <item.icon className="h-5 w-5" />
-          {item.label}
+          <item.icon className="w-6 h-6" />
+          <span className="text-xs mt-1">{item.label}</span>
         </Link>
       ))}
     </nav>

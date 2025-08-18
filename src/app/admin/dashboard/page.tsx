@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AdminLayout } from '@/components/admin/admin-layout';
+import AppLayout from '@/components/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
     ];
 
     return (
-        <AdminLayout>
+        <AppLayout>
             <div className="flex-1 space-y-8 p-4 md:p-8">
                 <Greeting />
                 
@@ -232,6 +232,6 @@ export default function AdminDashboardPage() {
                     </Card>
                 </div>
             </div>
-        </AdminLayout>
+        </AppLayout>
     );
 }

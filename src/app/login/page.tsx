@@ -17,6 +17,28 @@ import { motion } from 'framer-motion';
 
 const GoogleIcon = (props) => <svg role="img" viewBox="0 0 24 24" {...props}><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.98-4.66 1.98-3.55 0-6.43-2.91-6.43-6.48s2.88-6.48 6.43-6.48c2.05 0 3.32.83 4.1 1.62l2.5-2.5C18.16 3.73 15.66 2.53 12.48 2.53c-5.47 0-9.9 4.43-9.9 9.9s4.43 9.9 9.9 9.9c2.78 0 5.03-1.02 6.7-2.72 1.7-1.7 2.37-4.1 2.37-6.52 0-.65-.07-1.25-.16-1.82z"/></svg>;
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +51,16 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await userCredential.user.getIdToken();
+      
+      await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
       router.push('/dashboard');
     } catch (error) {
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
@@ -37,52 +68,82 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+        const user = await signInWithGoogle();
+        if (user) {
+            const idToken = await user.getIdToken();
+            await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${idToken}`,
+                },
+            });
+            router.push('/dashboard');
+        }
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Login Failed', description: 'Could not sign in with Google.' });
+        setLoading(false);
+    }
+  }
+
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-4 bg-navy">
+    <div className="flex min-h-screen w-full items-center justify-center p-4">
         <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
             className="w-full max-w-md"
         >
-            <Card className="bg-surface2 border-white/10 shadow-card">
+            <Card>
                 <CardHeader className="text-center">
-                    <Link href="/" className="inline-block mx-auto mb-4">
-                        <Image src="/logo.svg" alt="Maple Leafs Education" width={48} height={48} />
-                    </Link>
-                    <CardTitle className="font-display text-3xl">Welcome Back</CardTitle>
-                    <CardDescription className="text-slateMuted">Sign in to access your dashboard.</CardDescription>
+                    <motion.div variants={itemVariants}>
+                        <Link href="/" className="inline-block mx-auto mb-4">
+                            <Image src="/logo.svg" alt="Maple Leafs Education" width={48} height={48} />
+                        </Link>
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                        <CardTitle className="font-display text-3xl">Welcome Back</CardTitle>
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                        <CardDescription>Sign in to access your dashboard.</CardDescription>
+                    </motion.div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <Button variant="outline" className="w-full h-12 text-base bg-white text-black hover:bg-white/90" onClick={signInWithGoogle}>
-                        <GoogleIcon className="mr-3 h-5 w-5" /> Continue with Google
-                    </Button>
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10" /></div>
-                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-surface2 px-2 text-slateMuted">Or continue with</span></div>
-                    </div>
+                    <motion.div variants={itemVariants}>
+                        <Button variant="outline" className="w-full h-12 text-base" onClick={handleGoogleSignIn} disabled={loading}>
+                            <GoogleIcon className="mr-3 h-5 w-5" /> Continue with Google
+                        </Button>
+                    </motion.div>
+                    <motion.div variants={itemVariants} className="relative">
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
+                    </motion.div>
                     <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-2">
+                        <motion.div variants={itemVariants} className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} className="h-12 bg-surface1 border-white/10 focus:ring-yellow"/>
-                        </div>
-                        <div className="space-y-2">
+                            <Input id="email" type="email" placeholder="student@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} className="h-12"/>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="password">Password</Label>
-                                <Link href="/forgot-password" className="text-sm font-medium text-blue hover:underline">Forgot?</Link>
+                                <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">Forgot?</Link>
                             </div>
-                            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="h-12 bg-surface1 border-white/10 focus:ring-yellow"/>
-                        </div>
-                        <Button type="submit" className="w-full h-12 bg-red text-lg font-bold hover:bg-red/90" disabled={loading}>
-                            {loading ? 'Signing in...' : 'Sign In'}
-                        </Button>
+                            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="h-12"/>
+                        </motion.div>
+                        <motion.div variants={itemVariants}>
+                            <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={loading}>
+                                {loading ? 'Signing in...' : 'Sign In'}
+                            </Button>
+                        </motion.div>
                     </form>
-                    <div className="mt-4 text-center text-sm text-slateMuted">
+                    <motion.div variants={itemVariants} className="mt-4 text-center text-sm text-muted-foreground">
                         Don't have an account?{' '}
-                        <Link href="/signup" className="font-semibold text-blue hover:underline">
+                        <Link href="/signup" className="font-semibold text-primary hover:underline">
                             Sign up now
                         </Link>
-                    </div>
+                    </motion.div>
                 </CardContent>
             </Card>
         </motion.div>
