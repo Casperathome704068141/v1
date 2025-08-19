@@ -25,6 +25,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      'node:process': 'process/browser',
+    };
+    return config;
+  },
 };
 
 export default nextConfig;
