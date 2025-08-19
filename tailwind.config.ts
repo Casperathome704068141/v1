@@ -28,6 +28,12 @@ export default {
         yellow: '#FFCC00',
         green: '#10B981',
         black: '#0F0F0F',
+        brand: {
+          blue: '#2563eb',
+          red: '#dc2626',
+          gold: '#facc15',
+          yellow: '#fbbf24',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
