@@ -248,7 +248,7 @@ export function PersonalInfoForm({ onSave }: PersonalInfoFormProps) {
                   <FormLabel>Country of Citizenship</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Canada" {...field} />
-                  FormControl>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

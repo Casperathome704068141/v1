@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User as UserIcon, Lock, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { FormDescription } from '@/components/ui/form';
 
 const ProfileSkeleton = () => (
     <AppLayout>
