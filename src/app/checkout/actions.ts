@@ -19,6 +19,7 @@ export async function getStripePublishableKey() {
 }
 
 export async function createPaymentIntent({items, userId}: {items: CartItem[], userId: string}) {
+    // FIX: Instantiate Stripe inside the function to ensure it only runs on the server.
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
     if (!userId) {
