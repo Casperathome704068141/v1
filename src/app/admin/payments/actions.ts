@@ -2,7 +2,6 @@
 'use server';
 
 import Stripe from 'stripe';
-import { admin } from '@/lib/firebaseAdmin';
 
 // This function should be protected by an admin check on the calling page/route.
 // A more robust solution would use a middleware or higher-order function to verify admin claims.

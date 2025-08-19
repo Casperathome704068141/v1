@@ -4,8 +4,6 @@
 import Stripe from 'stripe';
 import { auth } from '@/lib/firebase';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 type CartItem = {
     name: string;
     price: number;
@@ -21,6 +19,8 @@ export async function getStripePublishableKey() {
 }
 
 export async function createPaymentIntent({items, userId}: {items: CartItem[], userId: string}) {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
     if (!userId) {
         throw new Error('User not authenticated.');
     }
