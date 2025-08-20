@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 import { cn } from '@/lib/utils';
 import { archivoBlack, inter } from './fonts';
-import { ApplicationProvider } from '@/context/application-context';
 
 export const metadata: Metadata = {
   title: 'Maple Leafs Education',
@@ -18,19 +17,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
       </head>
       <body className={cn(
-        "antialiased",
+        "font-body antialiased",
         inter.variable,
         archivoBlack.variable
       )}>
         <AuthProvider>
-          <ApplicationProvider>
-              {children}
-          </ApplicationProvider>
+            {children}
         </AuthProvider>
         <Toaster />
       </body>

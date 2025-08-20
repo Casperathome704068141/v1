@@ -27,15 +27,7 @@ const config: Config = {
         red: '#E63946',
         yellow: '#FFCC00',
         green: '#10B981',
-        offBlack: '#0F0F0F',
-        electric: {
-          violet: '#8A2BE2',
-          teal: '#00FFFF',
-        },
-        success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
-        },
+        black: '#0F0F0F',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
