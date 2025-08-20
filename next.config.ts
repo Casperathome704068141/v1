@@ -25,8 +25,25 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config) => {
-    config.externals.push('node:stream');
+  webpack: (config, { isServer }) => {
+    // Map "node:" specifiers to browser-safe shims
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'node:process': 'process/browser',
+      'node:buffer': 'buffer',
+      'node:stream': 'stream-browserify',
+      process: 'process/browser',
+      buffer: 'buffer',
+    };
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        process: require.resolve('process/browser'),
+        buffer: require.resolve('buffer/'),
+        stream: require.resolve('stream-browserify'),
+      };
+    }
     return config;
   },
 };
