@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.externals.push('node:stream');
+    return config;
+  },
 };
 
 export default nextConfig;
