@@ -1,11 +1,6 @@
 
 'use server';
 
-import Stripe from 'stripe';
-
-// This function should be protected by an admin check on the calling page/route.
-// A more robust solution would use a middleware or higher-order function to verify admin claims.
-
 export type Payment = {
     id: string;
     amount: string;
@@ -18,7 +13,8 @@ export type Payment = {
 };
 
 export async function getPayments(): Promise<Payment[]> {
-    // FIX: Instantiate Stripe inside the function to ensure it only runs on the server.
+    // Dynamically import Stripe inside the server action
+    const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
     try {
@@ -30,7 +26,7 @@ export async function getPayments(): Promise<Payment[]> {
         const successfulPayments = paymentIntents.data.filter(pi => pi.status === 'succeeded');
         
         const payments: Payment[] = successfulPayments.map(pi => {
-            const customer = pi.customer as Stripe.Customer | null;
+            const customer = pi.customer as import('stripe').Stripe.Customer | null;
             return {
                 id: pi.id,
                 amount: `$${(pi.amount / 100).toFixed(2)} CAD`,

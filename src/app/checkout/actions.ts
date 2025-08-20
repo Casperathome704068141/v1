@@ -1,8 +1,7 @@
 
 'use server';
 
-import Stripe from 'stripe';
-import { auth } from '@/lib/firebase';
+import type { User } from 'firebase/auth';
 
 type CartItem = {
     name: string;
@@ -19,7 +18,8 @@ export async function getStripePublishableKey() {
 }
 
 export async function createPaymentIntent({items, userId}: {items: CartItem[], userId: string}) {
-    // FIX: Instantiate Stripe inside the function to ensure it only runs on the server.
+    // Dynamically import Stripe inside the server action
+    const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
     if (!userId) {
@@ -36,7 +36,6 @@ export async function createPaymentIntent({items, userId}: {items: CartItem[], u
         throw new Error("Invalid order amount.");
     }
     
-    // Find the primary plan from the cart items
     const primaryPlan = items.find(item => !item.name.toLowerCase().includes("addon"));
 
     const paymentIntent = await stripe.paymentIntents.create({
