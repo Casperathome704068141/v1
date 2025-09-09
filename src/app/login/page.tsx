@@ -54,12 +54,16 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
       
-      await fetch('/api/auth/session', {
+      const response = await fetch('/api/auth/session', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to create a server session.');
+      }
 
       router.push('/dashboard');
     } catch (error) {
@@ -74,15 +78,17 @@ export default function LoginPage() {
         const user = await signInWithGoogle();
         if (user) {
             const idToken = await user.getIdToken();
-            await fetch('/api/auth/session', {
+            const response = await fetch('/api/auth/session', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${idToken}`,
                 },
             });
+             if (!response.ok) {
+                throw new Error('Google sign-in succeeded but failed to create a server session.');
+            }
             router.push('/dashboard');
         } else {
-             // This case handles when the user closes the popup.
             setLoading(false);
         }
     } catch (error) {
