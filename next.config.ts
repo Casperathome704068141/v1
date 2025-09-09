@@ -53,6 +53,7 @@ const nextConfig: NextConfig = {
         child_process: false,
       };
     }
+
     return config;
   },
 };
