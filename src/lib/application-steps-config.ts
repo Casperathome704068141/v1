@@ -1,6 +1,8 @@
 
-import { UserCheck, FileText, Send, CheckCircle, Circle, Check, Languages, HandCoins, School, Users, ShieldQuestion } from 'lucide-react';
-import { useApplication, documentList } from '@/context/application-context';
+import { UserCheck, FileText, Send, Languages, HandCoins, School, Users, ShieldQuestion } from 'lucide-react';
+import type { ApplicationData } from '@/context/application-context';
+import { documentList } from '@/lib/college-data';
+
 
 export const applicationStepsConfig = [
     { id: 'profile', name: 'Personal Info', icon: UserCheck },
@@ -13,10 +15,10 @@ export const applicationStepsConfig = [
     { id: 'documents', name: 'Documents', icon: FileText },
 ];
 
-export const isStepCompleted = (stepId: string, applicationData: any) => {
-    if (!applicationData || !applicationData[stepId]) return false;
+export const isStepCompleted = (stepId: string, applicationData: Partial<ApplicationData>) => {
+    if (!applicationData || !applicationData[stepId as keyof typeof applicationData]) return false;
     
-    const data = applicationData[stepId];
+    const data = applicationData[stepId as keyof typeof applicationData] as any;
 
     if (typeof data === 'object' && data !== null && Object.keys(data).length === 0) {
         return false;
@@ -38,7 +40,8 @@ export const isStepCompleted = (stepId: string, applicationData: any) => {
         case 'background':
             return data.certification === true;
         case 'documents':
-            const requiredDocs = documentList.filter(d => d.category === 'Core');
+            const requiredDocs = (documentList || []).filter(d => d.category === 'Core');
+            if (requiredDocs.length === 0) return true;
             return requiredDocs.every(doc => applicationData.documents?.[doc.id]?.files?.length > 0);
         default:
             return false;

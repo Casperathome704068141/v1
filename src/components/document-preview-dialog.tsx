@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { useState } from "react";
 import type { UploadedFile } from "@/context/application-context";
-import { useLocale } from "@/context/locale-context";
 
 export function DocumentPreviewDialog({ file }: { file: UploadedFile }) {
   const [copied, setCopied] = useState(false);
-  const { t } = useLocale();
+
   const handleCopy = () => {
     navigator.clipboard.writeText(file.url).then(() => {
       setCopied(true);
@@ -23,14 +22,14 @@ export function DocumentPreviewDialog({ file }: { file: UploadedFile }) {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm">
-          {t('preview')}
+          Preview
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-screen-md">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-medium text-sm truncate mr-2">{file.fileName}</h3>
           <Button variant="outline" size="sm" onClick={handleCopy} className="shrink-0">
-            <Copy className="h-3 w-3 mr-1" />{copied ? t('copied') : t('copyLink')}
+            <Copy className="h-3 w-3 mr-1" />{copied ? 'Copied!' : 'Copy Link'}
           </Button>
         </div>
         {isPDF ? (
