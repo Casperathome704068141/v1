@@ -1,8 +1,8 @@
-export const runtime = 'nodejs'
+export const runtime = 'nodejs'; // Force Node.js runtime, not edge.
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from '@/lib/firebaseAdmin';
+import { adminAuth } from '@/lib/firebaseAdmin';
 
 export async function POST(request: NextRequest) {
   const authorization = request.headers.get('Authorization');
@@ -11,13 +11,13 @@ export async function POST(request: NextRequest) {
     const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
 
     try {
-      const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+      const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
       const options = {
         name: 'session',
         value: sessionCookie,
         maxAge: expiresIn,
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
       };
 
       const response = NextResponse.json({ success: true }, { status: 200 });
