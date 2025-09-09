@@ -18,6 +18,7 @@ export interface UserProfile {
     signedUp?: any;
     adminMessage?: string;
     admin?: boolean;
+    role?: 'admin' | 'staff' | 'user';
 }
 
 interface AuthContextType {
@@ -26,13 +27,13 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const authRoutes = ['/login', '/signup', '/forgot-password', '/admin/login'];
-const publicRoutes = ['/', '/about', '/privacy', '/terms', '/pricing', '/support'];
+const publicRoutes = ['/', '/about', '/privacy', '/terms', '/pricing', '/support', '/contact', '/how-it-works', '/testimonials', '/showcase'];
 
 
 async function createUserDocument(user: User) {
@@ -48,6 +49,7 @@ async function createUserDocument(user: User) {
             email: user.email,
             signedUp: serverTimestamp(),
             plan: 'Free',
+            role: 'user',
             contactPreference: 'email',
         });
     } catch (error) {
@@ -75,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         if (currentUser) {
             const idTokenResult = await currentUser.getIdTokenResult();
-            const userIsAdmin = !!idTokenResult.claims.admin;
+            const userIsAdmin = !!idTokenResult.claims.admin || !!idTokenResult.claims.role;
             setIsAdmin(userIsAdmin);
 
             setUser(currentUser);
@@ -154,36 +156,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const signInWithGoogle = async () => {
-    if (!auth || !googleProvider) return;
+    if (!auth || !googleProvider) return null;
     try {
-      setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       await createUserDocument(result.user);
+      return result.user;
     } catch (error: any) {
+      // Don't show toast for user-cancelled popups
+      if (error.code !== 'auth/popup-closed-by-user') {
+          toast({
+            variant: 'destructive',
+            title: 'Google Sign-In Failed',
+            description: error.message,
+          });
+      }
       console.error("Error signing in with Google: ", error);
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description: error.message,
-      });
-      setLoading(false);
+      return null;
     }
   }
   
-  if (loading && pathname.startsWith('/admin')) {
-      return null;
-  }
-
-  const isPublicOrAuthRoute = publicRoutes.includes(pathname) || authRoutes.includes(pathname);
-  if (loading && !isPublicOrAuthRoute) {
+  if (loading && !publicRoutes.includes(pathname) && !authRoutes.includes(pathname)) {
      return (
-        <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex h-screen w-full items-center justify-center bg-surface1">
             <div className="flex flex-col items-center space-y-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                </div>
+                <Image src="/logo.svg" alt="Loading" width={64} height={64} className="animate-pulse" />
+                <p className="text-slateMuted">Loading Your Dashboard...</p>
             </div>
         </div>
      );
