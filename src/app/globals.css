@@ -57,4 +57,233 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+}
+
+@layer components {
+  .pl {
+    display: block;
+    width: 9.375rem;
+    height: 9.375rem;
+  }
+
+  .pl__arrows,
+  .pl__ring-rotate,
+  .pl__ring-stroke,
+  .pl__tick {
+    animation-duration: 2s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .pl__arrows {
+    animation-name: arrows42;
+    transform: rotate(45deg);
+    transform-origin: 16px 52px;
+  }
+
+  .pl__ring-rotate,
+  .pl__ring-stroke {
+    transform-origin: 80px 80px;
+  }
+
+  .pl__ring-rotate {
+    animation-name: ringRotate42;
+  }
+
+  .pl__ring-stroke {
+    animation-name: ringStroke42;
+    transform: rotate(-45deg);
+  }
+
+  .pl__tick {
+    animation-name: tick42;
+  }
+
+  .depth-card {
+    width: 100%;
+    max-width: 22rem;
+    padding: 0.5rem;
+    perspective: 1100px;
+  }
+
+  .depth-card__inner {
+    position: relative;
+    width: 100%;
+    transform-style: preserve-3d;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(
+        135deg,
+        rgba(24, 36, 84, 0.15) 18.75%,
+        rgba(24, 36, 84, 0.65) 0 31.25%,
+        rgba(24, 36, 84, 0.1) 0
+      ),
+      repeating-linear-gradient(
+        45deg,
+        rgba(46, 54, 117, 0.35) -6.25%,
+        rgba(46, 54, 117, 0.35) 6.25%,
+        rgba(17, 24, 59, 0.55) 0 18.75%
+      );
+    background-size: 60px 60px;
+    background-position: 0 0, 0 0;
+    box-shadow: rgba(15, 25, 80, 0.45) 0px 35px 45px -20px;
+    transition: transform 0.6s ease, background-position 0.6s ease,
+      box-shadow 0.6s ease;
+  }
+
+  .depth-card__inner:hover {
+    background-position: -120px 120px, -120px 120px;
+    transform: rotate3d(0.55, 1, 0, 18deg) translateY(-6px);
+    box-shadow: rgba(10, 20, 66, 0.6) 0px 45px 60px -25px;
+  }
+
+  .depth-card__content {
+    position: relative;
+    height: 100%;
+    padding: 3.5rem 1.75rem 1.75rem 1.75rem;
+    background: linear-gradient(
+      160deg,
+      rgba(26, 60, 255, 0.8) 0%,
+      rgba(26, 60, 255, 0.55) 45%,
+      rgba(22, 24, 55, 0.85) 100%
+    );
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+    border-radius: 1.25rem 4rem 1.25rem 1.25rem;
+  }
+
+  .depth-card__inner:hover .depth-card__content {
+    transform: translate3d(0, 0, 35px);
+  }
+
+  .depth-card__title {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    transform: translate3d(0, 0, 45px);
+    transition: transform 0.6s ease;
+  }
+
+  .depth-card__inner:hover .depth-card__title {
+    transform: translate3d(0, 0, 65px);
+  }
+
+  .depth-card__body {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.6;
+    transform: translate3d(0, 0, 30px);
+    transition: transform 0.6s ease;
+  }
+
+  .depth-card__inner:hover .depth-card__body {
+    transform: translate3d(0, 0, 55px);
+  }
+
+  .depth-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(229, 245, 255, 0.92);
+    background: rgba(255, 255, 255, 0.14);
+    padding: 0.6rem 0.85rem;
+    border-radius: 9999px;
+    transform: translate3d(0, 0, 25px);
+    transition: transform 0.6s ease, background 0.3s ease, color 0.3s ease;
+  }
+
+  .depth-card__inner:hover .depth-card__cta {
+    transform: translate3d(0, 0, 55px);
+    background: rgba(255, 255, 255, 0.22);
+    color: white;
+  }
+
+  .depth-card__marker {
+    position: absolute;
+    top: 1.75rem;
+    right: 1.75rem;
+    width: 3.75rem;
+    height: 3.75rem;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 1.15rem;
+    padding: 0.75rem;
+    box-shadow: rgba(15, 25, 80, 0.3) 0 20px 30px -15px;
+    transform: translate3d(0, 0, 70px);
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+
+  .depth-card__marker-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(148, 163, 184, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+
+  .depth-card__marker-value {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: white;
+  }
+}
+
+@keyframes arrows42 {
+  from {
+    transform: rotate(45deg);
+  }
+
+  to {
+    transform: rotate(405deg);
+  }
+}
+
+@keyframes ringRotate42 {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(720deg);
+  }
+}
+
+@keyframes ringStroke42 {
+  from,
+  to {
+    stroke-dashoffset: 452;
+    transform: rotate(-45deg);
+  }
+
+  50% {
+    stroke-dashoffset: 169.5;
+    transform: rotate(-180deg);
+  }
+}
+
+@keyframes tick42 {
+  from,
+  3%,
+  47%,
+  to {
+    stroke-dashoffset: -12;
+  }
+
+  14%,
+  36% {
+    stroke-dashoffset: 0;
+  }
 }
